@@ -1,0 +1,6 @@
+numpy
+jax
+blackjax
+inference_gym
+matplotlib
+pandas
