@@ -43,9 +43,17 @@ for i, (sampler, model) in enumerate(itertools.product(samplers, models)):
 df = pd.DataFrame(results)
 ```
 
+```csv
+,Sampler,Model,Grad evaluations to low error (avg)
+0,nuts,Gaussian,2453.9636
+1,nuts,Banana,inf
+2,unadjusted_microcanonical,Gaussian,246.0
+3,unadjusted_microcanonical,Banana,12736.0
+```
+
 (See examples/demo.py for the complete example, with imports)
 
-Here, the statistic of interest is how many gradient calls it takes (of the log density of the model) to permanently decrease bias below $0.01$, where bias means $(E_{\mathit{sampler}}[x^2]-E[x^2])^2/Var[x^2]$, and $E_{\mathit{sampler}}$ is the empirical estimate of the expectation.
+Here, the statistic of interest is how many gradient calls it takes (of the log density of the model) to permanently decrease bias below $0.01$, where bias means $\frac{(E_{\mathit{sampler}}[x^2]-E[x^2])^2}{Var[x^2]}$, and $E_{\mathit{sampler}}$ is the empirical estimate of the expectation.
 
 Since not all inference gym models have a known expectation $E[x^2]$, blackjax-benchmarks re-exports a subset which do (src/models).
 
