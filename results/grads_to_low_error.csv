@@ -1,0 +1,5 @@
+,Sampler,Model,Grad evaluations to low error (avg)
+0,nuts,Gaussian,2453.9636
+1,nuts,Banana,inf
+2,unadjusted_microcanonical,Gaussian,246.0
+3,unadjusted_microcanonical,Banana,12736.0
