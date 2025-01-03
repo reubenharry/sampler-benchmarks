@@ -61,10 +61,12 @@ Since not all inference gym models have a known expectation $E[x^2]$, blackjax-b
 
 <!-- Since gradient calls are the main computational expense of the sampler, and since $E[x^2]$ is a non-trivial statistic of a distribution, this metric is a good proxy for how long (in wallclock time) it takes a sampler to get good results on a given model.  -->
 
-# Features
+# Results
 
-- Expectations are (by default) calculated online, so that samples can be discarded as they are generated. This is useful for high dimensional long chains, where it is not feasible to store all samples in memory.
+See [here](./results/grads_to_low_error.csv) folder for the results.
 
-- Grid search: under construction
+As the package is developed, the goal is to expand the set of models and samplers. **Anyone is welcome to contribute either a sampler or a new model!**
 
-- Benchmark runs
+# Installation
+
+Currently the package is not on PyPI, so you will need to clone the repository and install it locally.
