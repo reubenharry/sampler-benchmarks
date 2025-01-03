@@ -17,6 +17,7 @@ from jax.flatten_util import ravel_pytree
 from blackjax.diagnostics import effective_sample_size
 from src.util import *
 
+
 def da_adaptation(
     rng_key: PRNGKey,
     initial_position,

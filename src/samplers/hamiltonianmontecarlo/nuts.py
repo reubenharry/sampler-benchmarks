@@ -20,10 +20,6 @@ from src.samplers.general import with_only_statistics
 from src.util import *
 
 
-
-
-
-
 def nuts(
     integrator_type="velocity_verlet",
     preconditioning=True,
@@ -67,8 +63,6 @@ def nuts(
 
         fast_key, slow_key = jax.random.split(rng_key, 2)
 
-        
-
         if return_samples:
             (expectations, info) = run_inference_algorithm(
                 rng_key=slow_key,
@@ -83,12 +77,12 @@ def nuts(
 
         else:
             results = with_only_statistics(
-            model,
-            alg,
-            state,
-            fast_key,
-            num_steps,
-            incremental_value_transform=incremental_value_transform,
+                model,
+                alg,
+                state,
+                fast_key,
+                num_steps,
+                incremental_value_transform=incremental_value_transform,
             )
             expectations, info = results[0], results[1]
 
@@ -113,8 +107,6 @@ def nuts(
         #     )
         #     / num_steps,
         # )
-            
-        
 
         return (
             expectations,
@@ -129,6 +121,3 @@ def nuts(
         )
 
     return s
-
-
-

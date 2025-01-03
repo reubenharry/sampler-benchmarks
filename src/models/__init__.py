@@ -3,6 +3,6 @@ from src.models.standardgaussian import Gaussian
 
 
 models = {
-    "Gaussian" : Gaussian(ndims=100),
-    "Banana" : banana(),
-    }
+    "Gaussian_10D": Gaussian(ndims=10),
+    "Banana": banana(),
+}

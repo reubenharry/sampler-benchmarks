@@ -10,9 +10,9 @@ The purpose of this package is to run **[Blackjax sampling algorithms](https://b
 
 ```python
 samples, metadata = samplers['nuts'](return_samples=True)(
-        model=gym.targets.Banana(), 
+        model=gym.targets.Banana(),
         num_steps=1000,
-        initial_position=jnp.ones(2), 
+        initial_position=jnp.ones(2),
         key=jax.random.PRNGKey(0))
 ```
 
@@ -30,8 +30,8 @@ This package provides `evaluate_sampler`, which can be used as follows:
 ```python
 for i, (sampler, model) in enumerate(itertools.product(samplers, models)):
 
-    err_t_mean_max, grads_to_low_max, err_t_mean_avg, grads_to_low_avg, expectation = evaluate_sampler(sampler=samplers[sampler](),model=models[model], num_steps=10000, batch_size=2, key=key)
-    
+    err_t_mean_max, grads_to_low_max, err_t_mean_avg, grads_to_low_avg, expectation = evaluate_sampler(sampler=samplers[sampler](),model=models[model], num_steps=50000, batch_size=32, key=key)
+
     # Append the results to the list
     results.append({
         'Sampler': sampler,
@@ -43,13 +43,15 @@ for i, (sampler, model) in enumerate(itertools.product(samplers, models)):
 df = pd.DataFrame(results)
 ```
 
-```csv
-,Sampler,Model,Grad evaluations to low error (avg)
-0,nuts,Gaussian,2453.9636
-1,nuts,Banana,inf
-2,unadjusted_microcanonical,Gaussian,246.0
-3,unadjusted_microcanonical,Banana,12736.0
-```
+
+||Sampler                  |Model   |Grad evals to low error|
+|------|-------------------------|--------|-----------------------------------|
+|0     |nuts                     |Gaussian_10D|1419.2861                          |
+|1     |nuts                     |Banana  |84265.58                           |
+|2     |unadjusted_microcanonical|Gaussian_10D|266.0                              |
+|3     |unadjusted_microcanonical|Banana  |5092.0                             |
+
+
 
 (See examples/demo.py for the complete example, with imports)
 

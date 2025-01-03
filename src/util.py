@@ -1,4 +1,3 @@
-
 from blackjax.mcmc.integrators import (
     generate_euclidean_integrator,
     generate_isokinetic_integrator,
@@ -11,6 +10,7 @@ from blackjax.mcmc.integrators import (
     isokinetic_yoshida,
     isokinetic_omelyan,
 )
+
 
 def calls_per_integrator_step(c):
     if c == "velocity_verlet":

@@ -3,6 +3,7 @@
 import jax
 import jax.numpy as jnp
 
+
 def get_num_latents(target):
     return target.ndims
 
@@ -27,7 +28,7 @@ def grads_to_low_error(err_t, grad_evals_per_step=1, low_error=0.01):
     b^2 = 1/neff"""
 
     cutoff_reached = err_t[-1] < low_error
-    crossing =  find_crossing(err_t, low_error) * grad_evals_per_step
+    crossing = find_crossing(err_t, low_error) * grad_evals_per_step
     return crossing, cutoff_reached
 
 
@@ -38,7 +39,7 @@ def calculate_ess(err_t, grad_evals_per_step, num_tuning_steps, neff=100):
     )
     # print("grads_to_low", grads_to_low.shape)
 
-    full_grads_to_low = grads_to_low 
+    full_grads_to_low = grads_to_low
     # + num_tuning_steps * grad_evals_per_step
 
     return (
@@ -59,36 +60,53 @@ def find_crossing(array, cutoff):
 
     return jnp.max(indices) + 1
 
-def evaluate_sampler(sampler, model, num_steps, batch_size, key):
+
+def evaluate_sampler(sampler, model, num_steps, batch_size, key, pvmap=jax.vmap):
 
     try:
-        model.sample_transformations['square'].ground_truth_mean, model.sample_transformations['square'].ground_truth_standard_deviation
+        model.sample_transformations[
+            "square"
+        ].ground_truth_mean, model.sample_transformations[
+            "square"
+        ].ground_truth_standard_deviation
     except:
         raise AttributeError("Model must have E_x2 and Var_x2 attributes")
-    
-    pvmap = jax.vmap
 
     key, init_key = jax.random.split(key, 2)
     keys = jax.random.split(key, batch_size)
 
-    expectation, metadata = pvmap(lambda pos, key: sampler(
-        model=model, 
-        num_steps=num_steps,
-        initial_position=pos,
-        key=key))(jnp.ones((batch_size, model.ndims,)), keys)
-    
+    expectation, metadata = pvmap(
+        lambda pos, key: sampler(
+            model=model, num_steps=num_steps, initial_position=pos, key=key
+        )
+    )(
+        jnp.ones(
+            (
+                batch_size,
+                model.ndims,
+            )
+        ),
+        keys,
+    )
+
     err_t_mean_avg = jnp.median(expectation[:, :, 0], axis=0)
     esses_avg, grads_to_low_avg, _ = calculate_ess(
-    err_t_mean_avg, 
-    grad_evals_per_step=metadata["num_grads_per_proposal"].mean(),
-    num_tuning_steps=metadata["num_tuning_steps"].mean()
+        err_t_mean_avg,
+        grad_evals_per_step=metadata["num_grads_per_proposal"].mean(),
+        num_tuning_steps=metadata["num_tuning_steps"].mean(),
     )
 
     err_t_mean_max = jnp.median(expectation[:, :, 1], axis=0)
     esses_max, grads_to_low_max, _ = calculate_ess(
-    err_t_mean_max, 
-    grad_evals_per_step=metadata["num_grads_per_proposal"].mean(),
-    num_tuning_steps=metadata["num_tuning_steps"].mean()
+        err_t_mean_max,
+        grad_evals_per_step=metadata["num_grads_per_proposal"].mean(),
+        num_tuning_steps=metadata["num_tuning_steps"].mean(),
     )
 
-    return err_t_mean_max, grads_to_low_max, err_t_mean_avg, grads_to_low_avg, expectation
+    return (
+        err_t_mean_max,
+        grads_to_low_max,
+        err_t_mean_avg,
+        grads_to_low_avg,
+        expectation,
+    )

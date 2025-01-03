@@ -19,7 +19,6 @@ from src.nuts_tuning import da_adaptation
 from src.util import *
 
 
-
 # produce a kernel that only stores the average values of the bias for E[x_2] and Var[x_2]
 def with_only_statistics(
     model, alg, initial_state, key, num_steps, incremental_value_transform=None
@@ -30,20 +29,23 @@ def with_only_statistics(
             [
                 jnp.average(
                     jnp.square(
-                        x[0]
-                        - model.sample_transformations["square"].ground_truth_mean
+                        x[0] - model.sample_transformations["square"].ground_truth_mean
                     )
-                    / (model.sample_transformations["square"].ground_truth_standard_deviation**2)
+                    / (
+                        model.sample_transformations[
+                            "square"
+                        ].ground_truth_standard_deviation
+                        ** 2
+                    )
                 ),
-                
                 jnp.max(
                     jnp.square(
-                        x[0]
-                        - model.sample_transformations["square"].ground_truth_mean
+                        x[0] - model.sample_transformations["square"].ground_truth_mean
                     )
                     / model.sample_transformations[
                         "square"
-                    ].ground_truth_standard_deviation**2
+                    ].ground_truth_standard_deviation
+                    ** 2
                 ),
             ]
         )
