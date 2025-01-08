@@ -1,7 +1,8 @@
 import os
 import jax
 
-os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(128)
+os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(32)
+
 num_cores = jax.local_device_count()
 import itertools
 import sys

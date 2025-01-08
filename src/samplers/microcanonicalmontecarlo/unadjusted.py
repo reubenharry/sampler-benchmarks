@@ -24,7 +24,7 @@ from blackjax.util import pytree_size, store_only_expectation_values
 from blackjax.adaptation.step_size import (
     dual_averaging_adaptation,
 )
-from blackjax.mcmc.adjusted_mclmc import rescale
+
 from jax.flatten_util import ravel_pytree
 
 from blackjax.diagnostics import effective_sample_size

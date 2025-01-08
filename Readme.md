@@ -30,7 +30,10 @@ This package provides `evaluate_sampler`, which can be used as follows:
 ```python
 for i, (sampler, model) in enumerate(itertools.product(samplers, models)):
 
-    err_t_mean_max, grads_to_low_max, err_t_mean_avg, grads_to_low_avg, expectation = evaluate_sampler(sampler=samplers[sampler](),model=models[model], num_steps=50000, batch_size=32, key=key)
+    err_t_mean_max, grads_to_low_max, err_t_mean_avg, grads_to_low_avg, _ = evaluate_sampler(
+        sampler=samplers[sampler](),model=models[model], 
+        num_steps=50000, 
+        batch_size=32, key=key)
 
     # Append the results to the list
     results.append({
