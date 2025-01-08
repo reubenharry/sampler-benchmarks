@@ -22,15 +22,17 @@ samples, metadata = samplers['nuts'](return_samples=True)(
 
 (See examples/demo.ipynb for the complete example with imports)
 
-## Measuring Sampler Efficiency
+## Evaluating samplers
 
-This package provides `evaluate_sampler`, which can be used as follows:
+There is a range of ways to measure how efficient a sampler is, and the eventual goal is to provide a wide but standard set of such diagnostics.
+
+Currently, this package provides `sampler_grads_to_low_error`, which can be used as follows:
 
 
 ```python
 for i, (sampler, model) in enumerate(itertools.product(samplers, models)):
 
-    err_t_mean_max, grads_to_low_max, err_t_mean_avg, grads_to_low_avg, _ = evaluate_sampler(
+    err_t_mean_max, grads_to_low_max, err_t_mean_avg, grads_to_low_avg, _ = sampler_grads_to_low_error(
         sampler=samplers[sampler](),model=models[model], 
         num_steps=50000, 
         batch_size=32, key=key)
@@ -66,7 +68,7 @@ Since not all inference gym models have a known expectation $E[x^2]$, blackjax-b
 
 # Results
 
-See [here](./results/grads_to_low_error.csv) folder for the results.
+See [here](./results/grads_to_low_error.csv) for the results.
 
 As the package is developed, the goal is to expand the set of models, samplers and statistics. **Anyone is welcome to contribute a new sampler, model or statistic!**
 

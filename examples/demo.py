@@ -11,7 +11,7 @@ sys.path.append("..")
 sys.path.append(".")
 from src.samplers import samplers
 from src.models import models
-from src.ess import evaluate_sampler
+from src.ess import sampler_grads_to_low_error
 import pandas as pd
 
 key = jax.random.PRNGKey(1)
@@ -29,7 +29,7 @@ for i, (sampler, model) in enumerate(itertools.product(samplers, models)):
         err_t_mean_avg,
         grads_to_low_avg,
         expectation,
-    ) = evaluate_sampler(
+    ) = sampler_grads_to_low_error(
         sampler=samplers[sampler](),
         model=models[model],
         num_steps=10000,

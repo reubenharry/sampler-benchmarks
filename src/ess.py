@@ -61,7 +61,7 @@ def find_crossing(array, cutoff):
     return jnp.max(indices) + 1
 
 
-def evaluate_sampler(sampler, model, num_steps, batch_size, key, pvmap=jax.vmap):
+def sampler_grads_to_low_error(sampler, model, num_steps, batch_size, key, pvmap=jax.vmap):
 
     try:
         model.sample_transformations[
