@@ -68,7 +68,7 @@ Since not all inference gym models have a known expectation $E[x^2]$, blackjax-b
 
 See [here](./results/grads_to_low_error.csv) folder for the results.
 
-As the package is developed, the goal is to expand the set of models and samplers. **Anyone is welcome to contribute either a sampler or a new model!**
+As the package is developed, the goal is to expand the set of models, samplers and statistics. **Anyone is welcome to contribute a new sampler, model or statistic!**
 
 # Installation
 

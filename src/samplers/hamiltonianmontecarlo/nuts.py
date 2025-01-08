@@ -86,27 +86,6 @@ def nuts(
             )
             expectations, info = results[0], results[1]
 
-        # ess_corr = jax.lax.cond(
-        #     not return_ess_corr,
-        #     lambda: jnp.inf,
-        #     lambda: jnp.mean(
-        #         effective_sample_size(
-        #             jax.vmap(lambda x: ravel_pytree(x)[0])(
-        #                 run_inference_algorithm(
-        #                     rng_key=slow_key,
-        #                     initial_state=state,
-        #                     inference_algorithm=alg,
-        #                     num_steps=num_steps,
-        #                     transform=lambda state, _: (
-        #                         model.sample_transformations["square"](state.position)
-        #                     ),  # TODO: transform?
-        #                     progress_bar=False,
-        #                 )[1]
-        #             )[None, ...]
-        #         )
-        #     )
-        #     / num_steps,
-        # )
 
         return (
             expectations,

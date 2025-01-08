@@ -1,7 +1,7 @@
 import os
 import jax
 
-os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(32)
+os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(128)
 
 num_cores = jax.local_device_count()
 import itertools
@@ -14,7 +14,7 @@ from src.models import models
 from src.ess import evaluate_sampler
 import pandas as pd
 
-key = jax.random.PRNGKey(0)
+key = jax.random.PRNGKey(1)
 results = []
 
 for i, (sampler, model) in enumerate(itertools.product(samplers, models)):
@@ -32,8 +32,8 @@ for i, (sampler, model) in enumerate(itertools.product(samplers, models)):
     ) = evaluate_sampler(
         sampler=samplers[sampler](),
         model=models[model],
-        num_steps=50000,
-        batch_size=32,
+        num_steps=10000,
+        batch_size=128,
         key=key,
         pvmap=jax.pmap
     )

@@ -67,5 +67,5 @@ def with_only_statistics(
         inference_algorithm=memory_efficient_sampling_alg,
         num_steps=num_steps,
         transform=transform,
-        progress_bar=False,
+        progress_bar=True,
     )[1]

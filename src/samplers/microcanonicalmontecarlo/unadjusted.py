@@ -4,20 +4,6 @@ import jax
 import jax.numpy as jnp
 import blackjax
 from blackjax.adaptation.mclmc_adaptation import MCLMCAdaptationState
-
-# from blackjax.adaptation.window_adaptation import da_adaptation
-from blackjax.mcmc.integrators import (
-    generate_euclidean_integrator,
-    generate_isokinetic_integrator,
-    mclachlan,
-    yoshida,
-    velocity_verlet,
-    omelyan,
-    isokinetic_mclachlan,
-    isokinetic_velocity_verlet,
-    isokinetic_yoshida,
-    isokinetic_omelyan,
-)
 from blackjax.util import run_inference_algorithm
 import blackjax
 from blackjax.util import pytree_size, store_only_expectation_values
@@ -72,15 +58,6 @@ def unadjusted_mclmc_no_tuning(
             )
             expectations, info = results[0], results[1]
 
-        # expectations = with_only_statistics(model, alg, initial_state, fast_key, num_steps)[0]
-
-        # ess_corr = jax.lax.cond(not return_ess_corr, lambda: jnp.inf, lambda: jnp.mean(effective_sample_size(jax.vmap(lambda x: ravel_pytree(x)[0])(run_inference_algorithm(
-        #     rng_key=slow_key,
-        #     initial_state=initial_state,
-        #     inference_algorithm=alg,
-        #     num_steps=num_steps,
-        #     transform=lambda state, _: (model.default_event_space_bijector(state.position)),
-        #     progress_bar=False)[1])[None, ...]))/num_steps)
 
         return (
             expectations,
@@ -95,16 +72,6 @@ def unadjusted_mclmc_no_tuning(
             },
         )
 
-        # return (
-        #     MCLMCAdaptationState(L=L, step_size=step_size, sqrt_diag_cov=sqrt_diag_cov),
-        #     calls_per_integrator_step(integrator_type),
-        #     1.0,
-        #     expectations,
-        #     ess_corr,
-        #     num_tuning_steps
-        # )
-
-        # ess_corr = 0
 
     return s
 
