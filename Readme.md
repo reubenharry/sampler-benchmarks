@@ -49,10 +49,10 @@ df = pd.DataFrame(results)
 
 ||Sampler                  |Model   |Grad evals to low error|
 |------|-------------------------|--------|-----------------------------------|
-|0     |nuts                     |Gaussian_10D|1419.2861                          |
-|1     |nuts                     |Banana  |84265.58                           |
-|2     |unadjusted_microcanonical|Gaussian_10D|266.0                              |
-|3     |unadjusted_microcanonical|Banana  |5092.0                             |
+|0     |nuts                     |Gaussian_10D|1343.6971                        |
+|1     |nuts                     |Banana  |45878.4                           |
+|2     |unadjusted_microcanonical|Gaussian_10D|242.0                              |
+|3     |unadjusted_microcanonical|Banana  |7648.0                             |
 
 
 
