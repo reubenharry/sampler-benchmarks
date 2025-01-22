@@ -2,7 +2,9 @@
 
 The purpose of this package is to run **[Blackjax sampling algorithms](https://blackjax-devs.github.io/blackjax/)** on models from **[Inference Gym](https://github.com/tensorflow/probability/blob/main/spinoffs/inference_gym/notebooks/inference_gym_tutorial.ipynb)**, and to collect statistics measuring effective sample size.
 
-**It is currently under development**
+This package also serves to demonstrate best practices for running samplers (tuning schemes, preconditioning, choice of integrator, etc.).
+
+**It is currently under development**, which is to say that more models and samplers are forthcoming, and the API may change.
 
 # Usage
 
@@ -26,49 +28,33 @@ samples, metadata = samplers['nuts'](return_samples=True)(
 
 There is a range of ways to measure how efficient a sampler is, and the eventual goal is to provide a wide but standard set of such diagnostics.
 
-Currently, this package provides `sampler_grads_to_low_error`, which can be used as follows:
-
+For example, we can track the statistics $\frac{(E_{\mathit{sampler}}[x^2]-E[x^2])^2}{Var[x^2]}$ and $\frac{(E_{\mathit{sampler}}[x]-E[x])^2}{Var[x]}$, where $E_{\mathit{sampler}}$ is the empirical estimate of the expectation. We can then count how many steps of the kernel (and in particular for gradient based samplers, how many gradient calls), it takes for these statistics to drop below a threshold (by default $0.01$). In code:
 
 ```python
-for i, (sampler, model) in enumerate(itertools.product(samplers, models)):
-
-    err_t_mean_max, grads_to_low_max, err_t_mean_avg, grads_to_low_avg, _ = sampler_grads_to_low_error(
-        sampler=samplers[sampler](),model=models[model], 
-        num_steps=50000, 
-        batch_size=32, key=key)
-
-    # Append the results to the list
-    results.append({
-        'Sampler': sampler,
-        'Model': model,
-        'Grad evaluations to low error (avg)': grads_to_low_avg
-    })
-
-# Create the DataFrame
-df = pd.DataFrame(results)
+(
+    stats,
+    squared_errors,
+) = sampler_grads_to_low_error(
+    sampler=nuts(),
+    model=Gaussian(ndims=10),
+    num_steps=1000,
+    batch_size=10,
+    key=key,
+    pvmap=jax.pmap
+)
 ```
 
+Then `stats['avg_over_parameters']['square']['grads_to_low_error']` is the number of steps it took for the squared error of $x^2$ (averaged across dimensions) to drop below the threshold, for a 10-dimensional Gaussian and the No-U-Turn Hamiltonian Monte Carlo (NUTS HMC) sampler.
 
-||Sampler                  |Model   |Grad evals to low error|
-|------|-------------------------|--------|-----------------------------------|
-|0     |nuts                     |Gaussian_10D|1343.6971                        |
-|1     |nuts                     |Banana  |45878.4                           |
-|2     |unadjusted_microcanonical|Gaussian_10D|242.0                              |
-|3     |unadjusted_microcanonical|Banana  |7648.0                             |
+Since not all inference gym models have a known expectation $E[x^2]$, blackjax-benchmarks calculates these numerically when unknown, using a long run of NUTS HMC. This code is found in `./src/models/data/estimate_expectations.py`.
 
-
-
-(See examples/demo.py for the complete example, with imports)
-
-Here, the statistic of interest is how many gradient calls it takes (of the log density of the model) to permanently decrease bias below $0.01$, where bias means $\frac{(E_{\mathit{sampler}}[x^2]-E[x^2])^2}{Var[x^2]}$, and $E_{\mathit{sampler}}$ is the empirical estimate of the expectation.
-
-Since not all inference gym models have a known expectation $E[x^2]$, blackjax-benchmarks re-exports a subset which do (src/models).
+Meanwhile, see `./samplers/__init__.py` for a list of available samplers (everything here can simply be run out of the box - the tuning scheme and hyperparameters have all been chosen).
 
 <!-- Since gradient calls are the main computational expense of the sampler, and since $E[x^2]$ is a non-trivial statistic of a distribution, this metric is a good proxy for how long (in wallclock time) it takes a sampler to get good results on a given model.  -->
 
 # Results
 
-See [here](./results/grads_to_low_error.csv) for the results.
+See [here](./results/) for the evaluation of each sampler on each model, which can be reproduced with `./results/run_benchmarks.py`.
 
 As the package is developed, the goal is to expand the set of models, samplers and statistics. **Anyone is welcome to contribute a new sampler, model or statistic!**
 

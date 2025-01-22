@@ -15,7 +15,7 @@ from blackjax.adaptation.step_size import (
 from jax.flatten_util import ravel_pytree
 
 from blackjax.diagnostics import effective_sample_size
-from src.nuts_tuning import da_adaptation
+from src.samplers.hamiltonianmontecarlo.nuts_tuning import da_adaptation
 from src.samplers.general import with_only_statistics
 from src.util import *
 
@@ -26,10 +26,9 @@ def nuts(
     return_ess_corr=False,
     return_samples=False,
     incremental_value_transform=None,
+    num_tuning_steps=500,
 ):
     def s(model, num_steps, initial_position, key):
-        # num_tuning_steps = num_steps // 5
-        num_tuning_steps = 2000
 
         integrator = map_integrator_type_to_integrator["hmc"][integrator_type]
 
@@ -50,7 +49,7 @@ def nuts(
             warmup = blackjax.window_adaptation(
                 blackjax.nuts, model.unnormalized_log_prob, integrator=integrator
             )
-            (state, params), _ = warmup.run(
+            (state, params), adaptation_info = warmup.run(
                 warmup_key, initial_position, num_tuning_steps
             )
 
@@ -77,25 +76,28 @@ def nuts(
 
         else:
             results = with_only_statistics(
-                model,
-                alg,
-                state,
-                fast_key,
-                num_steps,
+                model=model,
+                alg=alg,
+                initial_state=state,
+                rng_key=fast_key,
+                num_steps=num_steps,
                 incremental_value_transform=incremental_value_transform,
             )
             expectations, info = results[0], results[1]
 
+        assert adaptation_info.info.num_integration_steps.shape[0] == num_tuning_steps
 
         return (
             expectations,
             {
-                "params": params,
+                "L": params["step_size"] * info.num_integration_steps.mean(),
+                "step_size": params["step_size"],
                 "num_grads_per_proposal": info.num_integration_steps.mean()
                 * calls_per_integrator_step(integrator_type),
                 "acc_rate": info.acceptance_rate.mean(),
-                "ess_corr": 0.0,
-                "num_tuning_steps": num_tuning_steps,
+                "num_tuning_grads": adaptation_info.info.num_integration_steps.sum()
+                * calls_per_integrator_step(integrator_type),
+                "num_grads_per_proposal": info.num_integration_steps.mean(),
             },
         )
 

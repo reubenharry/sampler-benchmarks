@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
+0,unadjusted_microcanonical,Gaussian_10D,inf,True,x2,1000.0,2.6660966873168945,3.4098753929138184
+1,unadjusted_microcanonical,Gaussian_10D,inf,False,x2,1000.0,2.6660966873168945,3.4098753929138184
+2,unadjusted_microcanonical,Gaussian_10D,inf,True,x,1000.0,2.6660966873168945,3.4098753929138184
+3,unadjusted_microcanonical,Gaussian_10D,inf,False,x,1000.0,2.6660966873168945,3.4098753929138184

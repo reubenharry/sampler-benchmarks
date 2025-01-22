@@ -55,7 +55,9 @@ class Gaussian(model.Model):
                 fn=lambda params: params,
                 pretty_name="Identity",
                 ground_truth_mean=np.zeros(ndims),
-                ground_truth_standard_deviation=np.sqrt(np.diag(covariance)),
+                ground_truth_standard_deviation=np.sqrt(
+                    np.diag(covariance)
+                ),  # todo: fix
             ),
             "square": model.Model.SampleTransformation(
                 fn=lambda params: params**2,
@@ -71,7 +73,7 @@ class Gaussian(model.Model):
             default_event_space_bijector=tfb.Identity(),
             event_shape=gaussian.event_shape,
             dtype=gaussian.dtype,
-            name=name+'_'+str(self.ndims),
+            name=name + "_" + str(self.ndims),
             pretty_name=pretty_name,
             sample_transformations=sample_transformations,
         )

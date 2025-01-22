@@ -32,15 +32,13 @@ def grads_to_low_error(err_t, grad_evals_per_step=1, low_error=0.01):
     return crossing, cutoff_reached
 
 
-def calculate_ess(err_t, grad_evals_per_step, num_tuning_steps, neff=100):
+def calculate_ess(err_t, grad_evals_per_step, neff=100):
 
     grads_to_low, cutoff_reached = grads_to_low_error(
         err_t, grad_evals_per_step, 1.0 / neff
     )
-    # print("grads_to_low", grads_to_low.shape)
 
     full_grads_to_low = grads_to_low
-    # + num_tuning_steps * grad_evals_per_step
 
     return (
         (neff / full_grads_to_low) * cutoff_reached,
@@ -61,7 +59,9 @@ def find_crossing(array, cutoff):
     return jnp.max(indices) + 1
 
 
-def sampler_grads_to_low_error(sampler, model, num_steps, batch_size, key, pvmap=jax.vmap):
+def sampler_grads_to_low_error(
+    sampler, model, num_steps, batch_size, key, pvmap=jax.vmap
+):
 
     try:
         model.sample_transformations[
@@ -75,7 +75,7 @@ def sampler_grads_to_low_error(sampler, model, num_steps, batch_size, key, pvmap
     key, init_key = jax.random.split(key, 2)
     keys = jax.random.split(key, batch_size)
 
-    expectation, metadata = pvmap(
+    squared_errors, metadata = pvmap(
         lambda pos, key: sampler(
             model=model, num_steps=num_steps, initial_position=pos, key=key
         )
@@ -89,24 +89,55 @@ def sampler_grads_to_low_error(sampler, model, num_steps, batch_size, key, pvmap
         keys,
     )
 
-    err_t_mean_avg = jnp.median(expectation[:, :, 0], axis=0)
-    esses_avg, grads_to_low_avg, _ = calculate_ess(
-        err_t_mean_avg,
+    err_t_avg_x2 = jnp.median(squared_errors[:, :, 0], axis=0)
+    _, grads_to_low_avg_x2, _ = calculate_ess(
+        err_t_avg_x2,
         grad_evals_per_step=metadata["num_grads_per_proposal"].mean(),
-        num_tuning_steps=metadata["num_tuning_steps"].mean(),
     )
 
-    err_t_mean_max = jnp.median(expectation[:, :, 1], axis=0)
-    esses_max, grads_to_low_max, _ = calculate_ess(
-        err_t_mean_max,
+    err_t_max_x2 = jnp.median(squared_errors[:, :, 1], axis=0)
+    _, grads_to_low_max_x2, _ = calculate_ess(
+        err_t_max_x2,
         grad_evals_per_step=metadata["num_grads_per_proposal"].mean(),
-        num_tuning_steps=metadata["num_tuning_steps"].mean(),
+    )
+
+    err_t_avg_x = jnp.median(squared_errors[:, :, 2], axis=0)
+    _, grads_to_low_avg_x, _ = calculate_ess(
+        err_t_avg_x,
+        grad_evals_per_step=metadata["num_grads_per_proposal"].mean(),
+    )
+
+    err_t_max_x = jnp.median(squared_errors[:, :, 3], axis=0)
+    _, grads_to_low_max_x, _ = calculate_ess(
+        err_t_max_x,
+        grad_evals_per_step=metadata["num_grads_per_proposal"].mean(),
     )
 
     return (
-        err_t_mean_max,
-        grads_to_low_max,
-        err_t_mean_avg,
-        grads_to_low_avg,
-        expectation,
+        {
+            "max_over_parameters": {
+                "square": {
+                    "error": err_t_max_x2,
+                    "grads_to_low_error": grads_to_low_max_x2.item(),
+                },
+                "identity": {
+                    "error": err_t_max_x,
+                    "grads_to_low_error": grads_to_low_max_x.item(),
+                },
+            },
+            "avg_over_parameters": {
+                "square": {
+                    "error": err_t_avg_x2,
+                    "grads_to_low_error": grads_to_low_avg_x2.item(),
+                },
+                "identity": {
+                    "error": err_t_avg_x,
+                    "grads_to_low_error": grads_to_low_avg_x.item(),
+                },
+            },
+            "num_tuning_grads": metadata["num_tuning_grads"].mean().item(),
+            "L": metadata["L"].mean().item(),
+            "step_size": metadata["step_size"].mean().item(),
+        },
+        squared_errors,
     )

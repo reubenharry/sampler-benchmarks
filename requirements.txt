@@ -1,6 +1,9 @@
 numpy
+tensorflow
+tensorflow-probability
 jax
 blackjax
 inference_gym
 matplotlib
+seaborn
 pandas

@@ -1,4 +1,5 @@
 import os
+import pprint
 import jax
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(128)
@@ -11,44 +12,31 @@ sys.path.append("..")
 sys.path.append(".")
 from src.samplers import samplers
 from src.models import models
-from src.ess import sampler_grads_to_low_error
-import pandas as pd
+from evaluation.ess import sampler_grads_to_low_error
+
+from src.samplers.hamiltonianmontecarlo.nuts import nuts
 
 key = jax.random.PRNGKey(1)
 results = []
 
-for i, (sampler, model) in enumerate(itertools.product(samplers, models)):
+sampler = samplers["adjusted_microcanonical"]()
+model = models["Banana"]
 
-    key = jax.random.fold_in(key, i)
+(
+    metadata,
+    squared_errors,
+) = sampler_grads_to_low_error(
+    sampler=sampler, model=model, num_steps=5000, batch_size=2, key=key, pvmap=jax.pmap
+)
 
-    print(f'Running sampler {sampler} on model {model}')
+print("Grads to low error for x^2 (avg across parameters)")
+pprint.pprint(metadata["avg_over_parameters"]["square"]["grads_to_low_error"])
 
-    (
-        err_t_mean_max,
-        grads_to_low_max,
-        err_t_mean_avg,
-        grads_to_low_avg,
-        expectation,
-    ) = sampler_grads_to_low_error(
-        sampler=samplers[sampler](),
-        model=models[model],
-        num_steps=10000,
-        batch_size=128,
-        key=key,
-        pvmap=jax.pmap
-    )
-
-    # Append the results to the list
-    results.append(
-        {
-            "Sampler": sampler,
-            "Model": model,
-            "Grad evaluations to low error (avg)": grads_to_low_avg,
-        }
-    )
-
-# Create the DataFrame
-df = pd.DataFrame(results)
-
-# Save the DataFrame
-df.to_csv("results/grads_to_low_error.csv")
+# TODOS
+# - samplers:
+#     mala, underdamped, ghmc with alba, nuts, unadjusted + adjusted mclmc
+# - CI
+# - models:
+# -- finish getting long nuts run convergence metrics standardized
+# -- update banana to use long nuts run
+# publish package
