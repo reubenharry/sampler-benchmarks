@@ -46,15 +46,15 @@ For example, we can track the statistics $\frac{(E_{\mathit{sampler}}[x^2]-E[x^2
 
 Then `stats['avg_over_parameters']['square']['grads_to_low_error']` is the number of steps it took for the squared error of $x^2$ (averaged across dimensions) to drop below the threshold, for a 10-dimensional Gaussian and the No-U-Turn Hamiltonian Monte Carlo (NUTS HMC) sampler.
 
-Since not all inference gym models have a known expectation $E[x^2]$, blackjax-benchmarks calculates these numerically when unknown, using a long run of NUTS HMC. This code is found in `./src/models/data/estimate_expectations.py`.
+Since not all inference gym models have a known expectation $E[x^2]$ or $E[x^4], blackjax-benchmarks calculates these numerically when unknown, using a long run of NUTS HMC. This code to generate these expectations is found in `./src/models/data/estimate_expectations.py`.
 
-Meanwhile, see `./samplers/__init__.py` for a list of available samplers (everything here can simply be run out of the box - the tuning scheme and hyperparameters have all been chosen).
+Meanwhile, see `./samplers/__init__.py` for a list of available samplers (everything here can simply be run out of the box - the tuning scheme and hyperparameters have all been chosen) and `./src/models/__init__.py` for a list of available models (with analytically known or )
 
 <!-- Since gradient calls are the main computational expense of the sampler, and since $E[x^2]$ is a non-trivial statistic of a distribution, this metric is a good proxy for how long (in wallclock time) it takes a sampler to get good results on a given model.  -->
 
 # Results
 
-See [here](./results/) for the evaluation of each sampler on each model, which can be reproduced with `./results/run_benchmarks.py`.
+See [here](./results/) for the evaluation of each sampler on each model, which can be reproduced with `./results/run_benchmarks.py` and viewed in `./examples/demo.ipynb`
 
 As the package is developed, the goal is to expand the set of models, samplers and statistics. **Anyone is welcome to contribute a new sampler, model or statistic!**
 
