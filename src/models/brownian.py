@@ -23,10 +23,6 @@ def brownian_motion():
         ground_truth_mean=jnp.ones(32),
         ground_truth_standard_deviation=jnp.ones(32),
     )
-    
-    
-
-
 
     brownian_motion.ndims = 32
 

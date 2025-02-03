@@ -15,7 +15,6 @@ import jax
 
 
 class Rosenbrock_36D(model.Model):
-
     def __init__(
         self,
         name="gaussian",

@@ -34,7 +34,6 @@ def adjusted_mclmc_no_tuning(
     random_trajectory_length=True,
     return_samples=False,
 ):
-
     def s(model, num_steps, initial_position, key):
 
         num_steps_per_traj = L / step_size

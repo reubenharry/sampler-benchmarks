@@ -31,10 +31,7 @@ trans = model.sample_transformations["identity"](jnp.ones((32,)))
 
 # raise Exception
 
-(
-    metadata,
-    squared_errors,
-) = sampler_grads_to_low_error(
+(metadata, squared_errors,) = sampler_grads_to_low_error(
     sampler=sampler, model=model, num_steps=5000, batch_size=2, key=key, pvmap=jax.pmap
 )
 

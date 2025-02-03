@@ -29,7 +29,9 @@ def test_samplers_raw_samples(key=jax.random.PRNGKey(1)):
 
     initial_position = models[model].sample(seed=init_key)
 
-    samplers[sampler](return_samples=True, diagonal_preconditioning=diagonal_preconditioning)(
+    samplers[sampler](
+        return_samples=True, diagonal_preconditioning=diagonal_preconditioning
+    )(
         model=models[model],
         num_steps=50,
         initial_position=initial_position,

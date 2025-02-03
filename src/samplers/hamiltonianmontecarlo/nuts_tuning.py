@@ -65,7 +65,11 @@ def da_adaptation(
         init_state,
         keys,
     )
-    return kernel_state, {
-        "step_size": da_final(adaptation_state),
-        "inverse_mass_matrix": inverse_mass_matrix,
-    }, info
+    return (
+        kernel_state,
+        {
+            "step_size": da_final(adaptation_state),
+            "inverse_mass_matrix": inverse_mass_matrix,
+        },
+        info,
+    )

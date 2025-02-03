@@ -24,10 +24,7 @@ def run_benchmarks(models, batch_size, num_steps, key=jax.random.PRNGKey(1)):
 
         print(f"Running sampler {sampler} on model {model}")
 
-        (
-            stats,
-            _,
-        ) = sampler_grads_to_low_error(
+        (stats, _,) = sampler_grads_to_low_error(
             sampler=samplers[sampler](),
             model=models[model],
             num_steps=num_steps,
