@@ -21,13 +21,15 @@ def test_samplers_expectations(key=jax.random.PRNGKey(1)):
 def test_samplers_raw_samples(key=jax.random.PRNGKey(1)):
 
     model = "Banana"
-    sampler = "unadjusted_microcanonical"
+    # sampler = "unadjusted_microcanonical"
+    sampler = "nuts"
+    diagonal_preconditioning = False
 
     init_key, run_key = jax.random.split(key)
 
     initial_position = models[model].sample(seed=init_key)
 
-    samplers[sampler](return_samples=True)(
+    samplers[sampler](return_samples=True, diagonal_preconditioning=diagonal_preconditioning)(
         model=models[model],
         num_steps=50,
         initial_position=initial_position,
@@ -37,4 +39,4 @@ def test_samplers_raw_samples(key=jax.random.PRNGKey(1)):
 
 if __name__ == "__main__":
     test_samplers_raw_samples()
-    test_samplers_expectations()
+    # test_samplers_expectations()

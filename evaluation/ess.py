@@ -88,6 +88,7 @@ def sampler_grads_to_low_error(
         ),
         keys,
     )
+    # TODO: propoer initialization!
 
     err_t_avg_x2 = jnp.median(squared_errors[:, :, 0], axis=0)
     _, grads_to_low_avg_x2, _ = calculate_ess(

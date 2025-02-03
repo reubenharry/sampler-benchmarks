@@ -22,7 +22,7 @@ from src.util import *
 
 def nuts(
     integrator_type="velocity_verlet",
-    preconditioning=True,
+    diagonal_preconditioning=True,
     return_ess_corr=False,
     return_samples=False,
     incremental_value_transform=None,
@@ -34,8 +34,8 @@ def nuts(
 
         rng_key, warmup_key = jax.random.split(key, 2)
 
-        if not preconditioning:
-            state, params = da_adaptation(
+        if not diagonal_preconditioning:
+            state, params, adaptation_info = da_adaptation(
                 rng_key=warmup_key,
                 initial_position=initial_position,
                 algorithm=blackjax.nuts,

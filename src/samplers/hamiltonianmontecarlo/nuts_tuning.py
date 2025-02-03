@@ -55,12 +55,12 @@ def da_adaptation(
 
         return (
             (new_adaptation_state, new_kernel_state),
-            (True),
+            info,
         )
 
     keys = jax.random.split(rng_key, num_steps)
     init_state = da_init(initial_step_size), init_kernel_state
-    (adaptation_state, kernel_state), _ = jax.lax.scan(
+    (adaptation_state, kernel_state), info = jax.lax.scan(
         step,
         init_state,
         keys,
@@ -68,4 +68,4 @@ def da_adaptation(
     return kernel_state, {
         "step_size": da_final(adaptation_state),
         "inverse_mass_matrix": inverse_mass_matrix,
-    }
+    }, info

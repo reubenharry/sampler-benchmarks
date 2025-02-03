@@ -19,8 +19,17 @@ from src.samplers.hamiltonianmontecarlo.nuts import nuts
 key = jax.random.PRNGKey(1)
 results = []
 
-sampler = samplers["adjusted_microcanonical"]()
-model = models["Banana"]
+sampler = samplers["nuts"]()
+model = models["Brownian_Motion"]
+
+
+import jax.numpy as jnp
+
+trans = model.sample_transformations["identity"](jnp.ones((32,)))
+
+# print(trans['locs'].shape)
+
+# raise Exception
 
 (
     metadata,

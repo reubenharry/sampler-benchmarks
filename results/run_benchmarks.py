@@ -15,7 +15,7 @@ from evaluation.ess import sampler_grads_to_low_error
 import pandas as pd
 
 
-def run_benchmarks(batch_size, num_steps, key=jax.random.PRNGKey(1)):
+def run_benchmarks(models, batch_size, num_steps, key=jax.random.PRNGKey(1)):
 
     for i, (sampler, model) in enumerate(itertools.product(samplers, models)):
         results = []
@@ -98,4 +98,4 @@ def run_benchmarks(batch_size, num_steps, key=jax.random.PRNGKey(1)):
 
 
 if __name__ == "__main__":
-    run_benchmarks(batch_size=64, num_steps=10000)
+    run_benchmarks(models=models, batch_size=64, num_steps=10000)

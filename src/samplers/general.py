@@ -76,8 +76,10 @@ def with_only_statistics(
         sampling_algorithm=alg,
         state_transform=lambda state: jnp.array(
             [
-                model.sample_transformations["identity"](state.position),
-                model.sample_transformations["square"](state.position),
+                # model.sample_transformations["identity"](state.position),
+                # model.sample_transformations["square"](state.position),
+                state.position,
+                state.position**2,
                 state.position**4,
             ]
         ),
