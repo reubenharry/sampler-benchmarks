@@ -1,6 +1,8 @@
 from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
 from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import adjusted_mclmc
-from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unadjusted_mclmc
+from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import (
+    unadjusted_mclmc,
+)
 
 
 samplers = {

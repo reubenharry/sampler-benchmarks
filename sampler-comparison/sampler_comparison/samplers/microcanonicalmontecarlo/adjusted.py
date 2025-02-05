@@ -13,7 +13,7 @@ from blackjax.adaptation.step_size import (
 from blackjax.adaptation.adjusted_mclmc_adaptation import (
     adjusted_mclmc_make_L_step_size_adaptation,
     adjusted_mclmc_make_adaptation_L,
-    adjusted_mclmc_find_L_and_step_size
+    adjusted_mclmc_find_L_and_step_size,
 )
 from blackjax.mcmc.adjusted_mclmc_dynamic import rescale
 from jax.flatten_util import ravel_pytree
@@ -21,7 +21,11 @@ from jax.flatten_util import ravel_pytree
 
 from blackjax.diagnostics import effective_sample_size
 from sampler_comparison.samplers.general import with_only_statistics
-from sampler_comparison.util import calls_per_integrator_step, map_integrator_type_to_integrator
+from sampler_comparison.util import (
+    calls_per_integrator_step,
+    map_integrator_type_to_integrator,
+)
+
 
 def adjusted_mclmc_no_tuning(
     initial_state,
@@ -109,6 +113,8 @@ def adjusted_mclmc_tuning(
 ):
 
     init_key, tune_key = jax.random.split(rng_key, 2)
+
+    jax.debug.print("log dens {x}", x=logdensity_fn(initial_position))
 
     initial_state = blackjax.mcmc.adjusted_mclmc_dynamic.init(
         position=initial_position,

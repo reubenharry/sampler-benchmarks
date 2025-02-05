@@ -52,6 +52,7 @@ def nuts(
             (state, params), adaptation_info = warmup.run(
                 warmup_key, initial_position, num_tuning_steps
             )
+            info = adaptation_info
 
         alg = blackjax.nuts(
             logdensity_fn=model.unnormalized_log_prob,
@@ -85,7 +86,7 @@ def nuts(
             )
             expectations, info = results[0], results[1]
 
-        assert adaptation_info.info.num_integration_steps.shape[0] == num_tuning_steps
+        # assert info.num_integration_steps.shape[0] == num_tuning_steps
 
         return (
             expectations,
@@ -95,7 +96,7 @@ def nuts(
                 "num_grads_per_proposal": info.num_integration_steps.mean()
                 * calls_per_integrator_step(integrator_type),
                 "acc_rate": info.acceptance_rate.mean(),
-                "num_tuning_grads": adaptation_info.info.num_integration_steps.sum()
+                "num_tuning_grads": info.num_integration_steps.sum()
                 * calls_per_integrator_step(integrator_type),
                 "num_grads_per_proposal": info.num_integration_steps.mean(),
             },

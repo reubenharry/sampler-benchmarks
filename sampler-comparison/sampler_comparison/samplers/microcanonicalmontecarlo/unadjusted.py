@@ -15,7 +15,10 @@ from jax.flatten_util import ravel_pytree
 
 from blackjax.diagnostics import effective_sample_size
 from sampler_comparison.samplers.general import with_only_statistics
-from sampler_comparison.util import calls_per_integrator_step, map_integrator_type_to_integrator
+from sampler_comparison.util import (
+    calls_per_integrator_step,
+    map_integrator_type_to_integrator,
+)
 
 
 def unadjusted_mclmc_no_tuning(

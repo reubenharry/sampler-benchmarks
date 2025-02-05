@@ -11,11 +11,11 @@ import sys
 # sys.path.append("../sampler-evaluation")
 sys.path.append("..")
 sys.path.append(".")
-from src.samplers import samplers
-from sampler_evaluation.src.models import models
-from evaluation.ess import sampler_grads_to_low_error
+from sampler_comparison.samplers import samplers
+from sampler_evaluation.models import models
+from sampler_comparison.samplers.general import sampler_grads_to_low_error
 
-from sampler_evaluation.src.samplers.hamiltonianmontecarlo.nuts import nuts
+from sampler_evaluation.samplers.hamiltonianmontecarlo.nuts import nuts
 
 key = jax.random.PRNGKey(1)
 results = []
@@ -32,7 +32,10 @@ trans = model.sample_transformations["identity"](jnp.ones((32,)))
 
 # raise Exception
 
-(metadata, squared_errors,) = sampler_grads_to_low_error(
+(
+    metadata,
+    squared_errors,
+) = sampler_grads_to_low_error(
     sampler=sampler, model=model, num_steps=5000, batch_size=2, key=key, pvmap=jax.pmap
 )
 

@@ -16,4 +16,9 @@ from sampler_comparison.results.run_benchmarks import run_benchmarks
 from sampler_evaluation.models.banana import banana
 
 
-run_benchmarks(models={"Banana": banana()}, batch_size=128, num_steps=10000, save_dir="sampler_comparison/results")
+run_benchmarks(
+    models={"Banana": banana()},
+    batch_size=128,
+    num_steps=10000,
+    save_dir="sampler_comparison/results",
+)
