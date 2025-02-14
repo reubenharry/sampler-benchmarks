@@ -23,7 +23,7 @@ class Rosenbrock_36D(model.Model):
         ndims = 36
         self.ndims = ndims
         self.Q = 0.1
-    
+
         D = ndims // 2
         E_x = jnp.array(
             [

@@ -1,20 +1,11 @@
-from typing import Callable, Union
-from chex import PRNGKey
 import jax
 import jax.numpy as jnp
 import blackjax
-from blackjax.adaptation.mclmc_adaptation import MCLMCAdaptationState
 from blackjax.util import run_inference_algorithm
-import blackjax
-from blackjax.util import pytree_size, store_only_expectation_values
-from blackjax.adaptation.step_size import (
-    dual_averaging_adaptation,
+from sampler_comparison.samplers.general import (
+    with_only_statistics,
+    make_log_density_fn,
 )
-
-from jax.flatten_util import ravel_pytree
-
-from blackjax.diagnostics import effective_sample_size
-from sampler_comparison.samplers.general import with_only_statistics
 from sampler_comparison.util import (
     calls_per_integrator_step,
     map_integrator_type_to_integrator,
@@ -43,10 +34,12 @@ def unadjusted_mclmc_no_tuning(
 
     def s(model, num_steps, initial_position, key):
 
+        logdensity_fn = make_log_density_fn(model)
+
         fast_key, slow_key = jax.random.split(key, 2)
 
         alg = blackjax.mclmc(
-            model.unnormalized_log_prob,
+            logdensity_fn=logdensity_fn,
             L=L,
             step_size=step_size,
             inverse_mass_matrix=inverse_mass_matrix,
@@ -77,9 +70,13 @@ def unadjusted_mclmc_no_tuning(
 
         return (
             expectations,
-            MCLMCAdaptationState(
-                L=L, step_size=step_size, inverse_mass_matrix=inverse_mass_matrix
-            ),
+            {
+                "L": L,
+                "step_size": step_size,
+                "acc_rate": jnp.nan,
+                "num_tuning_grads": 0,
+                "num_grads_per_proposal": calls_per_integrator_step(integrator_type),
+            },
         )
 
     return s
@@ -140,10 +137,14 @@ def unadjusted_mclmc_tuning(
 def unadjusted_mclmc(
     diagonal_preconditioning=True,
     integrator_type="mclachlan",
-    num_tuning_steps=500,
+    num_tuning_steps=10000,
     return_samples=False,
 ):
     def s(model, num_steps, initial_position, key):
+
+        # logdensity_fn = lambda x : model.unnormalized_log_prob(make_transform(model)(x))
+
+        logdensity_fn = make_log_density_fn(model)
 
         tune_key, run_key = jax.random.split(key, 2)
 
@@ -155,13 +156,13 @@ def unadjusted_mclmc(
             initial_position=initial_position,
             num_steps=num_steps,
             rng_key=tune_key,
-            logdensity_fn=model.unnormalized_log_prob,
+            logdensity_fn=logdensity_fn,
             integrator_type=integrator_type,
             diagonal_preconditioning=diagonal_preconditioning,
             num_tuning_steps=num_tuning_steps,
         )
 
-        expectations, params = unadjusted_mclmc_no_tuning(
+        expectations, metadata = unadjusted_mclmc_no_tuning(
             initial_state=blackjax_state_after_tuning,
             integrator_type=integrator_type,
             step_size=blackjax_mclmc_sampler_params.step_size,
@@ -170,13 +171,9 @@ def unadjusted_mclmc(
             return_samples=return_samples,
         )(model, num_steps, initial_position, run_key)
 
-        return expectations, {
-            "L": params.L,
-            "step_size": params.step_size,
-            "acc_rate": jnp.nan,
+        return expectations, metadata | {
             "num_tuning_grads": num_tuning_integrator_steps
-            * calls_per_integrator_step(integrator_type),
-            "num_grads_per_proposal": calls_per_integrator_step(integrator_type),
+            * calls_per_integrator_step(integrator_type)
         }
 
     return s

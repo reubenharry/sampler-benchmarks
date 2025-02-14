@@ -42,10 +42,10 @@ class Gaussian(model.Model):
         self.ndims = ndims
 
         eigenvalues = jnp.ones(ndims)
-        covariance = jnp.diag(eigenvalues)
+        # covariance = jnp.diag(eigenvalues)
 
-        gaussian = tfd.MultivariateNormalTriL(
-            loc=jnp.zeros(ndims), scale_tril=jnp.linalg.cholesky(covariance)
+        gaussian = tfd.MultivariateNormalDiag(
+            loc=jnp.zeros(ndims), scale_diag=eigenvalues
         )
         # tf.convert_to_tensor(covariance, dtype=tf.float32)))
         self._eigenvalues = eigenvalues
@@ -55,9 +55,7 @@ class Gaussian(model.Model):
                 fn=lambda params: params,
                 pretty_name="Identity",
                 ground_truth_mean=np.zeros(ndims),
-                ground_truth_standard_deviation=np.sqrt(
-                    np.diag(covariance)
-                ),  # todo: fix
+                ground_truth_standard_deviation=np.sqrt(eigenvalues),  # todo: fix
             ),
             "square": model.Model.SampleTransformation(
                 fn=lambda params: params**2,

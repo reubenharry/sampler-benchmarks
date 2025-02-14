@@ -3,18 +3,12 @@ from chex import PRNGKey
 import jax
 import jax.numpy as jnp
 import blackjax
-
-# from blackjax.adaptation.window_adaptation import da_adaptation
-
-from blackjax.util import run_inference_algorithm
 import blackjax
-from blackjax.util import pytree_size, store_only_expectation_values
+from blackjax.util import pytree_size
 from blackjax.adaptation.step_size import (
     dual_averaging_adaptation,
 )
-from jax.flatten_util import ravel_pytree
 
-from blackjax.diagnostics import effective_sample_size
 from sampler_comparison.util import *
 
 
@@ -26,7 +20,6 @@ def da_adaptation(
     num_steps: int = 1000,
     initial_step_size: float = 1.0,
     target_acceptance_rate: float = 0.80,
-    progress_bar: bool = False,
     integrator=blackjax.mcmc.integrators.velocity_verlet,
 ):
 

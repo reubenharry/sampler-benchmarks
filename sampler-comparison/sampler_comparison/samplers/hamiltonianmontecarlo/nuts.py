@@ -1,35 +1,25 @@
-from typing import Callable
-from chex import PRNGKey
 import jax
-import jax.numpy as jnp
-import blackjax
-
-# from blackjax.adaptation.window_adaptation import da_adaptation
-
 from blackjax.util import run_inference_algorithm
 import blackjax
-from blackjax.util import pytree_size, store_only_expectation_values
-from blackjax.adaptation.step_size import (
-    dual_averaging_adaptation,
-)
-from jax.flatten_util import ravel_pytree
-
-from blackjax.diagnostics import effective_sample_size
 from sampler_comparison.samplers.hamiltonianmontecarlo.nuts_tuning import da_adaptation
-from sampler_comparison.samplers.general import with_only_statistics
+from sampler_comparison.samplers.general import (
+    with_only_statistics,
+    make_log_density_fn,
+)
 from sampler_comparison.util import *
 
 
 def nuts(
     integrator_type="velocity_verlet",
     diagonal_preconditioning=True,
-    return_ess_corr=False,
     return_samples=False,
     incremental_value_transform=None,
-    num_tuning_steps=500,
+    num_tuning_steps=5000,
 ):
+
     def s(model, num_steps, initial_position, key):
 
+        logdensity_fn = make_log_density_fn(model)
         integrator = map_integrator_type_to_integrator["hmc"][integrator_type]
 
         rng_key, warmup_key = jax.random.split(key, 2)
@@ -40,14 +30,14 @@ def nuts(
                 initial_position=initial_position,
                 algorithm=blackjax.nuts,
                 integrator=integrator,
-                logdensity_fn=model.unnormalized_log_prob,
+                logdensity_fn=logdensity_fn,
                 num_steps=num_tuning_steps,
                 target_acceptance_rate=0.8,
             )
 
         else:
             warmup = blackjax.window_adaptation(
-                blackjax.nuts, model.unnormalized_log_prob, integrator=integrator
+                blackjax.nuts, logdensity_fn, integrator=integrator
             )
             (state, params), adaptation_info = warmup.run(
                 warmup_key, initial_position, num_tuning_steps
@@ -55,7 +45,7 @@ def nuts(
             info = adaptation_info
 
         alg = blackjax.nuts(
-            logdensity_fn=model.unnormalized_log_prob,
+            logdensity_fn=logdensity_fn,
             step_size=params["step_size"],
             inverse_mass_matrix=params["inverse_mass_matrix"],
             integrator=integrator,
@@ -85,8 +75,6 @@ def nuts(
                 incremental_value_transform=incremental_value_transform,
             )
             expectations, info = results[0], results[1]
-
-        # assert info.num_integration_steps.shape[0] == num_tuning_steps
 
         return (
             expectations,

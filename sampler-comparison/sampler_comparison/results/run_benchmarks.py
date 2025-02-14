@@ -1,27 +1,19 @@
 import os
 import jax
-
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(128)
-
 num_cores = jax.local_device_count()
 import itertools
 import sys
-
 sys.path.append("..")
 sys.path.append(".")
 from sampler_comparison.samplers import samplers
 from sampler_comparison.samplers.general import sampler_grads_to_low_error
 from sampler_evaluation.models import models
-
 import pandas as pd
-import jax.numpy as jnp
-
-
-
 
 
 def run_benchmarks(
-    models, batch_size, num_steps, key=jax.random.PRNGKey(1), save_dir=None
+    models, samplers, batch_size, num_steps, key=jax.random.PRNGKey(1), save_dir=None
 ):
 
     for i, (sampler, model) in enumerate(itertools.product(samplers, models)):
@@ -42,6 +34,8 @@ def run_benchmarks(
             key=key,
             pvmap=jax.pmap,
         )
+
+        print("finished running")
 
         results.append(
             {
@@ -107,4 +101,4 @@ def run_benchmarks(
 
 
 if __name__ == "__main__":
-    run_benchmarks(models=models, batch_size=64, num_steps=10000)
+    run_benchmarks(models=models, samplers=samplers, batch_size=128, num_steps=10000)

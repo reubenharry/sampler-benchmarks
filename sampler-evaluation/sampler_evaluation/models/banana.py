@@ -2,27 +2,50 @@ import pickle
 import inference_gym.using_jax as gym
 from inference_gym.targets import model
 import jax.numpy as jnp
+import jax
+
+# import sys
+# sys.path.append(".")
+# sys.path.append("../../../")
 
 
 def banana():
 
-    # load statistics from pickle
-    # with open(f"./src/models/data/banana_expectations.pkl", "rb") as f:
-    #     stats = pickle.load(f)
-
-    # e_x2 = stats['e_x2']
-    # e_x4 = stats['e_x4']
-    # var_x2 = e_x4 - e_x2**2
-
     banana = gym.targets.Banana()
+    import os
+
+    dirr = "/global/homes/r/reubenh/blackjax-benchmarks"
+    # print("foo", os.listdir("../../../"))
+
+    try:
+        with open(
+            f"{dirr}/sampler-evaluation/sampler_evaluation/models/data/{banana.name}_expectations.pkl",
+            "rb",
+        ) as f:
+            stats = pickle.load(f)
+    except:
+        raise Exception(
+            "Expectations not found: run estimate_expectations.py to generate them"
+        )
+
+    e_x2 = stats["e_x2"]
+    e_x4 = stats["e_x4"]
+    var_x2 = e_x4 - e_x2**2
+
     banana.sample_transformations["square"] = model.Model.SampleTransformation(
         fn=lambda params: params**2,
         pretty_name="Square",
-        # ground_truth_mean=e_x2,
-        # ground_truth_standard_deviation=jnp.sqrt(var_x2),
-        ground_truth_mean=jnp.array([100.0, 19.0]),
-        ground_truth_standard_deviation=jnp.sqrt(jnp.array([20000.0, 4600.898])),
+        ground_truth_mean=e_x2,
+        ground_truth_standard_deviation=jnp.sqrt(var_x2),
     )
     banana.ndims = 2
+
+    def exact_sample(key):
+        z = jax.random.normal(key, shape=(2,))
+        x0 = 10.0 * z[0]
+        x1 = 0.03 * (x0**2 - 100) + z[1]
+        return jnp.array([x0, x1])
+
+    banana.exact_sample = exact_sample
 
     return banana

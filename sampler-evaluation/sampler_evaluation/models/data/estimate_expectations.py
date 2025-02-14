@@ -1,65 +1,72 @@
 """
 This script is used to estimate the expectations of the model using a long NUTS run.
-We recommend running this script on GPU: by default the script runs 4 chains, in parallel, on 4 GPUs.
+By default the script runs 4 chains, in parallel.
 """
 
-# TODO: # The script also returns a diagnostic, namely the potential scale reduction factor, which should be close to
+# TODO: # The script should return diagnostics
 
-import itertools
 import pickle
 import sys
 import numpy as np
-
-
-sys.path.append("./")
-sys.path.append("../blackjax")
 import os
-
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(4)
-
-
-from src.models import models
-from src.samplers import samplers
+sys.path.append("./")
+sys.path.append("../sampler-comparison")
 import jax
 import jax.numpy as jnp
-import blackjax
 import time
-from blackjax.diagnostics import potential_scale_reduction
+from sampler_evaluation.models.brownian import brownian_motion
+from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
 
 
-num_chains = 4
+def relative_fluctuations(expectation, square_expectation):
 
-gold_standard_expectation_steps = {"Banana": 1000000}
-
-
-def relative_fluctuations(expectation):
-    expectation = expectation.T
-    expectation_mean = jnp.mean(expectation, axis=1)
-    diff = jnp.abs((expectation - expectation_mean[:, None]) / expectation_mean[:, None])
+    expectation_mean = jnp.mean(expectation, axis=0)
+    std = jnp.sqrt(jnp.mean(square_expectation, axis=0) - expectation_mean**2)
+    diff = jnp.abs((expectation - expectation_mean[None, :]) / std[None, :])
     return jnp.max(diff)
 
 
+def expectations_from_exact_samples(model, key, num_samples=1000):
+    try:
+        sampling_function = model.exact_sample
+    except AttributeError:
+        raise AttributeError("Model does not have an exact sample function")
+    samples = jax.vmap(sampling_function)(jax.random.split(key, num_samples))
 
-def nuts_rhat(model):
+    e_x = jnp.mean(samples, axis=0)
+    e_x2 = jnp.mean(jnp.square(samples), axis=0)
+    e_x4 = jnp.mean(jnp.square(samples) ** 2, axis=0)
+    with open(
+        f"./sampler_evaluation/models/data/{model.name}_expectations.pkl", "wb"
+    ) as f:
+        pickle.dump({"e_x": e_x, "e_x2": e_x2, "e_x4": e_x4}, f)
+    return e_x, e_x2, e_x4
 
-    sampler = samplers["nuts"](
+
+def estimate_ground_truth(model):
+
+    sampler = nuts(
         integrator_type="velocity_verlet",
         diagonal_preconditioning=True,
         return_samples=False,
         incremental_value_transform=lambda x: x,
-        num_tuning_steps=5000,
+        num_tuning_steps=10000,
     )
 
     key = jax.random.PRNGKey(1)
-    init_key, run_key = jax.random.split(key)
-    run_keys = jax.random.split(run_key, num_chains)
-    init_keys = jax.random.split(init_key, num_chains)
-    init_keys = jax.random.split(init_key, num_chains)
-    init_pos = jax.pmap(lambda key: models[model].sample(seed=key))(init_keys)
+    run_keys = jax.random.split(key, num_chains)
+    init_pos = jax.random.normal(
+        shape=(
+            num_chains,
+            model.ndims,
+        ),
+        key=jax.random.key(0),
+    )
 
     expectation, metadata = jax.pmap(
         lambda pos, key: sampler(
-            model=models[model],
+            model=model,
             num_steps=gold_standard_expectation_steps[model],
             initial_position=pos,
             key=key,
@@ -72,39 +79,70 @@ def nuts_rhat(model):
     e_x2 = expectation[:, -1, 1, :]
     e_x4 = expectation[:, -1, 2, :]
 
+    print(e_x.shape, "bar")
+
     e_x_avg = e_x.mean(axis=0)
     e_x2_avg = e_x2.mean(axis=0)
     e_x4_avg = e_x4.mean(axis=0)
 
-    # print("potential scale reduction", (potential_scale_reduction(e_x2)))
-    # print("relative fluctuations", relative_fluctuations(e_x2))
-    # print(f"x^2 is {e_x2_avg} and var_x = {e_x2_avg - e_x_avg**2}")
-    # print(f"var x^2 is {e_x4_avg - e_x2_avg**2}")
-
-    jax.debug.print("e_x {x}", x=e_x)
-
     results = {
-        "e_x": e_x,
-        "e_x2": e_x2,
-        "e_x4": e_x4,
-        "potential_scale_reduction": (
-            potential_scale_reduction(e_x),
-            potential_scale_reduction(e_x2),
-            potential_scale_reduction(e_x4),
-        ),
+        "e_x": e_x_avg,
+        "e_x2": e_x2_avg,
+        "e_x4": e_x4_avg,
+        # "potential_scale_reduction": (
+        #     potential_scale_reduction(e_x),
+        #     potential_scale_reduction(e_x2),
+        #     potential_scale_reduction(e_x4),
+        # ),
         "relative_fluctuations": (
-            relative_fluctuations(e_x),
-            relative_fluctuations(e_x2),
-            relative_fluctuations(e_x4),
+            relative_fluctuations(e_x, e_x2),
+            relative_fluctuations(e_x2, e_x4),
         ),
     }
 
+    print(results)
+
     ## pickle to data
-    with open(f"./src/models/data/{models[model].name}_expectations.pkl", "wb") as f:
+    with open(
+        f"./sampler_evaluation/models/data/{model.name}_expectations.pkl", "wb"
+    ) as f:
         pickle.dump(results, f)
 
+    assert quality_check(results), f"More samples needed. Stats are now: {results}"
 
-toc = time.time()
-(nuts_rhat("Banana"))
-tic = time.time()
-print(f"time: {tic-toc}")
+
+def quality_check(stats):
+    # return stats["potential_scale_reduction"][0] < 1.1 and stats["potential_scale_reduction"][1] < 1.1 and
+    return (
+        stats["relative_fluctuations"][0] < 0.1
+        and stats["relative_fluctuations"][1] < 0.1
+    )
+
+
+
+
+
+if __name__ == "__main__":
+
+    num_chains = 4
+
+    gold_standard_expectation_steps = {
+        # banana(): 1000,
+        # Gaussian(ndims=10000) : 10000
+        brownian_motion(): 10000000
+        # sampler_evaluation.models.german_credit(): 5000000,
+        # sampler_evaluation.models.stochastic_volatility(): 500000,
+        # sampler_evaluation.models.item_response(): 1000000,
+    }
+
+
+
+    # print(expectations_from_exact_samples(banana(), jax.random.PRNGKey(0), num_samples=10000000))
+
+    for model in gold_standard_expectation_steps:
+        print(f"Estimating ground truth for {model}")
+        toc = time.time()
+        estimate_ground_truth(model)
+        tic = time.time()
+        print(f"Time taken: {tic - toc}")
+        print("Done")

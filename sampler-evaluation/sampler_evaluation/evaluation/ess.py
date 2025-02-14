@@ -27,6 +27,8 @@ def grads_to_low_error(err_t, grad_evals_per_step=1, low_error=0.01):
     """Uses the error of the expectation values to compute the effective sample size neff
     b^2 = 1/neff"""
 
+    jax.debug.print("err_t {x}", x=err_t)
+
     cutoff_reached = err_t[-1] < low_error
     crossing = find_crossing(err_t, low_error) * grad_evals_per_step
     return crossing, cutoff_reached
@@ -57,5 +59,3 @@ def find_crossing(array, cutoff):
         return 1
 
     return jnp.max(indices) + 1
-
-
