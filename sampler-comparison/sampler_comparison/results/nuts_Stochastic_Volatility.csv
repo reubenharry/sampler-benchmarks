@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
+0,nuts,Stochastic_Volatility,inf,True,x2,1179804.25,5.541259765625,0.09479345381259918
+1,nuts,Stochastic_Volatility,inf,False,x2,1179804.25,5.541259765625,0.09479345381259918
+2,nuts,Stochastic_Volatility,inf,True,x,1179804.25,5.541259765625,0.09479345381259918
+3,nuts,Stochastic_Volatility,inf,False,x,1179804.25,5.541259765625,0.09479345381259918

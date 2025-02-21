@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_microcanonical_gridsearch,vector_brownian_motion_unknown_scales_missing_middle_observations,14015.2939453125,True,x2,0.0,10.85278034210205,1.137524127960205
+1,adjusted_microcanonical_gridsearch,vector_brownian_motion_unknown_scales_missing_middle_observations,2833.589111328125,False,x2,0.0,10.85278034210205,1.137524127960205
+2,adjusted_microcanonical_gridsearch,vector_brownian_motion_unknown_scales_missing_middle_observations,39527.13671875,True,x,0.0,10.85278034210205,1.137524127960205
+3,adjusted_microcanonical_gridsearch,vector_brownian_motion_unknown_scales_missing_middle_observations,3730.415283203125,False,x,0.0,10.85278034210205,1.137524127960205

@@ -4,7 +4,8 @@ os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(128)
 import jax
 
 num_cores = jax.local_device_count()
-
+import sys
+sys.path.append("/global/homes/r/reubenh/blackjax-benchmarks/sampler-comparison")
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_only_L
 from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import (
     adjusted_mclmc_no_tuning,
@@ -18,10 +19,10 @@ def benchmark_grid_search(model):
     L, step_size, num_grads, num_grads_avg, edge, inverse_mass_matrix, initial_state = (
         grid_search_only_L(
             model=model,
-            num_steps=20000,
+            num_steps=100000,
             num_chains=128,
             integrator_type="velocity_verlet",
-            key=jax.random.PRNGKey(0),
+            key=jax.random.key(0),
             grid_size=10,
             grid_iterations=2,
             opt="max",
@@ -31,7 +32,7 @@ def benchmark_grid_search(model):
     run_benchmarks(
         models={model.name: model},
         samplers={
-            f"adjusted_microcanonical_gridsearch": adjusted_mclmc_no_tuning(
+            f"adjusted_microcanonical_gridsearch": lambda: adjusted_mclmc_no_tuning(
                 initial_state=initial_state,
                 integrator_type="velocity_verlet",
                 L=L,
@@ -40,7 +41,7 @@ def benchmark_grid_search(model):
             ),
         },
         batch_size=128,
-        num_steps=50000,
+        num_steps=100000,
         save_dir="sampler_comparison/results",
     )
 

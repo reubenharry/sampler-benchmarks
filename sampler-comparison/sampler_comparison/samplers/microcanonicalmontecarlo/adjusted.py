@@ -26,6 +26,8 @@ def adjusted_mclmc_no_tuning(
     L_proposal_factor=jnp.inf,
     random_trajectory_length=True,
     return_samples=False,
+    incremental_value_transform=None,
+    return_only_final=False,
 ):
 
     def s(model, num_steps, initial_position, key):
@@ -41,6 +43,7 @@ def adjusted_mclmc_no_tuning(
         else:
             integration_steps_fn = lambda _: jnp.ceil(num_steps_per_traj)
 
+        print("Building algorithm")
         alg = blackjax.adjusted_mclmc_dynamic(
             logdensity_fn=logdensity_fn,
             step_size=step_size,
@@ -50,40 +53,43 @@ def adjusted_mclmc_no_tuning(
             L_proposal_factor=L_proposal_factor,
         )
 
-        fast_key, slow_key = jax.random.split(key, 2)
-
         if return_samples:
-            (expectations, info) = run_inference_algorithm(
-                rng_key=slow_key,
-                initial_state=initial_state,
-                inference_algorithm=alg,
-                num_steps=num_steps,
-                # transform=lambda state, info: (
-                #     (model.default_event_space_bijector(state.position), info)
-                # ),
-                transform=lambda state, info: (
-                    jax.tree.map(
-                        lambda z, b: b(z),
-                        state.position,
-                        model.default_event_space_bijector,
-                    ),
-                    info,
-                ),
-                progress_bar=False,
-            )[1]
+            transform = lambda state, info: (model.default_event_space_bijector(state.position), info)
+
+            get_final_sample = lambda _: None
+
+            state = initial_state
+                
 
         else:
-            results = with_only_statistics(
+            print("Running with streaming averages")
+            alg, init, transform = with_only_statistics(
                 model=model,
                 alg=alg,
-                initial_state=initial_state,
-                rng_key=fast_key,
-                num_steps=num_steps,
+                incremental_value_transform=incremental_value_transform,
             )
-            expectations, info = results[0], results[1]
 
-        results = with_only_statistics(model, alg, initial_state, fast_key, num_steps)
-        expectations, info = results[0], results[1]
+            state = init(initial_state)
+
+            get_final_sample = lambda output: output[1][1]
+
+
+
+        final_output, history = run_inference_algorithm(
+            rng_key=key,
+            initial_state=state,
+            inference_algorithm=alg,
+            num_steps=num_steps,
+            transform=(lambda a,b: None) if return_only_final else transform,
+            progress_bar=True,
+        )
+
+        if return_only_final:
+
+            return get_final_sample(final_output)
+        
+        
+        (expectations, info) = history
 
         return (
             expectations,
@@ -116,6 +122,7 @@ def adjusted_mclmc_tuning(
     num_windows=1,
     tuning_factor=1.0,
     num_tuning_steps=500,
+    L_factor_stage_3=0.3,
 ):
 
     init_key, tune_key = jax.random.split(rng_key, 2)
@@ -128,7 +135,7 @@ def adjusted_mclmc_tuning(
 
     frac_tune1 = num_tuning_steps / (3 * num_steps)
     frac_tune2 = num_tuning_steps / (3 * num_steps)
-    frac_tune3 = num_tuning_steps / (3 * num_steps)
+    frac_tune3 = 1000 # num_tuning_steps / (3 * num_steps)
 
     if random_trajectory_length:
         integration_steps_fn = lambda avg_num_integration_steps: lambda k: jnp.ceil(
@@ -165,6 +172,7 @@ def adjusted_mclmc_tuning(
         max=max,
         num_windows=num_windows,
         tuning_factor=tuning_factor,
+        L_factor_stage_3=L_factor_stage_3,
     )
 
 
@@ -179,6 +187,7 @@ def adjusted_mclmc(
     random_trajectory_length=True,
     tuning_factor=1.0,
     num_tuning_steps=20000,
+    L_factor_stage_3=0.3,
     return_samples=False,
 ):
     """
@@ -205,6 +214,8 @@ def adjusted_mclmc(
 
         integrator = map_integrator_type_to_integrator["mclmc"][integrator_type]
 
+
+        print("Running tuning")
         (
             blackjax_state_after_tuning,
             blackjax_mclmc_sampler_params,
@@ -224,8 +235,12 @@ def adjusted_mclmc(
             num_windows=num_windows,
             tuning_factor=tuning_factor,
             num_tuning_steps=num_tuning_steps,
+            L_factor_stage_3=L_factor_stage_3,
         )
 
+        print("Tuning done")
+
+        print(f"sampling with {num_steps} steps")
         expectations, metadata = adjusted_mclmc_no_tuning(
             initial_state=blackjax_state_after_tuning,
             integrator_type=integrator_type,
@@ -236,6 +251,8 @@ def adjusted_mclmc(
             random_trajectory_length=random_trajectory_length,
             return_samples=return_samples,
         )(model, num_steps, initial_position, run_key)
+
+        jax.debug.print("{x} expectations[0]", x=expectations[0])
 
         # num_steps_per_traj = metadata['L'] / metadata['step_size']
 

@@ -10,9 +10,10 @@ from sampler_evaluation.evaluation.ess import calculate_ess
 # make_transform = lambda model : lambda pos : jax.tree.map(lambda z, b: b(z), pos, model.default_event_space_bijector)
 
 
+
 # produce a kernel that only stores the average values of the bias for E[x_2] and Var[x_2]
 def with_only_statistics(
-    model, alg, initial_state, rng_key, num_steps, incremental_value_transform=None
+    model, alg, incremental_value_transform=None
 ):
 
     if incremental_value_transform is None:
@@ -69,22 +70,16 @@ def with_only_statistics(
             [
                 # model.sample_transformations["identity"](state.position),
                 # model.sample_transformations["square"](state.position),
-                model.default_event_space_bijector(state.position),
-                model.default_event_space_bijector(state.position) ** 2,
-                model.default_event_space_bijector(state.position) ** 4,
+                model.sample_transformations["identity"](model.default_event_space_bijector(state.position)),
+                model.sample_transformations["identity"](model.default_event_space_bijector(state.position)) ** 2,
+                model.sample_transformations["identity"](model.default_event_space_bijector(state.position)) ** 4,
             ]
         ),
         incremental_value_transform=incremental_value_transform,
     )
 
-    return run_inference_algorithm(
-        rng_key=rng_key,
-        initial_state=memory_efficient_sampling_alg.init(initial_state),
-        inference_algorithm=memory_efficient_sampling_alg,
-        num_steps=num_steps,
-        transform=transform,
-        progress_bar=True,
-    )[1]
+    return memory_efficient_sampling_alg, memory_efficient_sampling_alg.init, transform
+
 
 
 # this follows the inference_gym tutorial: https://github.com/tensorflow/probability/blob/main/spinoffs/inference_gym/notebooks/inference_gym_tutorial.ipynb
@@ -104,10 +99,34 @@ def initialize_model(model, key):
     return z
 
 
-make_log_density_fn = lambda model: lambda z: (
-    model.unnormalized_log_prob(model.default_event_space_bijector(z))
-    + model.default_event_space_bijector.forward_log_det_jacobian(z, event_ndims=1)
-)
+def make_log_density_fn(model):
+
+    # if not hasattr(model, "unnormalized_log_prob"):
+    #     import pymc
+    #     from pymc.sampling.jax import get_jaxified_logp
+
+    #     log_density_fn = get_jaxified_logp(model)
+    #     if type(model) == pymc.model.core.Model:
+    #         return log_density_fn
+
+    if hasattr(model, "log_density_fn"):
+        return model.log_density_fn
+
+
+
+
+
+    def log_density_fn(z):
+        return model.unnormalized_log_prob(model.default_event_space_bijector(z)) + model.default_event_space_bijector.forward_log_det_jacobian(z, event_ndims=1)
+
+    return log_density_fn
+
+    # return lambda z: model.unnormalized_log_prob(model.default_event_space_bijector(z))
+
+# make_log_density_fn = lambda model: lambda z: (
+#     model.unnormalized_log_prob(model.default_event_space_bijector(z))
+#     + model.default_event_space_bijector.forward_log_det_jacobian(z, event_ndims=1)
+# )
 
 
 def sampler_grads_to_low_error(
@@ -138,6 +157,8 @@ def sampler_grads_to_low_error(
         keys,
         initial_position,
     )
+
+    print(squared_errors.shape, "squared_errors shape")
 
     err_t_avg_x2 = jnp.median(squared_errors[:, :, 0], axis=0)
     _, grads_to_low_avg_x2, _ = calculate_ess(

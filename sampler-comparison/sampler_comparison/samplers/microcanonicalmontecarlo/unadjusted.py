@@ -19,6 +19,8 @@ def unadjusted_mclmc_no_tuning(
     L,
     inverse_mass_matrix,
     return_samples=False,
+    incremental_value_transform=None,
+    return_only_final=False,
 ):
     """
     Args:
@@ -36,8 +38,6 @@ def unadjusted_mclmc_no_tuning(
 
         logdensity_fn = make_log_density_fn(model)
 
-        fast_key, slow_key = jax.random.split(key, 2)
-
         alg = blackjax.mclmc(
             logdensity_fn=logdensity_fn,
             L=L,
@@ -47,26 +47,41 @@ def unadjusted_mclmc_no_tuning(
         )
 
         if return_samples:
-            (expectations, info) = run_inference_algorithm(
-                rng_key=slow_key,
-                initial_state=initial_state,
-                inference_algorithm=alg,
-                num_steps=num_steps,
-                transform=lambda state, info: (
-                    (model.default_event_space_bijector(state.position), info)
-                ),
-                progress_bar=False,
-            )[1]
+            transform = lambda state, info: (model.default_event_space_bijector(state.position), info)
+
+            get_final_sample = lambda _: None
+
+            state = initial_state
+                
 
         else:
-            results = with_only_statistics(
+            alg, init, transform = with_only_statistics(
                 model=model,
                 alg=alg,
-                initial_state=initial_state,
-                rng_key=fast_key,
-                num_steps=num_steps,
+                incremental_value_transform=incremental_value_transform,
             )
-            expectations, info = results[0], results[1]
+
+            state = init(initial_state)
+
+            get_final_sample = lambda output: output[1][1]
+
+
+
+        final_output, history = run_inference_algorithm(
+            rng_key=key,
+            initial_state=state,
+            inference_algorithm=alg,
+            num_steps=num_steps,
+            transform=(lambda a,b: None) if return_only_final else transform,
+            progress_bar=False,
+        )
+
+        if return_only_final:
+
+            return get_final_sample(final_output)
+        
+        
+        (expectations, info) = history
 
         return (
             expectations,
@@ -137,7 +152,7 @@ def unadjusted_mclmc_tuning(
 def unadjusted_mclmc(
     diagonal_preconditioning=True,
     integrator_type="mclachlan",
-    num_tuning_steps=10000,
+    num_tuning_steps=20000,
     return_samples=False,
 ):
     def s(model, num_steps, initial_position, key):
