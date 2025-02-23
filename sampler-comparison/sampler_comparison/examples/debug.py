@@ -4,12 +4,15 @@ import jax
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import os
+
 print(os.listdir())
 import sys
+
 # sys.path.append('..')
-sys.path.append('../sampler-comparison')
+sys.path.append("../sampler-comparison")
 # sys.path.append('../../')
 from sampler_comparison.samplers import samplers
+
 # import seaborn as sns
 
 from sampler_evaluation.models import models
@@ -51,7 +54,6 @@ with basic_model as model:
     beta = pm.Normal("beta", mu=0, sigma=10, shape=2)
     sigma = pm.HalfNormal("sigma", sigma=1)
 
-
     # Expected value of outcome
     mu = alpha + beta[0] * X1 + beta[1] * X2
 
@@ -91,7 +93,8 @@ with basic_model as model:
 # init_position = init_params.z
 
 
-Model = namedtuple('Model', ['ndims', 'log_density_fn', 'default_event_space_bijector'])
+Model = namedtuple("Model", ["ndims", "log_density_fn", "default_event_space_bijector"])
+
 
 def from_pymc(model):
 
@@ -102,13 +105,21 @@ def from_pymc(model):
     init_position_dict = model.initial_point()
     init_position = [init_position_dict[rv] for rv in rvs]
 
-    return Model(ndims=len(init_position), log_density_fn=log_density_fn, default_event_space_bijector=lambda x:x), init_position
+    return (
+        Model(
+            ndims=len(init_position),
+            log_density_fn=log_density_fn,
+            default_event_space_bijector=lambda x: x,
+        ),
+        init_position,
+    )
 
 
 model, init_position = from_pymc(model)
 
-samples, metadata = samplers['nuts'](return_samples=True)(
-        model=model,  
-        num_steps=1000,
-        initial_position=init_position, 
-        key=jax.random.PRNGKey(0))
+samples, metadata = samplers["nuts"](return_samples=True)(
+    model=model,
+    num_steps=1000,
+    initial_position=init_position,
+    key=jax.random.PRNGKey(0),
+)

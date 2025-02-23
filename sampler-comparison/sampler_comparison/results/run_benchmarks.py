@@ -1,9 +1,11 @@
 import os
 import jax
+
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(128)
 num_cores = jax.local_device_count()
 import itertools
 import sys
+
 sys.path.append("..")
 sys.path.append(".")
 from sampler_comparison.samplers import samplers
@@ -23,10 +25,7 @@ def run_benchmarks(
 
         print(f"Running sampler {sampler} on model {model}")
 
-        (
-            stats,
-            _,
-        ) = sampler_grads_to_low_error(
+        (stats, _) = sampler_grads_to_low_error(
             sampler=samplers[sampler](),
             model=models[model],
             num_steps=num_steps,

@@ -30,7 +30,8 @@ def brownian_motion():
     var_x2 = e_x4 - e_x2**2
 
     brownian_motion.sample_transformations["square"] = model.Model.SampleTransformation(
-        fn=lambda params: params**2,
+        fn=lambda params: brownian_motion.sample_transformations["identity"](params)
+        ** 2,
         pretty_name="Square",
         ground_truth_mean=e_x2,
         ground_truth_standard_deviation=jnp.sqrt(var_x2),
@@ -38,12 +39,19 @@ def brownian_motion():
 
     brownian_motion.sample_transformations["identity"] = (
         model.Model.SampleTransformation(
-            fn=lambda params: params,
+            fn=lambda params: gym.targets.VectorModel(
+                gym.targets.BrownianMotionUnknownScalesMissingMiddleObservations(),
+                flatten_sample_transformations=True,
+            ).sample_transformations["identity"](params),
             pretty_name="Identity",
             ground_truth_mean=e_x,
             ground_truth_standard_deviation=jnp.sqrt(e_x2 - e_x**2),
         )
     )
+
+    # brownian_motion.sample_transformations["identity"].ground_truth_mean=e_x
+
+    # brownian_motion.sample_transformations["identity"].ground_truth_standard_deviation=jnp.sqrt(e_x2 - e_x**2)
 
     brownian_motion.ndims = 32
 

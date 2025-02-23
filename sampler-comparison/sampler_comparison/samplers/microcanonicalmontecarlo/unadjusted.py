@@ -47,12 +47,14 @@ def unadjusted_mclmc_no_tuning(
         )
 
         if return_samples:
-            transform = lambda state, info: (model.default_event_space_bijector(state.position), info)
+            transform = lambda state, info: (
+                model.default_event_space_bijector(state.position),
+                info,
+            )
 
             get_final_sample = lambda _: None
 
             state = initial_state
-                
 
         else:
             alg, init, transform = with_only_statistics(
@@ -65,22 +67,19 @@ def unadjusted_mclmc_no_tuning(
 
             get_final_sample = lambda output: output[1][1]
 
-
-
         final_output, history = run_inference_algorithm(
             rng_key=key,
             initial_state=state,
             inference_algorithm=alg,
             num_steps=num_steps,
-            transform=(lambda a,b: None) if return_only_final else transform,
+            transform=(lambda a, b: None) if return_only_final else transform,
             progress_bar=False,
         )
 
         if return_only_final:
 
             return get_final_sample(final_output)
-        
-        
+
         (expectations, info) = history
 
         return (
@@ -105,6 +104,7 @@ def unadjusted_mclmc_tuning(
     integrator_type,
     diagonal_preconditioning,
     num_tuning_steps=500,
+    stage3=True,
 ):
     """
     Args:
@@ -123,7 +123,7 @@ def unadjusted_mclmc_tuning(
 
     frac_tune1 = num_tuning_steps / (3 * num_steps)
     frac_tune2 = num_tuning_steps / (3 * num_steps)
-    frac_tune3 = num_tuning_steps / (3 * num_steps)
+    frac_tune3 = num_tuning_steps / (3 * num_steps) if stage3 else 0.0
 
     initial_state = blackjax.mcmc.mclmc.init(
         position=initial_position,

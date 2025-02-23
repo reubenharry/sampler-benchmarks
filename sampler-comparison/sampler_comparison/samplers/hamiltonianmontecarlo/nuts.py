@@ -43,7 +43,8 @@ def nuts(
             (state, params), adaptation_info = warmup.run(
                 warmup_key, initial_position, num_tuning_steps
             )
-            info = adaptation_info
+
+            adaptation_info = adaptation_info.info
 
         alg = blackjax.nuts(
             logdensity_fn=logdensity_fn,
@@ -52,12 +53,13 @@ def nuts(
             integrator=integrator,
         )
 
-
         if return_samples:
-            transform = lambda state, info: (model.default_event_space_bijector(state.position), info)
+            transform = lambda state, info: (
+                model.default_event_space_bijector(state.position),
+                info,
+            )
 
             get_final_sample = lambda _: None
-                
 
         else:
             alg, init, transform = with_only_statistics(
@@ -70,22 +72,19 @@ def nuts(
 
             get_final_sample = lambda output: output[1][1]
 
-
-
         final_output, history = run_inference_algorithm(
             rng_key=rng_key,
             initial_state=state,
             inference_algorithm=alg,
             num_steps=num_steps,
-            transform=(lambda a,b: None) if return_only_final else transform,
+            transform=(lambda a, b: None) if return_only_final else transform,
             progress_bar=False,
         )
 
         if return_only_final:
 
             return get_final_sample(final_output)
-        
-        
+
         (expectations, info) = history
 
         return (
@@ -96,7 +95,7 @@ def nuts(
                 "num_grads_per_proposal": info.num_integration_steps.mean()
                 * calls_per_integrator_step(integrator_type),
                 "acc_rate": info.acceptance_rate.mean(),
-                "num_tuning_grads": info.num_integration_steps.sum()
+                "num_tuning_grads": adaptation_info.num_integration_steps.sum()
                 * calls_per_integrator_step(integrator_type),
                 "num_grads_per_proposal": info.num_integration_steps.mean(),
             },
