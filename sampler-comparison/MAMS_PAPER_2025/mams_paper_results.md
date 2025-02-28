@@ -8,7 +8,7 @@ These results were generated with `sampler_comparison/experiments/experiment.py`
 
 For the paper, these results were run individually, with a varying number of steps for each model (as long as the sampler converges, the number of steps does not matter), and with a varying number of chains (512 chains for `Banana_MAMS`).
 
-### Notes on the set of models
+### Models
 
 The model set is:
 
@@ -31,6 +31,20 @@ In most cases, an inference gym model is used. For `Rosenbrock_36D()`, we provid
 For the models marked with "MAMS", please disregard the ground truths of the first moments (e.g. `{"identity": SampleTransformation(ground_truth_mean=E_x2+jnp.inf, ground_truth_standard_deviation=jnp.sqrt(Var_x2)+jnp.inf)}`), which are set to infinity and not used in the MAMS Paper.
 
 Ground truth values for the expectation of $x^2$ are generated in the `sampler-evaluation` package, in `sampler_evaluation/models/data/estimate_expectations.py`, with the exception of `stochastic_volatility_mams_paper`, where a pre-existing ground truth was used.
+
+### Samplers
+
+```python
+samplers={
+
+            "adjusted_microcanonical": lambda: adjusted_mclmc(num_tuning_steps=5000),
+            "adjusted_microcanonical_langevin": lambda: adjusted_mclmc(L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
+            "nuts": lambda: nuts(num_tuning_steps=5000),
+        }
+```
+
+This set of samplers was used for the results, with the exception of
+TODO
 
 ## Table 2
 
