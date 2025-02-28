@@ -16,10 +16,9 @@ def brownian_motion():
         flatten_sample_transformations=True,
     )
 
-    dirr = "/global/homes/r/reubenh/blackjax-benchmarks"
 
     with open(
-        f"{dirr}/sampler-evaluation/sampler_evaluation/models/data/{brownian_motion.name}_expectations.pkl",
+        f"../sampler-evaluation/sampler_evaluation/models/data/{brownian_motion.name}_expectations.pkl",
         "rb",
     ) as f:
         stats = pickle.load(f)
@@ -48,10 +47,6 @@ def brownian_motion():
             ground_truth_standard_deviation=jnp.sqrt(e_x2 - e_x**2),
         )
     )
-
-    # brownian_motion.sample_transformations["identity"].ground_truth_mean=e_x
-
-    # brownian_motion.sample_transformations["identity"].ground_truth_standard_deviation=jnp.sqrt(e_x2 - e_x**2)
 
     brownian_motion.ndims = 32
 

@@ -73,7 +73,6 @@ def adjusted_hmc_no_tuning(
             state = initial_state
 
         else:
-            print("Running with streaming averages")
             alg, init, transform = with_only_statistics(
                 model=model,
                 alg=alg,

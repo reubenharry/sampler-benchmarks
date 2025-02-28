@@ -71,7 +71,6 @@ def adjusted_mclmc_no_tuning(
             state = initial_state
 
         else:
-            print("Running with streaming averages")
             alg, init, transform = with_only_statistics(
                 model=model,
                 alg=alg,
@@ -371,7 +370,6 @@ def adjusted_mclmc(
 
         integrator = map_integrator_type_to_integrator["mclmc"][integrator_type]
 
-        print("Running tuning")
         (
             blackjax_state_after_tuning,
             blackjax_mclmc_sampler_params,

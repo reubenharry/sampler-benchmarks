@@ -24,8 +24,6 @@ def run_benchmarks(
 
         key = jax.random.fold_in(key, i)
 
-        print(f"Running sampler {sampler} on model {model}")
-
         (stats, _) = sampler_grads_to_low_error(
             sampler=samplers[sampler](),
             model=models[model],
@@ -34,8 +32,6 @@ def run_benchmarks(
             key=key,
             pvmap=map,
         )
-
-        print("finished running")
 
         results.append(
             {

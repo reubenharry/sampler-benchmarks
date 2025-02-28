@@ -56,3 +56,5 @@ Todos:
 - include the Stoch vol ground truth (currently not in repo)
 - fix the paths so they aren't specific to you!
 - break experiment into separate files!s
+- regenerate long runs!
+- check blackjax version: is it an open one? no, but you can use the one on your fork: specify!

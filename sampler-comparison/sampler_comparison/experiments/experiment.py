@@ -37,6 +37,7 @@ from sampler_evaluation.models.banana_mams_paper import banana_mams_paper
 
 
 
+
 # 64 bit
 with jax.experimental.enable_x64():
     run_benchmarks(
