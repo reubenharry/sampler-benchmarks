@@ -10,6 +10,8 @@ from sampler_comparison.util import (
     calls_per_integrator_step,
     map_integrator_type_to_integrator,
 )
+from blackjax.adaptation.mclmc_adaptation import MCLMCAdaptationState
+
 
 
 def unadjusted_mclmc_no_tuning(
@@ -137,6 +139,11 @@ def unadjusted_mclmc_tuning(
         inverse_mass_matrix=inverse_mass_matrix,
     )
 
+    dim = initial_position.shape[0]
+    params = MCLMCAdaptationState(
+        4 * jnp.sqrt(dim), jnp.sqrt(dim) , inverse_mass_matrix=jnp.ones((dim,))
+    )
+
     return blackjax.mclmc_find_L_and_step_size(
         mclmc_kernel=kernel,
         num_steps=num_steps,
@@ -146,6 +153,7 @@ def unadjusted_mclmc_tuning(
         frac_tune3=frac_tune3,
         frac_tune2=frac_tune2,
         frac_tune1=frac_tune1,
+        params=params,
     )
 
 

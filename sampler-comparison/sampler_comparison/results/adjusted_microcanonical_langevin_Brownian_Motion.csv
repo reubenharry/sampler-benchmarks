@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_microcanonical_langevin,Brownian_Motion,14717.975444090223,True,x2,188689.875,11.313708498984761,1.0538568042997638
+1,adjusted_microcanonical_langevin,Brownian_Motion,2917.7551904524144,False,x2,188689.875,11.313708498984761,1.0538568042997638
+2,adjusted_microcanonical_langevin,Brownian_Motion,17118.932667230034,True,x,188689.875,11.313708498984761,1.0538568042997638
+3,adjusted_microcanonical_langevin,Brownian_Motion,3111.5544281946413,False,x,188689.875,11.313708498984761,1.0538568042997638

@@ -21,9 +21,12 @@ def stochastic_volatility():
     e_x4 = stats["e_x4"]
     var_x2 = e_x4 - e_x2**2
 
+        # e_x2, var_x2 = jnp.load(dirr + 'ground_truth/' + 'StochasticVolatility' + '/moments.npy')
+
+
     stochastic_volatility.sample_transformations["square"] = (
         model.Model.SampleTransformation(
-            fn=lambda params: params**2,
+            fn=lambda params: stochastic_volatility.sample_transformations["identity"](params)**2,
             pretty_name="Square",
             ground_truth_mean=e_x2,
             ground_truth_standard_deviation=jnp.sqrt(var_x2),

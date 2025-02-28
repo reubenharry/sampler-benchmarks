@@ -1,5 +1,5 @@
 ,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
-0,adjusted_microcanonical_langevin,Neals_Funnel,inf,True,x2,814940.3125,13.496102333068848,0.27571842074394226
-1,adjusted_microcanonical_langevin,Neals_Funnel,188.64541625976562,False,x2,814940.3125,13.496102333068848,0.27571842074394226
-2,adjusted_microcanonical_langevin,Neals_Funnel,inf,True,x,814940.3125,13.496102333068848,0.27571842074394226
-3,adjusted_microcanonical_langevin,Neals_Funnel,943.22705078125,False,x,814940.3125,13.496102333068848,0.27571842074394226
+0,adjusted_microcanonical_langevin,Neals_Funnel,inf,True,x2,501721.234375,8.493760456367756,0.21792840353554466
+1,adjusted_microcanonical_langevin,Neals_Funnel,25578.480768315356,False,x2,501721.234375,8.493760456367756,0.21792840353554466
+2,adjusted_microcanonical_langevin,Neals_Funnel,inf,True,x,501721.234375,8.493760456367756,0.21792840353554466
+3,adjusted_microcanonical_langevin,Neals_Funnel,inf,False,x,501721.234375,8.493760456367756,0.21792840353554466

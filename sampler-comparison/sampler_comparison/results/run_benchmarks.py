@@ -15,8 +15,9 @@ import pandas as pd
 
 
 def run_benchmarks(
-    models, samplers, batch_size, num_steps, key=jax.random.PRNGKey(1), save_dir=None
+    models, samplers, batch_size, num_steps, key=jax.random.PRNGKey(1), save_dir=None,map=jax.pmap
 ):
+
 
     for i, (sampler, model) in enumerate(itertools.product(samplers, models)):
         results = []
@@ -31,7 +32,7 @@ def run_benchmarks(
             num_steps=num_steps,
             batch_size=batch_size,
             key=key,
-            pvmap=jax.pmap,
+            pvmap=map,
         )
 
         print("finished running")
@@ -96,6 +97,7 @@ def run_benchmarks(
         df = pd.DataFrame(results)
 
         if save_dir is not None:
+            print(f"Saving results to", os.path.join(save_dir, f"{sampler}_{model}.csv"))
             df.to_csv(os.path.join(save_dir, f"{sampler}_{model}.csv"))
 
 

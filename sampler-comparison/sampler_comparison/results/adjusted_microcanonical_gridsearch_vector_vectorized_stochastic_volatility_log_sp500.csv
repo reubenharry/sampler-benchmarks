@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_microcanonical_gridsearch,vector_vectorized_stochastic_volatility_log_sp500,42358.46484375,True,x2,0.0,58.55458068847656,4.346135139465332
+1,adjusted_microcanonical_gridsearch,vector_vectorized_stochastic_volatility_log_sp500,2223.010986328125,False,x2,0.0,58.55458068847656,4.346135139465332
+2,adjusted_microcanonical_gridsearch,vector_vectorized_stochastic_volatility_log_sp500,36659.47265625,True,x,0.0,58.55458068847656,4.346135139465332
+3,adjusted_microcanonical_gridsearch,vector_vectorized_stochastic_volatility_log_sp500,2155.64697265625,False,x,0.0,58.55458068847656,4.346135139465332

@@ -29,6 +29,10 @@ def samples_to_low_error(err_t, low_error=0.01):
     b^2 = 1/n_eff"""
 
     cutoff_reached = err_t[-1] < low_error
+    if not cutoff_reached:
+        jax.debug.print("Error never below threshold, final error is {x}", x=err_t[-1])
+    else:
+        jax.debug.print("Error below threshold at final error {x}", x=err_t[-1])
     crossing = find_crossing(err_t, low_error)
     return crossing * (1 / cutoff_reached)
 
@@ -65,7 +69,7 @@ def find_crossing(array, cutoff):
 def get_standardized_squared_error(samples, f, E_f, Var_f):
     """
     samples: jnp.array of shape (batch_size, num_samples, dim)
-    f: function that takes in array of shape (dim,) and returns an array of shape (n,) for any n
+    f: broadcastable function (like lambda x: x**2) that takes in a number and returns a number
     E_f_x: the expected value of f(x) for the distribution of x
     E_f_x2: the expected value of f(x)^2 for the distribution of x
     cost_per_step: the cost of drawing each sample
@@ -77,6 +81,8 @@ def get_standardized_squared_error(samples, f, E_f, Var_f):
         jnp.cumsum(f(samples), axis=1)
         / jnp.arange(1, samples.shape[1] + 1)[None, :, None]
     )
+
+    
     error_function_max = lambda x: jnp.max(jnp.square(x - E_f) / Var_f)
 
     errors = jnp.median(jax.vmap(jax.vmap(error_function_max))(exps), axis=0)

@@ -61,20 +61,22 @@ def with_only_statistics(model, alg, incremental_value_transform=None):
             ]
         )
 
+    outer_transform = model.sample_transformations["identity"] if callable(model.sample_transformations["identity"]) else lambda x:x
+
     memory_efficient_sampling_alg, transform = store_only_expectation_values(
         sampling_algorithm=alg,
         state_transform=lambda state: jnp.array(
             [
                 # model.sample_transformations["identity"](state.position),
                 # model.sample_transformations["square"](state.position),
-                model.sample_transformations["identity"](
+                outer_transform(
                     model.default_event_space_bijector(state.position)
                 ),
-                model.sample_transformations["identity"](
+                outer_transform(
                     model.default_event_space_bijector(state.position)
                 )
                 ** 2,
-                model.sample_transformations["identity"](
+                outer_transform(
                     model.default_event_space_bijector(state.position)
                 )
                 ** 4,
@@ -135,7 +137,7 @@ def make_log_density_fn(model):
 
 
 def sampler_grads_to_low_error(
-    sampler, model, num_steps, batch_size, key, pvmap=jax.vmap
+    sampler, model, num_steps, batch_size, key, pvmap=jax.pmap
 ):
 
     try:

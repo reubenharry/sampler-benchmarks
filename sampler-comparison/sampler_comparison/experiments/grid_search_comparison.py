@@ -1,6 +1,6 @@
 import os
 
-os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(128)
+os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(64)
 import jax
 
 num_cores = jax.local_device_count()
@@ -13,15 +13,18 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import (
 )
 from sampler_comparison.results.run_benchmarks import run_benchmarks
 from sampler_evaluation.models import models
+from sampler_evaluation.models.ill_conditioned_gaussian import IllConditionedGaussian
+from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
 
+jax.config.update("jax_enable_x64", True)
 
 def benchmark_grid_search(model):
 
     L, step_size, num_grads, num_grads_avg, edge, inverse_mass_matrix, initial_state = (
         grid_search_only_L(
             model=model,
-            num_steps=100000,
-            num_chains=128,
+            num_steps=40000,
+            num_chains=64,
             integrator_type="velocity_verlet",
             key=jax.random.key(0),
             grid_size=10,
@@ -41,8 +44,8 @@ def benchmark_grid_search(model):
                 inverse_mass_matrix=inverse_mass_matrix,
             ),
         },
-        batch_size=128,
-        num_steps=100000,
+        batch_size=64,
+        num_steps=40000,
         save_dir="sampler_comparison/results",
     )
 
@@ -61,12 +64,14 @@ if __name__ == "__main__":
     models = {
         # "Banana": banana(),
         # "Gaussian_100D": Gaussian(ndims=100),
+        # 'Gaussian_100D': IllConditionedGaussian(ndims=100, condition_number=100, eigenvalues='log'),
         # "Brownian_Motion": brownian_motion(),
         # "German_Credit": german_credit(),
-        "Rosenbrock_36D": Rosenbrock_36D(),
-        "Neals_Funnel": neals_funnel(),
-        "Stochastic_Volatility": stochastic_volatility(),
-        "Item_Response": item_response(),
+        # "Rosenbrock_36D": Rosenbrock_36D(),
+        # "Neals_Funnel": neals_funnel(),
+        # "Stochastic_Volatility": stochastic_volatility(),
+        "Stochastic_Volatility_MAMS_Paper": stochastic_volatility_mams_paper,
+        # "Item_Response": item_response(),
     }
     for model in models:
 

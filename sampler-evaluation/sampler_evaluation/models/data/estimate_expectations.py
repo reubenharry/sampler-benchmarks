@@ -23,6 +23,9 @@ from sampler_evaluation.models.neals_funnel import neals_funnel
 from sampler_evaluation.models.rosenbrock import Rosenbrock_36D
 from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
 import sampler_evaluation
+from sampler_evaluation.models.ill_conditioned_gaussian import IllConditionedGaussian
+from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
+
 
 
 def relative_fluctuations(expectation, square_expectation):
@@ -66,7 +69,7 @@ def estimate_ground_truth(model):
             diagonal_preconditioning=True,
             return_samples=False,
             incremental_value_transform=lambda x: x,
-            num_tuning_steps=10000,
+            num_tuning_steps=5000,
             return_only_final=True,
         )
 
@@ -80,7 +83,7 @@ def estimate_ground_truth(model):
             key=jax.random.key(0),
         )
 
-        expectation = jax.pmap(
+        expectation = jax.vmap(
             lambda pos, key: sampler(
                 model=model,
                 num_steps=gold_standard_expectation_steps[model],
@@ -141,10 +144,12 @@ if __name__ == "__main__":
     gold_standard_expectation_steps = {
         # banana(): 10000000,
         # neals_funnel(): 1000000,
-        # Gaussian(ndims=10000) : 10000
-        # brownian_motion(): 200000,
+        # Gaussian(ndims=100) : 10000
+        # IllConditionedGaussian(ndims=100, condition_number=100, eigenvalues='log') : 10000,
+        # sampler_evaluation.models.brownian_motion(): 2000000,
         # sampler_evaluation.models.german_credit(): 10000000,
-        sampler_evaluation.models.stochastic_volatility(): 1000,
+        # sampler_evaluation.models.stochastic_volatility(): 1000,
+        stochastic_volatility_mams_paper: 40000,
         # sampler_evaluation.models.item_response(): 1000000,
         # Rosenbrock_36D(): 10000000,
     }

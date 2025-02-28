@@ -29,7 +29,7 @@ def neals_funnel():
     var_x2 = e_x4 - e_x2**2
 
     neals_funnel.sample_transformations["square"] = model.Model.SampleTransformation(
-        fn=lambda params: params**2,
+        fn=lambda params: neals_funnel.sample_transformations["identity"](params)**2,
         pretty_name="Square",
         ground_truth_mean=e_x2,
         ground_truth_standard_deviation=jnp.sqrt(var_x2),

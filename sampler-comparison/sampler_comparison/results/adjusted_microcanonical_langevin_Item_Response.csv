@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_microcanonical_langevin,Item_Response,46020.45483035347,True,x2,181789.46875,34.13353083906212,3.018916026453831
+1,adjusted_microcanonical_langevin,Item_Response,3870.0308500987753,False,x2,181789.46875,34.13353083906212,3.018916026453831
+2,adjusted_microcanonical_langevin,Item_Response,44420.23679556189,True,x,181789.46875,34.13353083906212,3.018916026453831
+3,adjusted_microcanonical_langevin,Item_Response,3870.0308500987753,False,x,181789.46875,34.13353083906212,3.018916026453831
