@@ -149,7 +149,7 @@ if __name__ == "__main__":
         # sampler_evaluation.models.brownian_motion(): 2000000,
         # sampler_evaluation.models.german_credit(): 10000000,
         # sampler_evaluation.models.stochastic_volatility(): 1000,
-        stochastic_volatility_mams_paper: 40000,
+        stochastic_volatility_mams_paper: 400000,
         # sampler_evaluation.models.item_response(): 1000000,
         # Rosenbrock_36D(): 10000000,
     }
