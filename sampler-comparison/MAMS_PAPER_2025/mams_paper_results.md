@@ -2,11 +2,14 @@
 
 This document outlines the steps to generate the results for the MAMS paper, which was performed using the `sampler-comparison` package on the branch `research` of the `sampler-benchmarks` repository in which `sampler-comparison` is contained.
 
+## Blackjax version
+
+The results were generated with TODO
+
 ## Table 1
 
-These results were generated with `sampler_comparison/experiments/experiment.py`.
+These results were generated with the scripts in the `table1` folder.
 
-For the paper, these results were run individually, with a varying number of steps for each model (as long as the sampler converges, the number of steps does not matter), and with a varying number of chains (512 chains for `Banana_MAMS`).
 
 ### Models
 
@@ -14,16 +17,18 @@ The model set is:
 
 ```python
 models={
-            "Banana_MAMS": banana_mams_paper,
-            "Gaussian_100D": IllConditionedGaussian(ndims=100, condition_number=100, eigenvalues='log'),
-            "Rosenbrock_36D": Rosenbrock_36D(),
-            "Neals_Funnel_MAMS": neals_funnel_mams_paper,
-            "Brownian_Motion": brownian_motion(),
-            "German_Credit": sampler_evaluation.models.german_credit(),
-            "Stochastic_Volatility_MAMS": stochastic_volatility_mams_paper,
-            "Item_Response": item_response(),
+        banana_mams_paper,
+        IllConditionedGaussian(ndims=100, condition_number=100, eigenvalues='log'),
+        Rosenbrock_36D(),
+        neals_funnel_mams_paper,
+        brownian_motion(),
+        sampler_evaluation.models.german_credit(),
+        stochastic_volatility_mams_paper,
+        item_response(),
         },
 ```
+
+all of which are defined in the `sampler-evaluation` package (also in this repository), under `sampler_evaluation/models`.
 
 
 In most cases, an inference gym model is used. For `Rosenbrock_36D()`, we provide our own product of 18 2D Rosenbrocks. For `stochastic_volatility_mams_paper`, we adapt the NumPyro Stochastic Volatility model, which differs from inference gym in number of dimensions and presents a harder inference problem (more steps required for convergence by a factor of 10).  For `banana_mams_paper`, our implementation aligns with inference gym, and is present to avoid [a apparent bug incurred when using 64 bit precision](https://github.com/tensorflow/probability/issues/1993). For `IllConditionedGaussian`, we again provide our own variant of a Gaussian, which is unrotated.
@@ -43,8 +48,11 @@ samplers={
         }
 ```
 
-This set of samplers was used for the results, with the exception of
+This set of samplers was used for the results, with the exception of Neal's Funnel, where we use:
+
+```python
 TODO
+```
 
 ## Table 2
 

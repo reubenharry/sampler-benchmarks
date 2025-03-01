@@ -14,7 +14,7 @@ import jax
 import pickle
 
 
-# This is unrotated (unlike the inference-gym version) and is used for a result in a paper.
+# This is (by default) unrotated (unlike the inference-gym version) and is used for a result in a paper.
 class IllConditionedGaussian(model.Model):
     def __init__(
         self,

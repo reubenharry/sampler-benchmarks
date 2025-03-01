@@ -8,10 +8,6 @@ batch_size = 32
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 num_cores = jax.local_device_count()
 
-import sys
-
-sys.path.append(".")
-sys.path.append("../sampler-evaluation")
 
 from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
 import sampler_evaluation
@@ -34,9 +30,8 @@ typical_sigma, typical_nu = 0.02, 10.0
 
 ndims = 2429
 
-dirr = "../../MicroCanonicalHMC/benchmarks/" 
-E_x2, Var_x2 = jnp.load(dirr + 'ground_truth/'+name+'/moments.npy')
-SP500_returns = jnp.load(dirr + 'data/SP500.npy')  
+E_x2, Var_x2 = jnp.load('../sampler-evaluation/sampler_evaluation/models/data/stoch_vol_moments.npy')
+SP500_returns = jnp.load('../sampler-evaluation/sampler_evaluation/models/data/' + 'SP500.npy')  
 
 def logdensity_fn(x):
         """x=  [s1, s2, ... s2427, log sigma / typical_sigma, log nu / typical_nu]"""

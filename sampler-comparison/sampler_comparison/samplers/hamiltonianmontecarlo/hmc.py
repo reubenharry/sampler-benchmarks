@@ -53,7 +53,6 @@ def adjusted_hmc_no_tuning(
         else:
             integration_steps_fn = lambda _: num_steps_per_traj.astype(jnp.int32)
 
-        print("Building algorithm")
         alg = blackjax.dynamic_hmc(
             logdensity_fn=logdensity_fn,
             step_size=step_size,

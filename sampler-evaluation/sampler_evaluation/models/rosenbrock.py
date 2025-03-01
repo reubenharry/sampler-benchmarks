@@ -25,22 +25,7 @@ class Rosenbrock_36D(model.Model):
         self.Q = 0.1
 
         # todo: ground truths should be calculated from 2D rosenbrock and then composed as independent products
-        # dirr = "/global/homes/r/reubenh/blackjax-benchmarks"
-
-        # with open(
-        #     f"{dirr}/sampler-evaluation/sampler_evaluation/models/data/rosenbrock_36D_expectations.pkl",
-        #     "rb",
-        # ) as f:
-        #     stats = pickle.load(f)
-
-        # e_x = stats["e_x"]
-        # e_x2 = stats["e_x2"]
-        # e_x4 = stats["e_x4"]
-        # var_x2 = e_x4 - e_x2**2
-
-        # print(e_x.shape, e_x2.shape, e_x4.shape, var_x2.shape)
-
-        # raise Exception
+       
 
         D = ndims // 2
         e_x = jnp.array(
@@ -74,10 +59,7 @@ class Rosenbrock_36D(model.Model):
             * D
         )
 
-        # print(e_x.shape, e_x2.shape, var_x2.shape)
-
-        # raise Exception
-
+        
         sample_transformations = {
             "identity": model.Model.SampleTransformation(
                 fn=lambda params: params,

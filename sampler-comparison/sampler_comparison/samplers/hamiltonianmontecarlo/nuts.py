@@ -16,6 +16,7 @@ def nuts(
     incremental_value_transform=None,
     num_tuning_steps=5000,
     return_only_final=False,
+    target_acc_rate=0.8
 ):
 
     def s(model, num_steps, initial_position, key):
@@ -33,7 +34,7 @@ def nuts(
                 integrator=integrator,
                 logdensity_fn=logdensity_fn,
                 num_steps=num_tuning_steps,
-                target_acceptance_rate=0.8,
+                target_acceptance_rate=target_acc_rate,
             )
 
         else:
@@ -80,6 +81,8 @@ def nuts(
             transform=(lambda a, b: None) if return_only_final else transform,
             progress_bar=False,
         )
+
+        jax.debug.print("num grads per proposal {x}", x=info.num_integration_steps.mean())
 
         if return_only_final:
 

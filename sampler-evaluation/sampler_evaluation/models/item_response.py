@@ -10,9 +10,8 @@ def item_response():
         gym.targets.SyntheticItemResponseTheory(), flatten_sample_transformations=True
     )
 
-    dirr = "/global/homes/r/reubenh/blackjax-benchmarks"
     with open(
-        f"{dirr}/sampler-evaluation/sampler_evaluation/models/data/{item_response.name}_expectations.pkl",
+        f"../sampler-evaluation/sampler_evaluation/models/data/{item_response.name}_expectations.pkl",
         "rb",
     ) as f:
         stats = pickle.load(f)
@@ -20,10 +19,6 @@ def item_response():
     e_x2 = stats["e_x2"]
     e_x4 = stats["e_x4"]
     var_x2 = e_x4 - e_x2**2
-
- # dirr = "../../MicroCanonicalHMC/benchmarks/"
-            # e_x2, var_x2 = jnp.load(dirr + 'ground_truth/' + 'ItemResponse' + '/moments.npy')
-
 
     item_response.sample_transformations["square"] = model.Model.SampleTransformation(
         fn=lambda params: item_response.sample_transformations["identity"](params) ** 2,

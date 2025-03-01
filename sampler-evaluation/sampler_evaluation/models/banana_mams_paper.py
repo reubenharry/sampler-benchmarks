@@ -1,12 +1,5 @@
 from collections import namedtuple
-import os
-import jax
-
-
-
-
 import sys
-
 sys.path.append(".")
 sys.path.append("../sampler-evaluation")
 import jax.numpy as jnp 
@@ -15,11 +8,9 @@ def logdensity_fn_banana(x):
         mu2 = 0.03 * (x[0] ** 2 - 100)
         return -0.5 * (jnp.square(x[0] / 10.0) + jnp.square(x[1] - mu2))
 
-
 def transform(x):
         return x
 
-# jax.config.update("jax_enable_x64", True)
 SampleTransformation = namedtuple("SampleTransformation", ["ground_truth_mean", "ground_truth_standard_deviation"])
 Model = namedtuple("Model", ["ndims", "log_density_fn", "default_event_space_bijector", "sample_transformations" ])
 banana_mams_paper = Model(

@@ -50,7 +50,6 @@ def adjusted_mclmc_no_tuning(
         else:
             integration_steps_fn = lambda _: jnp.ceil(num_steps_per_traj)
 
-        print("Building algorithm")
         alg = blackjax.adjusted_mclmc_dynamic(
             logdensity_fn=logdensity_fn,
             step_size=step_size,
@@ -128,7 +127,7 @@ def adjusted_mclmc_tuning(
     tuning_factor=1.0,
     num_tuning_steps=500,
     L_factor_stage_3=0.3,
-    do_nuts_warmup=True,
+    warmup='nuts',
 ):
 
     init_key, tune_key = jax.random.split(rng_key, 2)
@@ -142,10 +141,6 @@ def adjusted_mclmc_tuning(
     frac_tune1 = num_tuning_steps / (3 * num_steps)
     frac_tune2 = num_tuning_steps / (3 * num_steps)
     frac_tune3 = num_tuning_steps / (3 * num_steps)
-
-    # frac_tune1 = 500 / (num_steps)
-    # frac_tune2 = 1000 / (num_steps)
-    # frac_tune3 = 500 / (num_steps)
 
     if random_trajectory_length:
         integration_steps_fn = lambda avg_num_integration_steps: lambda k: jnp.ceil(
@@ -168,40 +163,48 @@ def adjusted_mclmc_tuning(
         L_proposal_factor=L_proposal_factor,
     )
 
-    if do_nuts_warmup:
+    total_tuning_integrator_steps = 0
 
-        tune_key_unadjusted, re_init_key, tune_key, tune_key_2, stage3_key = (
+    tune_key_unadjusted, re_init_key, tune_key, tune_key_2, stage3_key = (
             jax.random.split(tune_key, 5)
         )
 
-        total_tuning_integrator_steps = 0
+    if warmup=='unadjusted_mclmc':
 
-        # for i in range(num_windows):
-        #     tune_key_unadjusted = jax.random.fold_in(tune_key_unadjusted, i)
+        for i in range(num_windows):
+            tune_key_unadjusted = jax.random.fold_in(tune_key_unadjusted, i)
             
-        #     (
-        #         blackjax_state_after_tuning,
-        #         blackjax_mclmc_sampler_params,
-        #         num_tuning_integrator_steps,
-        #     ) = unadjusted_mclmc_tuning(
-        #         initial_position=initial_position,
-        #         num_steps=num_steps,
-        #         rng_key=tune_key_unadjusted,
-        #         logdensity_fn=logdensity_fn,
-        #         integrator_type="velocity_verlet",
-        #         diagonal_preconditioning=diagonal_preconditioning,
-        #         num_tuning_steps=num_tuning_steps/num_windows,
-        #         stage3=False,
-        #     )
-        #     # jax.debug.print("num_tuning_steps/num_windows {x}", x=num_tuning_integrator_steps)
-        #     total_tuning_integrator_steps += num_tuning_integrator_steps
+            (
+                blackjax_state_after_tuning,
+                blackjax_mclmc_sampler_params,
+                num_tuning_integrator_steps,
+            ) = unadjusted_mclmc_tuning(
+                initial_position=initial_position,
+                num_steps=num_steps,
+                rng_key=tune_key_unadjusted,
+                logdensity_fn=logdensity_fn,
+                integrator_type="velocity_verlet",
+                diagonal_preconditioning=diagonal_preconditioning,
+                num_tuning_steps=num_tuning_steps/num_windows,
+                stage3=False,
+            )
+            # jax.debug.print("num_tuning_steps/num_windows {x}", x=num_tuning_integrator_steps)
+            total_tuning_integrator_steps += num_tuning_integrator_steps
 
-        # dim = initial_state.position.shape[0]
-        # new_step_size = jnp.clip(blackjax_mclmc_sampler_params.step_size, max=blackjax_mclmc_sampler_params.L-0.01)
-        # blackjax_mclmc_sampler_params = blackjax_mclmc_sampler_params._replace(
-        #     L=jnp.sqrt(dim),
-        #     step_size=new_step_size,
-        # )
+        dim = initial_state.position.shape[0]
+        new_step_size = jnp.clip(blackjax_mclmc_sampler_params.step_size, max=blackjax_mclmc_sampler_params.L-0.01)
+        blackjax_mclmc_sampler_params = blackjax_mclmc_sampler_params._replace(
+            L=jnp.sqrt(dim),
+            step_size=new_step_size,
+        )
+
+    elif warmup=='nuts':
+
+        
+
+        
+
+        
 
         warmup = blackjax.window_adaptation(
                     blackjax.nuts, logdensity_fn, 
@@ -221,18 +224,55 @@ def adjusted_mclmc_tuning(
         )
 
 
-        state = blackjax.mcmc.adjusted_mclmc_dynamic.init(
-            position=blackjax_state_after_tuning.position,
-            logdensity_fn=logdensity_fn,
-            random_generator_arg=re_init_key,
+    state = blackjax.mcmc.adjusted_mclmc_dynamic.init(
+        position=blackjax_state_after_tuning.position,
+        logdensity_fn=logdensity_fn,
+        random_generator_arg=re_init_key,
+    )
+
+
+    (
+        blackjax_state_after_tuning,
+        blackjax_mclmc_sampler_params,
+        _,
+        num_tuning_integrator_steps,
+    ) = adjusted_mclmc_make_L_step_size_adaptation(
+        kernel=kernel,
+        dim=dim,
+        frac_tune1=2000 / num_steps,
+        frac_tune2=0.0,
+        target=target_acc_rate,
+        diagonal_preconditioning=True,
+        max=max,
+        tuning_factor=tuning_factor,
+        fix_L_first_da=True,
+    )(
+        state, blackjax_mclmc_sampler_params, num_steps, tune_key
+    )
+    total_tuning_integrator_steps += num_tuning_integrator_steps
+
+
+    alba_tuning = True
+    if alba_tuning:
+
+        (
+            blackjax_state_after_tuning,
+            blackjax_mclmc_sampler_params,
+            num_tuning_integrator_steps,
+        ) = adjusted_mclmc_make_adaptation_L(
+            kernel,
+            frac=10000 / num_steps,
+            Lfactor=L_factor_stage_3,
+            max="avg",
+            eigenvector=None,
+        )(
+            blackjax_state_after_tuning,
+            blackjax_mclmc_sampler_params,
+            num_steps,
+            stage3_key,
         )
 
-        jax.debug.print("step size before correction {x}", x=blackjax_mclmc_sampler_params.step_size)
-        jax.debug.print("total_tuning from unadjusted {x}", x=total_tuning_integrator_steps)
-
-
-
-        
+        total_tuning_integrator_steps += num_tuning_integrator_steps
 
         (
             blackjax_state_after_tuning,
@@ -244,88 +284,39 @@ def adjusted_mclmc_tuning(
             dim=dim,
             frac_tune1=2000 / num_steps,
             frac_tune2=0.0,
-            # frac_tune3=0.0,
             target=target_acc_rate,
             diagonal_preconditioning=True,
             max=max,
             tuning_factor=tuning_factor,
-            # logdensity_grad_fn=None,
             fix_L_first_da=True,
         )(
-            state, blackjax_mclmc_sampler_params, num_steps, tune_key
+            state, blackjax_mclmc_sampler_params, num_steps, tune_key_2
         )
-        jax.debug.print("num steps added by eps correction {x}", x=num_tuning_integrator_steps)
         total_tuning_integrator_steps += num_tuning_integrator_steps
 
-        jax.debug.print("step size after correction {x}", x=blackjax_mclmc_sampler_params.step_size)
+    return (
+        blackjax_state_after_tuning,
+        blackjax_mclmc_sampler_params,
+        total_tuning_integrator_steps,
+    )
 
-        alba_tuning = True
-        if alba_tuning:
+    # if warmup=='adjusted_mclmc':
 
-            (
-                blackjax_state_after_tuning,
-                blackjax_mclmc_sampler_params,
-                num_tuning_integrator_steps,
-            ) = adjusted_mclmc_make_adaptation_L(
-                kernel,
-                frac=10000 / num_steps,
-                Lfactor=0.3,
-                max="avg",
-                eigenvector=None,
-            )(
-                blackjax_state_after_tuning,
-                blackjax_mclmc_sampler_params,
-                num_steps,
-                stage3_key,
-            )
-
-            total_tuning_integrator_steps += num_tuning_integrator_steps
-
-            (
-                blackjax_state_after_tuning,
-                blackjax_mclmc_sampler_params,
-                _,
-                num_tuning_integrator_steps,
-            ) = adjusted_mclmc_make_L_step_size_adaptation(
-                kernel=kernel,
-                dim=dim,
-                frac_tune1=2000 / num_steps,
-                frac_tune2=0.0,
-                target=target_acc_rate,
-                diagonal_preconditioning=True,
-                max=max,
-                tuning_factor=tuning_factor,
-                # logdensity_grad_fn=None,
-                fix_L_first_da=True,
-            )(
-                state, blackjax_mclmc_sampler_params, num_steps, tune_key_2
-            )
-            total_tuning_integrator_steps += num_tuning_integrator_steps
-
-        return (
-            blackjax_state_after_tuning,
-            blackjax_mclmc_sampler_params,
-            total_tuning_integrator_steps,
-        )
-
-    else:
-
-        return adjusted_mclmc_find_L_and_step_size(
-            mclmc_kernel=kernel,
-            num_steps=num_steps,
-            state=initial_state,
-            rng_key=tune_key,
-            target=target_acc_rate,
-            frac_tune1=frac_tune1,
-            frac_tune2=frac_tune2,
-            frac_tune3=frac_tune3,
-            diagonal_preconditioning=diagonal_preconditioning,
-            params=params,
-            max=max,
-            num_windows=num_windows,
-            tuning_factor=tuning_factor,
-            L_factor_stage_3=L_factor_stage_3,
-        )
+    #     return adjusted_mclmc_find_L_and_step_size(
+    #         mclmc_kernel=kernel,
+    #         num_steps=num_steps,
+    #         state=initial_state,
+    #         rng_key=tune_key,
+    #         target=target_acc_rate,
+    #         frac_tune1=frac_tune1,
+    #         frac_tune2=frac_tune2,
+    #         frac_tune3=frac_tune3,
+    #         diagonal_preconditioning=diagonal_preconditioning,
+    #         params=params,
+    #         max=max,
+    #         num_windows=num_windows,
+    #         tuning_factor=tuning_factor,
+    #     )
 
 
 def adjusted_mclmc(
@@ -341,7 +332,7 @@ def adjusted_mclmc(
     num_tuning_steps=20000,
     L_factor_stage_3=0.3,
     return_samples=False,
-    do_nuts_warmup=True,
+    warmup='nuts',
 ):
     """
     Args:
@@ -357,7 +348,7 @@ def adjusted_mclmc(
     num_tuning_steps: the number of tuning steps to use
     L_factor_stage_3: the factor to multiply L by in the third stage of adaptation for L
     return_samples: whether to return samples
-    do_nuts_warmup: whether to do a NUTS warmup or a warmup with MAMS
+    warmup: whether to do a NUTS warmup or a warmup with MCLMC
     Returns:
     A function that runs the adjusted MCLMC sampler
     """
@@ -390,11 +381,10 @@ def adjusted_mclmc(
             tuning_factor=tuning_factor,
             num_tuning_steps=num_tuning_steps,
             L_factor_stage_3=L_factor_stage_3,
+            warmup=warmup,
         )
 
-        # print("Tuning done")
 
-        # print(f"sampling with {num_steps} steps")
         expectations, metadata = adjusted_mclmc_no_tuning(
             initial_state=blackjax_state_after_tuning,
             integrator_type=integrator_type,
@@ -406,9 +396,7 @@ def adjusted_mclmc(
             return_samples=return_samples,
         )(model, num_steps, initial_position, run_key)
 
-        # jax.debug.print("{x} expectations[0]", x=expectations[0])
 
-        # num_steps_per_traj = metadata['L'] / metadata['step_size']
 
         return expectations, metadata | {
             "num_tuning_grads": num_tuning_integrator_steps
