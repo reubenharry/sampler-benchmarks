@@ -82,13 +82,13 @@ def nuts(
             progress_bar=False,
         )
 
-        jax.debug.print("num grads per proposal {x}", x=info.num_integration_steps.mean())
 
         if return_only_final:
 
             return get_final_sample(final_output)
 
         (expectations, info) = history
+        jax.debug.print("num grads per proposal {x}", x=info.num_integration_steps.mean())
 
         return (
             expectations,
