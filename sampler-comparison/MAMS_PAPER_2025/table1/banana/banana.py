@@ -2,6 +2,7 @@ import os
 import jax
 jax.config.update("jax_enable_x64", True)
 
+
 batch_size = 2048
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 num_cores = jax.local_device_count()
