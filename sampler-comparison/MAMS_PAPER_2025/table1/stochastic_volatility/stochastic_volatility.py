@@ -32,7 +32,7 @@ run_benchmarks(
             "nuts": lambda: nuts(num_tuning_steps=5000),
         },
         batch_size=batch_size,
-        num_steps=40000,
+        num_steps=10000,
         save_dir="MAMS_PAPER_2025/table1/stochastic_volatility",
         key=jax.random.key(19),
         map=jax.pmap

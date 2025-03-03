@@ -9,11 +9,10 @@ def banana():
 
     banana = gym.targets.Banana()
 
-    dirr = "/global/homes/r/reubenh/blackjax-benchmarks"
 
     try:
         with open(
-            f"{dirr}/sampler-evaluation/sampler_evaluation/models/data/{banana.name}_expectations.pkl",
+            f"../sampler-evaluation/sampler_evaluation/models/data/{banana.name}_expectations.pkl",
             "rb",
         ) as f:
             stats = pickle.load(f)

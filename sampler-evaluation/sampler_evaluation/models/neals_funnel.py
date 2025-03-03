@@ -11,11 +11,9 @@ def neals_funnel():
     neals_funnel = gym.targets.NealsFunnel(ndims=ndims)
     neals_funnel.ndims = ndims
 
-    dirr = "/global/homes/r/reubenh/blackjax-benchmarks"
-
     try:
         with open(
-            f"{dirr}/sampler-evaluation/sampler_evaluation/models/data/{neals_funnel.name}_expectations.pkl",
+            f"../sampler-evaluation/sampler_evaluation/models/data/{neals_funnel.name}_expectations.pkl",
             "rb",
         ) as f:
             stats = pickle.load(f)
