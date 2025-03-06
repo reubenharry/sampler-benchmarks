@@ -87,7 +87,7 @@ def parallel_microcanonical(num_steps1, num_steps2, num_chains, mesh, diagonal_p
         jax.debug.print("grad_calls {x}", x=grad_calls)
         jax.debug.print("grad_calls per chain {x}", x=grad_calls/num_chains)
         jax.debug.print("steps to low error {x}", x=steps_to_low_error)
-        jax.debug.print("stepsdone {x}", x=n1)
+        # jax.debug.print("stepsdone {x}", x=n1)
 
     
         # ntotal = n1 + grads_per_step * jnp.sum(info2['steps_per_sample'])
