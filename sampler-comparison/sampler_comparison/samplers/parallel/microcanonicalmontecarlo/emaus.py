@@ -73,8 +73,23 @@ def parallel_microcanonical(num_steps1, num_steps2, num_chains, mesh, diagonal_p
 
         bias = info["phase_2"][0]["bias"]
 
-        jax.debug.print("samples to low error {x}", x=samples_to_low_error(bias[:,0], low_error=0.01))
-        jax.debug.print("samples to low error {x}", x=samples_to_low_error(bias[:,1], low_error=0.01))
+        grads_per_step = 2 # TODO: fix!!!!!
+
+        n1 = info["phase_1"]["steps_done"] # info1['step_size'].shape[0]
+        steps1 = jnp.arange(1, n1+1)
+        steps2 = jnp.cumsum(info['phase_2'][0]['steps_per_sample']) * grads_per_step + n1
+        # steps = np.concatenate((steps1, steps2))
+
+        steps_to_low_error = jnp.ceil(samples_to_low_error(bias[:,0], low_error=0.01)).astype(int)
+
+        grad_calls = steps2[steps_to_low_error]
+
+        jax.debug.print("grad_calls {x}", x=grad_calls)
+        jax.debug.print("steps to low error {x}", x=steps_to_low_error)
+
+    
+        # ntotal = n1 + grads_per_step * jnp.sum(info2['steps_per_sample'])
+        
 
         return final_state.position, {
                 "L": info["phase_2"][0]["L"],
