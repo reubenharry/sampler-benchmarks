@@ -6,7 +6,7 @@ import sys
 
 sys.path.append("..")
 sys.path.append(".")
-from sampler_comparison.results.run_benchmarks import run_benchmarks
+from results.run_benchmarks import run_benchmarks
 from sampler_comparison.samplers import samplers
 from sampler_comparison.samplers.general import initialize_model
 import pandas as pd

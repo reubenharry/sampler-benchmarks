@@ -100,7 +100,6 @@ def nuts(
                 "acc_rate": info.acceptance_rate.mean(),
                 "num_tuning_grads": adaptation_info.num_integration_steps.sum()
                 * calls_per_integrator_step(integrator_type),
-                "num_grads_per_proposal": info.num_integration_steps.mean(),
             },
         )
 

@@ -1,5 +1,0 @@
-,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
-0,adjusted_microcanonical_langevin,Neals_Funnel_MAMS,inf,True,x2,548152.125,8.827159112629825,0.1873240082798524
-1,adjusted_microcanonical_langevin,Neals_Funnel_MAMS,30318.639999916937,False,x2,548152.125,8.827159112629825,0.1873240082798524
-2,adjusted_microcanonical_langevin,Neals_Funnel_MAMS,inf,True,x,548152.125,8.827159112629825,0.1873240082798524
-3,adjusted_microcanonical_langevin,Neals_Funnel_MAMS,inf,False,x,548152.125,8.827159112629825,0.1873240082798524

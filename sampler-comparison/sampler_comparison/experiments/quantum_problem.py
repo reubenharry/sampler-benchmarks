@@ -15,49 +15,6 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import (
 )
 from sampler_evaluation.evaluation.ess import samples_to_low_error, get_standardized_squared_error
 
-def run_mclmc(logdensity_fn, num_steps, initial_position, key, transform, desired_energy_variance= 5e-4):
-    init_key, tune_key, run_key = jax.random.split(key, 3)
-
-    initial_state = blackjax.mcmc.mclmc.init(
-        position=initial_position, logdensity_fn=logdensity_fn, rng_key=init_key
-    )
-
-    kernel = lambda inverse_mass_matrix : blackjax.mcmc.mclmc.build_kernel(
-        logdensity_fn=logdensity_fn,
-        integrator=blackjax.mcmc.integrators.isokinetic_mclachlan,
-        inverse_mass_matrix=inverse_mass_matrix,
-    )
-
-    (
-        blackjax_state_after_tuning,
-        blackjax_mclmc_sampler_params,
-        _
-    ) = blackjax.mclmc_find_L_and_step_size(
-        mclmc_kernel=kernel,
-        num_steps=num_steps,
-        state=initial_state,
-        rng_key=tune_key,
-        diagonal_preconditioning=False,
-        desired_energy_var=desired_energy_variance
-    )
-
-    sampling_alg = blackjax.mclmc(
-        logdensity_fn,
-        L=blackjax_mclmc_sampler_params.L,
-        step_size=blackjax_mclmc_sampler_params.step_size,
-    )
-
-    _, samples = blackjax.util.run_inference_algorithm(
-        rng_key=run_key,
-        initial_state=blackjax_state_after_tuning,
-        inference_algorithm=sampling_alg,
-        num_steps=num_steps,
-        transform=transform,
-        progress_bar=True,
-    )
-
-    return samples, blackjax_state_after_tuning, blackjax_mclmc_sampler_params, run_key
-
 
 im = 0 + 1j
 
@@ -68,6 +25,9 @@ def run_emaus(
         transform,
         key,
         diagonal_preconditioning,
+        num_unadjusted_steps,
+        num_adjusted_steps,
+        num_chains
     ):
         mesh = jax.sharding.Mesh(jax.devices(), "chains")
 
@@ -78,9 +38,9 @@ def run_emaus(
             sample_init=sample_init,
             transform=transform,
             ndims=ndims,
-            num_steps1=500,
-            num_steps2=500,
-            num_chains=5000,
+            num_steps1=num_unadjusted_steps,
+            num_steps2=num_adjusted_steps,
+            num_chains=num_chains,
             mesh=mesh,
             rng_key=key,
             alpha=1.9,
@@ -95,46 +55,68 @@ def run_emaus(
             # ensemble_observables = lambda x: vec @ x
         )  # run the algorithm
 
-        print((info["phase_2"][1].shape), "SHAPE")
-
-        # output = info["phase_2"][1][:, :, :]
-
-        # print((output.shape), "output SHAPE")
-
-        # output =  output.reshape(output.shape[0] * output.shape[1], output.shape[2])
-
-        # return output
+        # print((info["phase_2"][1].shape), "SHAPE")
 
         return final_state.position
 
 def mod_index(arr, i):
     return arr[i % (arr.shape[0])]
 
-def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, num_steps=100000, rng_key=jax.random.PRNGKey(0)):
+def analytic_gaussian(l, K, Minv):
+    return jax.scipy.stats.norm.pdf(loc=0, scale=jnp.sqrt(K @ Minv @ K), x=l)
+
+def analytic(lam, i, K, Minv): 
+
+    return (1/ (2*np.sqrt(2*np.pi))) *2*(Minv[:,i]@K)*((1/(K @ Minv @ K))**(3/2))*lam*np.exp( (-(lam**2)) / (2 * K @ Minv @ K) )
+
+
+def make_unsigned_histogram(filename, samples, weights, K, Minv, i):
+
+    num_bins = 100
+    samples = np.array(samples)
+    weights = np.array(weights)
+    hist, edges = np.histogram(samples, bins=num_bins)
+    normalization_constant = np.sum((edges[1:] - edges[:-1])*hist)
+    plt.hist(samples, bins=num_bins, density=False, weights=weights/normalization_constant)
+    l = np.linspace(jnp.min(samples), jnp.max(samples), num_bins)
+    solution = analytic(lam=l, i = i, K=K, Minv=Minv)
+    plt.plot(l, solution)
+    plt.savefig(filename)
+    plt.clf()
+
+    gaussian = analytic_gaussian(l, K=K, Minv=Minv)
+    plt.plot(l, gaussian)
+    plt.hist(samples, bins=num_bins, density=True)
+
+    plt.savefig(filename + "hist.png")
+    plt.clf()
+
+def make_M_Minv_K(P, t, U, r, beta, hbar,m):
+    tau_c = t - ((beta * hbar * im) / 2)
+
+    alpha = (m*P*beta)/(4*(jnp.abs(tau_c)**2))
+    gamma = (m*P*t)/(hbar * (jnp.abs(tau_c)**2)) 
+
+    M = (jnp.diag(2*alpha  + (beta / (4*P))*jax.vmap(jax.grad(jax.grad(U)))(r[1:-1])) ) - alpha * jnp.diag(jnp.ones(P-2),k=1) - alpha * jnp.diag(jnp.ones(P-2),k=-1)
+
+    Minv = jnp.linalg.inv(M)
+
+    K = gamma * (2*r[1:-1] - r[:-2] - r[2:]) - (t * jax.vmap(jax.grad(U))(r[1:-1]))/(P*hbar)
+
+    print(K.shape, "k shape")
+
+    return M, Minv, K, alpha, gamma, r
+
+
+def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKey(0), sequential=False, sample_init=None, num_unadjusted_steps=100, num_adjusted_steps=100, num_chains=5000, filename=""):
 
 
     P = r.shape[0] - 1
 
     sqnorm = lambda x: x.dot(x)
 
-    def make_M_Minv_K(P, t):
-        tau_c = t - ((beta * hbar * im) / 2)
-
-        alpha = (m*P*beta)/(4*(jnp.abs(tau_c)**2))
-        gamma = (m*P*t)/(hbar * (jnp.abs(tau_c)**2)) 
-
-        M = (jnp.diag(2*alpha  + (beta / (4*P))*jax.vmap(jax.grad(jax.grad(U)))(r[1:-1])) ) - alpha * jnp.diag(jnp.ones(P-2),k=1) - alpha * jnp.diag(jnp.ones(P-2),k=-1)
-        # M = jnp.diag(jnp.ones((P-1,)))
-
-        Minv = jnp.linalg.inv(M)
-
-        K = gamma * (2*r[1:-1] - r[:-2] - r[2:]) - (t * jax.vmap(jax.grad(U))(r[1:-1]))/(P*hbar)
-
-        print(K.shape, "k shape")
-
-        return M, Minv, K, alpha, gamma, r
     
-    M, Minv, K, alpha, gamma, r = make_M_Minv_K(P, t)
+    M, Minv, K, alpha, gamma, r = make_M_Minv_K(P, t, U, r, beta, hbar, m)
 
     @jax.jit
     def logdensity_fn(s):
@@ -156,10 +138,7 @@ def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, num_steps=100000, rng_key
     
     toc = time.time()
 
-    sequential = True
     if sequential:
-
-        # model = undefined
 
         from collections import namedtuple
         Model = namedtuple("Model", ["ndims", "log_density_fn", "default_event_space_bijector"])
@@ -170,88 +149,32 @@ def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, num_steps=100000, rng_key
             default_event_space_bijector=lambda x: x,
         )
 
-        samples, metadata = unadjusted_mclmc(return_samples=True)(
+        raw_samples, metadata = unadjusted_mclmc(return_samples=True)(
             model=model, 
-            num_steps=50000,
+            num_steps=num_unadjusted_steps,
             initial_position=jax.random.normal(init_key, (P-1,)), 
             key=jax.random.key(0))
 
-        plt.hist(samples[:, i], bins=100, density=True)
-        plt.savefig("nuts.png")
-
-        # print(jnp.expand_dims(samples[:, i],[0,2]).shape, "baz")
-        # print(jax.vmap(xi)(samples).shape)
-
-        # raise Exception
-
-        print((samples[:, i]**2).mean())
-        print(K @ Minv @ K, "KMK")
-
-        error_at_each_step = get_standardized_squared_error(
-            jnp.expand_dims(jax.vmap(xi)(samples),[0,2]), 
-            f=lambda x: x**2,
-            E_f=(K @ Minv @ K),
-            Var_f=2.0 * (K @ Minv @ K)**2,
-        )
-
-        # print(error_at_each_step[-10:], "error at each step")
-
-        # gradient_calls_per_chain = metadata['num_grads_per_proposal'].mean()
-        gradient_calls_per_chain = 2.0 
-
-        print(samples_to_low_error(error_at_each_step, low_error=1/100) * gradient_calls_per_chain)
-       
-        # raise Exception
-       
-       
-        # (samples, weights), initial_state, params, chain_key = run_nuts(
-        #         logdensity_fn=logdensity_fn,
-        #         num_steps=num_steps,
-        #         initial_position=jax.random.normal(init_key, (P-1,)),
-        #         key=run_key,
-        #         transform=transform,
-        #         # desired_energy_variance=0.0005
-        #     )
-        # print(samples.shape, "sshape")
-        # samples, weights = samples[::3], weights[::3]
-        # raise Exception
-
-
-
-        (samples, weights), initial_state, params, chain_key = run_mclmc(
-                logdensity_fn=logdensity_fn,
-                num_steps=num_steps,
-                initial_position=jax.random.normal(init_key, (P-1,)),
-                key=run_key,
-                transform=transform,
-                # desired_energy_variance=0.0005
-            )
-        
+        samples, weights = (jax.vmap(lambda x : (xi(x), x[i]))(raw_samples))
 
     else:
 
-        sample_init = lambda init_key: jax.random.normal(key=init_key, shape=(P-1,))
+        # if previous_samples is None:
 
-        
-        # sample_init = lambda key: jax.random.normal(key, shape=(2,)) * jnp.array([10.0, 5.0]) * 2
-        # sample_init = lambda key: jax.random.normal(key, shape=(3,))
-
-        # def logdensity_fn(x):
-        #      return 1.0
-
-        # def logdensity_fn(x):
-        #     mu2 = 0.03 * (x[0] ** 2 - 100)
-        #     return -0.5 * (jnp.square(x[0] / 10.0) + jnp.square(x[1] - mu2))
+        #     sample_init = lambda init_key: jax.random.normal(key=init_key, shape=(P-1,))
+        # else:
+        #     sample_init = lambda init_key: previous_samples
 
         raw_samples = run_emaus(
             sample_init=sample_init,
             logdensity_fn=logdensity_fn,
             transform=lambda x: x,
-            # transform=lambda x : jnp.array([xi(x), x[i]]),
             ndims=P-1,
-            # ndims=2,
             key=jax.random.key(0),
-            diagonal_preconditioning=False,
+            diagonal_preconditioning=True,
+            num_adjusted_steps=num_adjusted_steps,
+            num_unadjusted_steps=num_unadjusted_steps,
+            num_chains=num_chains
         )
 
         print(raw_samples.shape, "sample shape")
@@ -263,54 +186,20 @@ def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, num_steps=100000, rng_key
             Var_f=2.0 * (K @ Minv @ K)**2,
         )
 
-        # print(error_at_each_step[-10:], "error at each step")
 
         # gradient_calls_per_chain = metadata['num_grads_per_proposal'].mean()
-        gradient_calls_per_chain = 2.0 
-
-        print(samples_to_low_error(error_at_each_step, low_error=1/100) * gradient_calls_per_chain)
-       
-        # raise Exception
+        # gradient_calls_per_chain = 2.0 
+        # print(samples_to_low_error(error_at_each_step, low_error=1/100) * gradient_calls_per_chain)
 
         samples, weights = (jax.vmap(lambda x : (xi(x), x[i]))(raw_samples))
-        # samples, weights = raw_samples # (jax.vmap(lambda x : (xi(x), x[i]))(raw_samples))
-        # raise Exception
+    
     tic = time.time()
     print(tic - toc, "time")
     
+    make_unsigned_histogram(filename, samples=samples, weights=weights, K=K, Minv=Minv, i=i)
     
-    def analytic_gaussian(l):
-        return jax.scipy.stats.norm.pdf(loc=0, scale=jnp.sqrt(K @ Minv @ K), x=l)
-    
-    def analytic(lam, i): 
-
-        return (1/ (2*np.sqrt(2*np.pi))) *2*(Minv[:,i]@K)*((1/(K @ Minv @ K))**(3/2))*lam*np.exp( (-(lam**2)) / (2 * K @ Minv @ K) )
-
-    num_bins = 100
-
-    samples = np.array(samples)
-    weights = np.array(weights)
-    hist, edges = np.histogram(samples, bins=num_bins)
-    normalization_constant = np.sum((edges[1:] - edges[:-1])*hist)
-    plt.hist(samples, bins=num_bins, density=False, weights=weights/normalization_constant)
-
-    l = np.linspace(jnp.min(samples), jnp.max(samples), num_bins)
-    solution = analytic(lam=l, i = i,)
-    plt.plot(l, solution)
-
-    plt.savefig("mclmc_expectation.png")
-
-    # new plot
-    plt.clf()
-
-    gaussian = analytic_gaussian(l)
-    plt.plot(l, gaussian)
-    plt.hist(samples, bins=num_bins, density=True)
-
-    plt.savefig("mclmc_normal.png")
-
     # samples are \xi(s), weights are s[i]
-    return samples, weights
+    return samples, weights, raw_samples
 
 
 
@@ -325,38 +214,8 @@ r_length = 33
 
 if __name__ == "__main__":
 
-    # def regression_logprob(log_scale, coefs, preds, x):
-    #     """Linear regression"""
-    #     scale = jnp.exp(log_scale)
-    #     scale_prior = stats.expon.logpdf(scale, 0, 1) + log_scale
-    #     coefs_prior = stats.norm.logpdf(coefs, 0, 5)
-    #     y = jnp.dot(x, coefs)
-    #     logpdf = stats.norm.logpdf(preds, y, scale)
-    #     # reduce sum otherwise broacasting will make the logprob biased.
-    #     return sum(x.sum() for x in [scale_prior, coefs_prior, logpdf])
 
-    # init_key0, init_key1, inference_key = jax.random.split(jax.random.key(0), 3)
-
-    # x_data = jax.random.normal(init_key0, shape=(1000, 1))
-    # y_data = 3 * x_data + jax.random.normal(init_key1, shape=x_data.shape)
-
-    # logposterior_fn_ = functools.partial(
-    #     regression_logprob, x=x_data, preds=y_data
-    # )
-     
-    # logdensity_fn = lambda x: logposterior_fn_(
-    #         coefs=x["coefs"][0], log_scale=x["log_scale"][0]
-    #     )
-
-    # def sample_init(key):
-    #     key1, key2 = jax.random.split(key)
-    #     coefs = jax.random.uniform(key1, shape=(1,), minval=1, maxval=2)
-    #     log_scale = jax.random.uniform(key2, shape=(1,), minval=1, maxval=2)
-    #     return {"coefs": coefs, "log_scale": log_scale}
-
-    
-    
-    samples, weights = sample_s_chi(
+    samples, weights, raw_samples = sample_s_chi(
         t=1,
         i=1,
         beta=beta,
@@ -365,6 +224,66 @@ if __name__ == "__main__":
         U = lambda x : 0.5*m*(omega**2)*(x**2),
         r=jax.random.normal(jax.random.PRNGKey(3), (r_length,)),
         # r=jax.random.uniform(jax.random.PRNGKey(1), (r_length,)),
-        num_steps=50000,
+        sequential=True,
+        sample_init=lambda init_key: jax.random.normal(key=init_key, shape=(r_length-2,)),
+        num_unadjusted_steps=50000,
+        num_adjusted_steps=0,
+        filename="first",
+        # num_chains=5000
         )
     
+    
+    samples, weights, raw_samples = sample_s_chi(
+        t=1,
+        i=1,
+        beta=beta,
+        hbar=hbar,
+        m=m,
+        U = lambda x : 0.5*m*(omega**2)*(x**2),
+        r=jax.random.normal(jax.random.PRNGKey(3), (r_length,)),
+        # r=jax.random.uniform(jax.random.PRNGKey(1), (r_length,)),
+        sequential=False,
+        sample_init=lambda init_key: jax.random.normal(key=init_key, shape=(r_length-2,)),
+        num_unadjusted_steps=500,
+        num_adjusted_steps=500,
+        filename="second",
+        num_chains=15000
+        )
+    
+    
+
+    # sample_init = lambda init_key: jax.random.choice(init_key, raw_samples, axis=0)
+
+
+
+    
+    # samples, weights, raw_samples = sample_s_chi(
+    #     t=1,
+    #     i=1,
+    #     beta=beta,
+    #     hbar=hbar,
+    #     m=m,
+    #     U = lambda x : 0.5*m*(omega**2)*(x**2),
+    #     r=jax.random.normal(jax.random.PRNGKey(3), (r_length,)),
+    #     # r=jax.random.uniform(jax.random.PRNGKey(1), (r_length,)),
+    #     sequential=False,
+    #     sample_init=sample_init,
+    #     num_unadjusted_steps=10,
+    #     num_adjusted_steps=10,
+    #     filename="second",
+    #     num_chains=5000
+    #     )
+    
+
+
+#     jax.debug.print("foo {x}",x=raw_samples.shape)
+
+#     ixs = jax.vmap(lambda k: jax.random.choice(key=k,a=jax.numpy.arange(50000)))(jax.random.split(jax.random.key(0),50000))
+
+#     new_samples = samples[ixs]
+#     new_weights = weights[ixs]
+
+#     M, Minv, K, alpha, gamma, r = make_M_Minv_K(32, 1, U=lambda x : 0.5*m*(omega**2)*(x**2), r=jax.random.normal(jax.random.PRNGKey(3), (r_length,)), beta=beta, hbar=hbar, m=m)
+#     make_unsigned_histogram("third", new_samples, new_weights, K, Minv, 1)
+
+#     # jax.debug.print("bar {x}", x=jax.vmap(lambda k: jax.random.choice(k, raw_samples, axis=0,))(jax.random.split(jax.random.key(0), 50000)).shape)

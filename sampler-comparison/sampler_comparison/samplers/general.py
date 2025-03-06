@@ -137,7 +137,7 @@ def make_log_density_fn(model):
 
 
 def sampler_grads_to_low_error(
-    sampler, model, num_steps, batch_size, key, pvmap=jax.pmap
+    sampler, model, num_steps, batch_size, key, postprocess_samples=lambda x:jnp.median(x, axis=0)
 ):
 
     try:
@@ -156,18 +156,23 @@ def sampler_grads_to_low_error(
 
     initial_position = jax.vmap(lambda key: initialize_model(model, key))(init_keys)
 
-    squared_errors, metadata = pvmap(
-        lambda key, pos: sampler(
-            model=model, num_steps=num_steps, initial_position=pos, key=key
-        )
-    )(
+    samples, metadata = sampler(
         keys,
         initial_position,
     )
 
+    print("SHAPE", samples.shape)
+    # print("SHAPE", samples)
+
+    # squared_errors = postprocess_samples(jnp.expand_dims(samples,0).shape)
+    squared_errors = postprocess_samples(samples)
+
+    # print("SHAPE", squared_errors[:,0])
+    # jax.debug.print("SHAPE {x}", x=metadata["num_grads_per_proposal"])
+
     grad_evals_per_step = metadata["num_grads_per_proposal"].mean()
 
-    err_t_avg_x2 = jnp.median(squared_errors[:, :, 0], axis=0)
+    err_t_avg_x2 = (squared_errors[:, 0])
     grads_to_low_avg_x2 = (
         samples_to_low_error(
             err_t_avg_x2,
@@ -175,7 +180,7 @@ def sampler_grads_to_low_error(
         * grad_evals_per_step
     )
 
-    err_t_max_x2 = jnp.median(squared_errors[:, :, 1], axis=0)
+    err_t_max_x2 = (squared_errors[:, 1])
     grads_to_low_max_x2 = (
         samples_to_low_error(
             err_t_max_x2,
@@ -183,7 +188,7 @@ def sampler_grads_to_low_error(
         * grad_evals_per_step
     )
 
-    err_t_avg_x = jnp.median(squared_errors[:, :, 2], axis=0)
+    err_t_avg_x = (squared_errors[:, 2])
     grads_to_low_avg_x = (
         samples_to_low_error(
             err_t_avg_x,
@@ -191,7 +196,7 @@ def sampler_grads_to_low_error(
         * grad_evals_per_step
     )
 
-    err_t_max_x = jnp.median(squared_errors[:, :, 3], axis=0)
+    err_t_max_x = (squared_errors[:, 3])
     grads_to_low_max_x = (
         samples_to_low_error(
             err_t_max_x,

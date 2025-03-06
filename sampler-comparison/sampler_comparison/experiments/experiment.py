@@ -12,7 +12,7 @@ import sys
 
 sys.path.append(".")
 sys.path.append("../sampler-evaluation")
-from sampler_comparison.results.run_benchmarks import run_benchmarks
+from results.run_benchmarks import run_benchmarks
 from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import (
     adjusted_mclmc,
 )

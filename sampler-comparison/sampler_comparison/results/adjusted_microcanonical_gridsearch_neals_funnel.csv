@@ -1,5 +1,0 @@
-,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
-0,adjusted_microcanonical_gridsearch,neals_funnel,inf,True,x2,0.0,22.360679626464844,0.11861569434404373
-1,adjusted_microcanonical_gridsearch,neals_funnel,188.513671875,False,x2,0.0,22.360679626464844,0.11861569434404373
-2,adjusted_microcanonical_gridsearch,neals_funnel,inf,True,x,0.0,22.360679626464844,0.11861569434404373
-3,adjusted_microcanonical_gridsearch,neals_funnel,1696.623046875,False,x,0.0,22.360679626464844,0.11861569434404373

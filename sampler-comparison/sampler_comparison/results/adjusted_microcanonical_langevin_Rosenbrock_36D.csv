@@ -1,5 +1,0 @@
-,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
-0,adjusted_microcanonical_langevin,Rosenbrock_36D,103545.20001507274,True,x2,888912.09375,12.0,0.25938575546107123
-1,adjusted_microcanonical_langevin,Rosenbrock_36D,17542.9730915121,False,x2,888912.09375,12.0,0.25938575546107123
-2,adjusted_microcanonical_langevin,Rosenbrock_36D,79938.56076264221,True,x,888912.09375,12.0,0.25938575546107123
-3,adjusted_microcanonical_langevin,Rosenbrock_36D,13284.520520485416,False,x,888912.09375,12.0,0.25938575546107123

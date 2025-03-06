@@ -1,5 +1,0 @@
-,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
-0,adjusted_microcanonical_langevin,German_Credit,56308.819023956785,True,x2,645472.24609375,14.271825875179541,0.3707956582942388
-1,adjusted_microcanonical_langevin,German_Credit,6937.431501924861,False,x2,645472.24609375,14.271825875179541,0.3707956582942388
-2,adjusted_microcanonical_langevin,German_Credit,47714.11221879432,True,x,645472.24609375,14.271825875179541,0.3707956582942388
-3,adjusted_microcanonical_langevin,German_Credit,6860.348929681251,False,x,645472.24609375,14.271825875179541,0.3707956582942388

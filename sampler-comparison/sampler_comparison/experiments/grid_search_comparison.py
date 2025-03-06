@@ -11,7 +11,7 @@ from sampler_comparison.samplers.grid_search.grid_search import grid_search_only
 from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import (
     adjusted_mclmc_no_tuning,
 )
-from sampler_comparison.results.run_benchmarks import run_benchmarks
+from results.run_benchmarks import run_benchmarks
 from sampler_evaluation.models import models
 from sampler_evaluation.models.ill_conditioned_gaussian import IllConditionedGaussian
 from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
