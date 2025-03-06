@@ -44,7 +44,7 @@ mesh = jax.sharding.Mesh(jax.devices(), 'chains')
 
 
 parallel_microcanonical(num_steps1=100, num_steps2=400, num_chains=batch_size,mesh=mesh)(
-                model=banana_mams_paper, num_steps=None, initial_position=None, key=jax.random.key(0)
+                model=brownian_motion(), num_steps=None, initial_position=None, key=jax.random.key(0)
                 )
 
 

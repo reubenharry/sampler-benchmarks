@@ -66,7 +66,7 @@ def find_crossing(array, cutoff):
     return jnp.max(indices) + 1
 
 
-def get_standardized_squared_error(samples, f, E_f, Var_f):
+def get_standardized_squared_error(samples, f, E_f, Var_f, contract_fn=jnp.max):
     """
     samples: jnp.array of shape (batch_size, num_samples, dim)
     f: broadcastable function (like lambda x: x**2) that takes in a number and returns a number
@@ -82,9 +82,8 @@ def get_standardized_squared_error(samples, f, E_f, Var_f):
         / jnp.arange(1, samples.shape[1] + 1)[None, :, None]
     )
 
-    
-    error_function_max = lambda x: jnp.max(jnp.square(x - E_f) / Var_f)
+    error_function = lambda x: contract_fn(jnp.square(x - E_f) / Var_f)
 
-    errors = jnp.median(jax.vmap(jax.vmap(error_function_max))(exps), axis=0)
+    errors = jnp.median(jax.vmap(jax.vmap(error_function))(exps), axis=0)
 
     return errors
