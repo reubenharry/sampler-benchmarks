@@ -15,6 +15,8 @@ def nuts(
     return_samples=False,
     incremental_value_transform=None,
     num_tuning_steps=5000,
+    return_only_final=False,
+    target_acc_rate=0.8
 ):
 
     def s(model, num_steps, initial_position, key):
@@ -32,7 +34,7 @@ def nuts(
                 integrator=integrator,
                 logdensity_fn=logdensity_fn,
                 num_steps=num_tuning_steps,
-                target_acceptance_rate=0.8,
+                target_acceptance_rate=target_acc_rate,
             )
 
         else:
@@ -42,7 +44,8 @@ def nuts(
             (state, params), adaptation_info = warmup.run(
                 warmup_key, initial_position, num_tuning_steps
             )
-            info = adaptation_info
+
+            adaptation_info = adaptation_info.info
 
         alg = blackjax.nuts(
             logdensity_fn=logdensity_fn,
@@ -51,30 +54,40 @@ def nuts(
             integrator=integrator,
         )
 
-        fast_key, slow_key = jax.random.split(rng_key, 2)
-
         if return_samples:
-            (expectations, info) = run_inference_algorithm(
-                rng_key=slow_key,
-                initial_state=state,
-                inference_algorithm=alg,
-                num_steps=num_steps,
-                transform=lambda state, info: (
-                    (model.default_event_space_bijector(state.position), info)
-                ),
-                progress_bar=False,
-            )[1]
+            transform = lambda state, info: (
+                model.default_event_space_bijector(state.position),
+                info,
+            )
+
+            get_final_sample = lambda _: None
 
         else:
-            results = with_only_statistics(
+            alg, init, transform = with_only_statistics(
                 model=model,
                 alg=alg,
-                initial_state=state,
-                rng_key=fast_key,
-                num_steps=num_steps,
                 incremental_value_transform=incremental_value_transform,
             )
-            expectations, info = results[0], results[1]
+
+            state = init(state)
+
+            get_final_sample = lambda output: output[1][1]
+
+        final_output, history = run_inference_algorithm(
+            rng_key=rng_key,
+            initial_state=state,
+            inference_algorithm=alg,
+            num_steps=num_steps,
+            transform=(lambda a, b: None) if return_only_final else transform,
+            progress_bar=False,
+        )
+
+
+        if return_only_final:
+
+            return get_final_sample(final_output)
+
+        (expectations, info) = history
 
         return (
             expectations,
@@ -84,9 +97,8 @@ def nuts(
                 "num_grads_per_proposal": info.num_integration_steps.mean()
                 * calls_per_integrator_step(integrator_type),
                 "acc_rate": info.acceptance_rate.mean(),
-                "num_tuning_grads": info.num_integration_steps.sum()
+                "num_tuning_grads": adaptation_info.num_integration_steps.sum()
                 * calls_per_integrator_step(integrator_type),
-                "num_grads_per_proposal": info.num_integration_steps.mean(),
             },
         )
 

@@ -4,22 +4,15 @@ from inference_gym.targets import model
 import jax.numpy as jnp
 import jax
 
-# import sys
-# sys.path.append(".")
-# sys.path.append("../../../")
-
 
 def banana():
 
     banana = gym.targets.Banana()
-    import os
 
-    dirr = "/global/homes/r/reubenh/blackjax-benchmarks"
-    # print("foo", os.listdir("../../../"))
 
     try:
         with open(
-            f"{dirr}/sampler-evaluation/sampler_evaluation/models/data/{banana.name}_expectations.pkl",
+            f"../sampler-evaluation/sampler_evaluation/models/data/{banana.name}_expectations.pkl",
             "rb",
         ) as f:
             stats = pickle.load(f)
@@ -33,7 +26,7 @@ def banana():
     var_x2 = e_x4 - e_x2**2
 
     banana.sample_transformations["square"] = model.Model.SampleTransformation(
-        fn=lambda params: params**2,
+        fn=lambda params: banana.sample_transformations["identity"](params) ** 2,
         pretty_name="Square",
         ground_truth_mean=e_x2,
         ground_truth_standard_deviation=jnp.sqrt(var_x2),

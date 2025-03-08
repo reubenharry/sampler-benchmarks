@@ -99,7 +99,7 @@ def grid_search_only_L(
         bench_key_per_iter = jax.random.fold_in(bench_key, grid_iteration)
 
         if grid_iteration == 0:
-            Lgrid = jnp.linspace(z / 5, z * 5, grid_size)
+            Lgrid = jnp.linspace(z / 2, z * 2, grid_size)
         else:
 
             Lgrid = jnp.linspace(Lgrid[iopt - 1], Lgrid[iopt + 1], grid_size)

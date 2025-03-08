@@ -4,16 +4,14 @@ from blackjax.util import run_inference_algorithm
 from blackjax.util import store_only_expectation_values
 
 from sampler_comparison.util import *
-from sampler_evaluation.evaluation.ess import calculate_ess
+from sampler_evaluation.evaluation.ess import samples_to_low_error
 
 # awaiting switch to full pytree support
 # make_transform = lambda model : lambda pos : jax.tree.map(lambda z, b: b(z), pos, model.default_event_space_bijector)
 
 
 # produce a kernel that only stores the average values of the bias for E[x_2] and Var[x_2]
-def with_only_statistics(
-    model, alg, initial_state, rng_key, num_steps, incremental_value_transform=None
-):
+def with_only_statistics(model, alg, incremental_value_transform=None):
 
     if incremental_value_transform is None:
         incremental_value_transform = lambda x: jnp.array(
@@ -63,28 +61,31 @@ def with_only_statistics(
             ]
         )
 
+    outer_transform = model.sample_transformations["identity"] if callable(model.sample_transformations["identity"]) else lambda x:x
+
     memory_efficient_sampling_alg, transform = store_only_expectation_values(
         sampling_algorithm=alg,
         state_transform=lambda state: jnp.array(
             [
                 # model.sample_transformations["identity"](state.position),
                 # model.sample_transformations["square"](state.position),
-                model.default_event_space_bijector(state.position),
-                model.default_event_space_bijector(state.position) ** 2,
-                model.default_event_space_bijector(state.position) ** 4,
+                outer_transform(
+                    model.default_event_space_bijector(state.position)
+                ),
+                outer_transform(
+                    model.default_event_space_bijector(state.position)
+                )
+                ** 2,
+                outer_transform(
+                    model.default_event_space_bijector(state.position)
+                )
+                ** 4,
             ]
         ),
         incremental_value_transform=incremental_value_transform,
     )
 
-    return run_inference_algorithm(
-        rng_key=rng_key,
-        initial_state=memory_efficient_sampling_alg.init(initial_state),
-        inference_algorithm=memory_efficient_sampling_alg,
-        num_steps=num_steps,
-        transform=transform,
-        progress_bar=True,
-    )[1]
+    return memory_efficient_sampling_alg, memory_efficient_sampling_alg.init, transform
 
 
 # this follows the inference_gym tutorial: https://github.com/tensorflow/probability/blob/main/spinoffs/inference_gym/notebooks/inference_gym_tutorial.ipynb
@@ -104,14 +105,39 @@ def initialize_model(model, key):
     return z
 
 
-make_log_density_fn = lambda model: lambda z: (
-    model.unnormalized_log_prob(model.default_event_space_bijector(z))
-    + model.default_event_space_bijector.forward_log_det_jacobian(z, event_ndims=1)
-)
+def make_log_density_fn(model):
+
+    # if not hasattr(model, "unnormalized_log_prob"):
+    #     import pymc
+    #     from pymc.sampling.jax import get_jaxified_logp
+
+    #     log_density_fn = get_jaxified_logp(model)
+    #     if type(model) == pymc.model.core.Model:
+    #         return log_density_fn
+
+    if hasattr(model, "log_density_fn"):
+        return model.log_density_fn
+
+    def log_density_fn(z):
+        return model.unnormalized_log_prob(
+            model.default_event_space_bijector(z)
+        ) + model.default_event_space_bijector.forward_log_det_jacobian(
+            z, event_ndims=1
+        )
+
+    return log_density_fn
+
+    # return lambda z: model.unnormalized_log_prob(model.default_event_space_bijector(z))
+
+
+# make_log_density_fn = lambda model: lambda z: (
+#     model.unnormalized_log_prob(model.default_event_space_bijector(z))
+#     + model.default_event_space_bijector.forward_log_det_jacobian(z, event_ndims=1)
+# )
 
 
 def sampler_grads_to_low_error(
-    sampler, model, num_steps, batch_size, key, pvmap=jax.vmap
+    sampler, model, num_steps, batch_size, key, postprocess_samples=lambda x:jnp.median(x, axis=0)
 ):
 
     try:
@@ -125,42 +151,57 @@ def sampler_grads_to_low_error(
 
     keys = jax.random.split(key, batch_size)
 
-    # this key is deliberately fixed to the same value: we want all chains to start at the same position, for different samplers
+    # this key is deliberately fixed to the same value: we want the set of initial positions to be the same for different samplers
     init_keys = jax.random.split(jax.random.key(2), batch_size)
 
     initial_position = jax.vmap(lambda key: initialize_model(model, key))(init_keys)
 
-    squared_errors, metadata = pvmap(
-        lambda key, pos: sampler(
-            model=model, num_steps=num_steps, initial_position=pos, key=key
-        )
-    )(
+    samples, metadata = sampler(
         keys,
         initial_position,
     )
 
-    err_t_avg_x2 = jnp.median(squared_errors[:, :, 0], axis=0)
-    _, grads_to_low_avg_x2, _ = calculate_ess(
-        err_t_avg_x2,
-        grad_evals_per_step=metadata["num_grads_per_proposal"].mean(),
+    print("SHAPE", samples.shape)
+    # print("SHAPE", samples)
+
+    # squared_errors = postprocess_samples(jnp.expand_dims(samples,0).shape)
+    squared_errors = postprocess_samples(samples)
+
+    # print("SHAPE", squared_errors[:,0])
+    # jax.debug.print("SHAPE {x}", x=metadata["num_grads_per_proposal"])
+
+    grad_evals_per_step = metadata["num_grads_per_proposal"].mean()
+
+    err_t_avg_x2 = (squared_errors[:, 0])
+    grads_to_low_avg_x2 = (
+        samples_to_low_error(
+            err_t_avg_x2,
+        )
+        * grad_evals_per_step
     )
 
-    err_t_max_x2 = jnp.median(squared_errors[:, :, 1], axis=0)
-    _, grads_to_low_max_x2, _ = calculate_ess(
-        err_t_max_x2,
-        grad_evals_per_step=metadata["num_grads_per_proposal"].mean(),
+    err_t_max_x2 = (squared_errors[:, 1])
+    grads_to_low_max_x2 = (
+        samples_to_low_error(
+            err_t_max_x2,
+        )
+        * grad_evals_per_step
     )
 
-    err_t_avg_x = jnp.median(squared_errors[:, :, 2], axis=0)
-    _, grads_to_low_avg_x, _ = calculate_ess(
-        err_t_avg_x,
-        grad_evals_per_step=metadata["num_grads_per_proposal"].mean(),
+    err_t_avg_x = (squared_errors[:, 2])
+    grads_to_low_avg_x = (
+        samples_to_low_error(
+            err_t_avg_x,
+        )
+        * grad_evals_per_step
     )
 
-    err_t_max_x = jnp.median(squared_errors[:, :, 3], axis=0)
-    _, grads_to_low_max_x, _ = calculate_ess(
-        err_t_max_x,
-        grad_evals_per_step=metadata["num_grads_per_proposal"].mean(),
+    err_t_max_x = (squared_errors[:, 3])
+    grads_to_low_max_x = (
+        samples_to_low_error(
+            err_t_max_x,
+        )
+        * grad_evals_per_step
     )
 
     return (
