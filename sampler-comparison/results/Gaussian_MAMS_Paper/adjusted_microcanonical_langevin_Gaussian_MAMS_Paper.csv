@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_microcanonical_langevin,Gaussian_MAMS_Paper,3172.966960359394,True,x2,71797.974609375,8.348934118871963,6.110514566195683
+1,adjusted_microcanonical_langevin,Gaussian_MAMS_Paper,425.15843372329664,False,x2,71797.974609375,8.348934118871963,6.110514566195683
+2,adjusted_microcanonical_langevin,Gaussian_MAMS_Paper,5338.4041276188855,True,x,71797.974609375,8.348934118871963,6.110514566195683
+3,adjusted_microcanonical_langevin,Gaussian_MAMS_Paper,714.977044492875,False,x,71797.974609375,8.348934118871963,6.110514566195683

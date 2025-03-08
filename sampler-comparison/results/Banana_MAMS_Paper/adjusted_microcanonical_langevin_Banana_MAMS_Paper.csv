@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_microcanonical_langevin,Banana_MAMS_Paper,14818.427154395733,True,x2,153332.54541015625,2.8284271247461903,0.1765991067017427
+1,adjusted_microcanonical_langevin,Banana_MAMS_Paper,9674.038688131712,False,x2,153332.54541015625,2.8284271247461903,0.1765991067017427
+2,adjusted_microcanonical_langevin,Banana_MAMS_Paper,inf,True,x,153332.54541015625,2.8284271247461903,0.1765991067017427
+3,adjusted_microcanonical_langevin,Banana_MAMS_Paper,inf,False,x,153332.54541015625,2.8284271247461903,0.1765991067017427

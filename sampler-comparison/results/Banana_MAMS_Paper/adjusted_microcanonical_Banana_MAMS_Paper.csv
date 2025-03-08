@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_microcanonical,Banana_MAMS_Paper,14078.66995300311,True,x2,152931.59375,2.8284271247461903,0.17715910524533776
+1,adjusted_microcanonical,Banana_MAMS_Paper,8247.458828303881,False,x2,152931.59375,2.8284271247461903,0.17715910524533776
+2,adjusted_microcanonical,Banana_MAMS_Paper,inf,True,x,152931.59375,2.8284271247461903,0.17715910524533776
+3,adjusted_microcanonical,Banana_MAMS_Paper,inf,False,x,152931.59375,2.8284271247461903,0.17715910524533776

@@ -22,7 +22,7 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import (
 from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
 import sampler_evaluation
 from sampler_evaluation.models.rosenbrock import Rosenbrock_36D
-from sampler_evaluation.models.standardgaussian import Gaussian
+# from sampler_evaluation.models.standardgaussian import Gaussian
 from sampler_evaluation.models.banana import banana
 from sampler_evaluation.models.brownian import brownian_motion
 import jax.numpy as jnp
@@ -30,7 +30,7 @@ from sampler_evaluation.models.item_response import item_response
 from sampler_evaluation.models.neals_funnel import neals_funnel
 from sampler_evaluation.models.german_credit import german_credit
 from sampler_evaluation.models.stochastic_volatility import stochastic_volatility
-from sampler_evaluation.models.ill_conditioned_gaussian import IllConditionedGaussian
+# from sampler_evaluation.models.ill_conditioned_gaussian import IllConditionedGaussian
 from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
 from sampler_evaluation.models.neals_funnel_mams_paper import neals_funnel_mams_paper
 from sampler_evaluation.models.banana_mams_paper import banana_mams_paper
