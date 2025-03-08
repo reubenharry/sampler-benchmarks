@@ -9,7 +9,7 @@ import pickle
 import sys
 import numpy as np
 import os
-os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(4)
+#os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(4)
 sys.path.append("./")
 sys.path.append("../sampler-comparison")
 import jax
