@@ -74,7 +74,7 @@ def parallel_microcanonical(num_steps1, num_steps2, num_chains, mesh, diagonal_p
 
         bias = info["phase_2"][0]["bias"]
 
-        grads_per_step = 2 # TODO: do this systematically!!!!!!
+        # grads_per_step = 2 # TODO: do this systematically!!!!!!
 
         n1 = info["phase_1"]["steps_done"] # info1['step_size'].shape[0]
         # steps1 = jnp.arange(1, n1+1)

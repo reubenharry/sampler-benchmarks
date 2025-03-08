@@ -9,6 +9,8 @@ num_cores = jax.local_device_count()
 
 
 from sampler_evaluation.models.banana_mams_paper import banana_mams_paper
+from sampler_evaluation.models.stochastic_volatility import stochastic_volatility
+from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
 from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.emaus import parallel_microcanonical
 
 
