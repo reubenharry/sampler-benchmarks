@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
+0,nuts,Stochastic_Volatility_MAMS_Paper,843768.4626000001,True,x2,1217087.4140625,13.62327680438737,0.05390057662340146
+1,nuts,Stochastic_Volatility_MAMS_Paper,30234.401400000002,False,x2,1217087.4140625,13.62327680438737,0.05390057662340146
+2,nuts,Stochastic_Volatility_MAMS_Paper,inf,True,x,1217087.4140625,13.62327680438737,0.05390057662340146
+3,nuts,Stochastic_Volatility_MAMS_Paper,inf,False,x,1217087.4140625,13.62327680438737,0.05390057662340146

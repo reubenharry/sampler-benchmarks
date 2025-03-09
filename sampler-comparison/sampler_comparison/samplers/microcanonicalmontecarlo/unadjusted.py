@@ -107,6 +107,7 @@ def unadjusted_mclmc_tuning(
     diagonal_preconditioning,
     num_tuning_steps=500,
     stage3=True,
+    desired_energy_var=5e-4
 ):
     """
     Args:
@@ -154,6 +155,7 @@ def unadjusted_mclmc_tuning(
         frac_tune2=frac_tune2,
         frac_tune1=frac_tune1,
         params=params,
+        desired_energy_var=desired_energy_var
     )
 
 
@@ -162,6 +164,7 @@ def unadjusted_mclmc(
     integrator_type="mclachlan",
     num_tuning_steps=20000,
     return_samples=False,
+    desired_energy_var=5e-4
 ):
     def s(model, num_steps, initial_position, key):
 
@@ -183,6 +186,7 @@ def unadjusted_mclmc(
             integrator_type=integrator_type,
             diagonal_preconditioning=diagonal_preconditioning,
             num_tuning_steps=num_tuning_steps,
+            desired_energy_var=desired_energy_var,
         )
 
         expectations, metadata = unadjusted_mclmc_no_tuning(

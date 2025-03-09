@@ -161,14 +161,8 @@ def sampler_grads_to_low_error(
         initial_position,
     )
 
-    print("SHAPE", samples.shape)
-    # print("SHAPE", samples)
-
     # squared_errors = postprocess_samples(jnp.expand_dims(samples,0).shape)
     squared_errors = postprocess_samples(samples)
-
-    # print("SHAPE", squared_errors[:,0])
-    # jax.debug.print("SHAPE {x}", x=metadata["num_grads_per_proposal"])
 
     grad_evals_per_step = metadata["num_grads_per_proposal"].mean()
 

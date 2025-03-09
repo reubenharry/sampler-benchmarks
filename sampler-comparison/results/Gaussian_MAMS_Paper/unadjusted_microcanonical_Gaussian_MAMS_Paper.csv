@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
+0,unadjusted_microcanonical,Gaussian_MAMS_Paper,1942.0,True,x2,44446.0,8.282007754778265,12.296198011685785
+1,unadjusted_microcanonical,Gaussian_MAMS_Paper,246.0,False,x2,44446.0,8.282007754778265,12.296198011685785
+2,unadjusted_microcanonical,Gaussian_MAMS_Paper,1850.0,True,x,44446.0,8.282007754778265,12.296198011685785
+3,unadjusted_microcanonical,Gaussian_MAMS_Paper,252.0,False,x,44446.0,8.282007754778265,12.296198011685785

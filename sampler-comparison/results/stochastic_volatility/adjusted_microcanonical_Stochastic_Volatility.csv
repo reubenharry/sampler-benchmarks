@@ -1,5 +1,0 @@
-,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
-0,adjusted_microcanonical,Stochastic_Volatility,430088.06749014056,True,x2,1583438.8984375,98.56977224281286,2.061286434815396
-1,adjusted_microcanonical,Stochastic_Volatility,36427.047229827156,False,x2,1583438.8984375,98.56977224281286,2.061286434815396
-2,adjusted_microcanonical,Stochastic_Volatility,inf,True,x,1583438.8984375,98.56977224281286,2.061286434815396
-3,adjusted_microcanonical,Stochastic_Volatility,inf,False,x,1583438.8984375,98.56977224281286,2.061286434815396
