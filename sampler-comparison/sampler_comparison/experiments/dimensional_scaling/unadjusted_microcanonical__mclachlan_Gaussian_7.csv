@@ -1,5 +1,5 @@
 ,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
-0,unadjusted_microcanonical__mclachlan,Gaussian_7,754.0,True,x2,4446.0,2.273309907637048,2.8844026839929757
-1,unadjusted_microcanonical__mclachlan,Gaussian_7,248.0,False,x2,4446.0,2.273309907637048,2.8844026839929757
-2,unadjusted_microcanonical__mclachlan,Gaussian_7,958.0,True,x,4446.0,2.273309907637048,2.8844026839929757
-3,unadjusted_microcanonical__mclachlan,Gaussian_7,316.0,False,x,4446.0,2.273309907637048,2.8844026839929757
+0,unadjusted_microcanonical__mclachlan,Gaussian_7,750.0,True,x2,11112.0,2.2646766059301005,2.8999490961058405
+1,unadjusted_microcanonical__mclachlan,Gaussian_7,220.0,False,x2,11112.0,2.2646766059301005,2.8999490961058405
+2,unadjusted_microcanonical__mclachlan,Gaussian_7,884.0,True,x,11112.0,2.2646766059301005,2.8999490961058405
+3,unadjusted_microcanonical__mclachlan,Gaussian_7,282.0,False,x,11112.0,2.2646766059301005,2.8999490961058405

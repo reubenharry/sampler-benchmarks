@@ -26,6 +26,10 @@ integrator_types = ['velocity_verlet', 'mclachlan', 'omelyan']
 
 for dim, integrator_type in itertools.product(dims, integrator_types):
 
+    batch_size = min(4 + 1000 // dim, batch_size)
+
+    print(f"Running for dim={dim}, integrator_type={integrator_type}, batch_size={batch_size}")
+
     run_benchmarks(
             models={
                 f"Gaussian_{dim}": IllConditionedGaussian(ndims=dim, condition_number=1, eigenvalues='log'),
@@ -34,13 +38,13 @@ for dim, integrator_type in itertools.product(dims, integrator_types):
 
                 f"adjusted_microcanonical_{integrator_type}": lambda: adjusted_mclmc(num_tuning_steps=1000, integrator_type=integrator_type),
             
-                f"unadjusted_microcanonical__{integrator_type}": lambda: unadjusted_mclmc(num_tuning_steps=2000, integrator_type=integrator_type),
+                f"unadjusted_microcanonical__{integrator_type}": lambda: unadjusted_mclmc(num_tuning_steps=5000, integrator_type=integrator_type),
 
             },
             
-    
+            
             batch_size=batch_size,
-            num_steps=2000,
+            num_steps=10000,
             save_dir=f"sampler_comparison/experiments/dimensional_scaling",
             key=jax.random.key(19),
             map=jax.pmap
