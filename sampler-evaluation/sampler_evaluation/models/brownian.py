@@ -3,10 +3,8 @@ import inference_gym.using_jax as gym
 from inference_gym.targets import model
 import jax.numpy as jnp
 
-import sys
-
-sys.path.append(".")
-sys.path.append("../../../")
+import os
+module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 def brownian_motion():
@@ -18,7 +16,7 @@ def brownian_motion():
 
 
     with open(
-        f"../sampler-evaluation/sampler_evaluation/models/data/{brownian_motion.name}_expectations.pkl",
+        f"{module_dir}/data/{brownian_motion.name}_expectations.pkl",
         "rb",
     ) as f:
         stats = pickle.load(f)

@@ -3,6 +3,9 @@ from inference_gym.targets import model
 import jax.numpy as jnp
 import pickle
 
+import os
+module_dir = os.path.dirname(os.path.abspath(__file__))
+
 
 def item_response():
 
@@ -11,7 +14,7 @@ def item_response():
     )
 
     with open(
-        f"../sampler-evaluation/sampler_evaluation/models/data/{item_response.name}_expectations.pkl",
+        f"{module_dir}/data/{item_response.name}_expectations.pkl",
         "rb",
     ) as f:
         stats = pickle.load(f)

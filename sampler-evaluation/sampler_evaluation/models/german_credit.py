@@ -3,6 +3,9 @@ import inference_gym.using_jax as gym
 from inference_gym.targets import model
 import jax.numpy as jnp
 
+import os
+module_dir = os.path.dirname(os.path.abspath(__file__))
+
 
 def german_credit():
 
@@ -12,7 +15,7 @@ def german_credit():
     )
 
     with open(
-        f"../sampler-evaluation/sampler_evaluation/models/data/{german_credit.name}_expectations.pkl",
+        f"{module_dir}/data/{german_credit.name}_expectations.pkl",
         "rb",
     ) as f:
         stats = pickle.load(f)

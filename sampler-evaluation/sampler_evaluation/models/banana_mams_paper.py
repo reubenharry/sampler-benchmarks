@@ -4,6 +4,7 @@ sys.path.append(".")
 sys.path.append("../sampler-evaluation")
 import jax.numpy as jnp 
 import jax
+from sampler_evaluation.models.model import make_model
 
 def logdensity_fn_banana(x):
         mu2 = 0.03 * (x[0] ** 2 - 100)
@@ -20,13 +21,26 @@ def exact_sample(key):
 
 SampleTransformation = namedtuple("SampleTransformation", ["ground_truth_mean", "ground_truth_standard_deviation"])
 Model = namedtuple("Model", ["ndims", "log_density_fn", "default_event_space_bijector", "sample_transformations", "exact_sample" ])
-banana_mams_paper = Model(
-    ndims = 2,
-    log_density_fn=logdensity_fn_banana,
-    default_event_space_bijector=transform,
-    sample_transformations={
-        "identity": SampleTransformation(ground_truth_mean=jnp.ones(2)+jnp.inf, ground_truth_standard_deviation=3.0+jnp.inf),
-        "square": SampleTransformation(ground_truth_mean=jnp.array([100.0, 19.0]), ground_truth_standard_deviation=jnp.sqrt(jnp.array([20000.0, 4600.898]))),
-    },
-    exact_sample=exact_sample,
+
+banana_mams_paper = make_model(
+        logdensity_fn=logdensity_fn_banana,
+        ndims=2,
+        transform=transform,
+        x_ground_truth_mean=jnp.zeros(2)+jnp.nan,
+        x_ground_truth_std=jnp.zeros(2)+jnp.nan,
+        x2_ground_truth_mean=jnp.array([100.0, 19.0]),
+        x2_ground_truth_std=jnp.sqrt(jnp.array([20000.0, 4600.898])),
+        exact_sample=exact_sample,
+        name="Banana_MAMS_Paper",
 )
+
+# banana_mams_paper = Model(
+#     ndims = 2,
+#     log_density_fn=logdensity_fn_banana,
+#     default_event_space_bijector=transform,
+#     sample_transformations={
+#         "identity": SampleTransformation(ground_truth_mean=jnp.ones(2)+jnp.inf, ground_truth_standard_deviation=3.0+jnp.inf),
+#         "square": SampleTransformation(ground_truth_mean=jnp.array([100.0, 19.0]), ground_truth_standard_deviation=jnp.sqrt(jnp.array([20000.0, 4600.898]))),
+#     },
+#     exact_sample=exact_sample,
+# )

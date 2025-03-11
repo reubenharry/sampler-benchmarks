@@ -2,6 +2,8 @@ import inference_gym.using_jax as gym
 from inference_gym.targets import model
 import jax.numpy as jnp
 import pickle
+import os
+module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 def stochastic_volatility():
@@ -12,7 +14,7 @@ def stochastic_volatility():
     )
 
     with open(
-        f"../sampler-evaluation/sampler_evaluation/models/data/{stochastic_volatility.name}_expectations.pkl",
+        f"{module_dir}/data/{stochastic_volatility.name}_expectations.pkl",
         "rb",
     ) as f:
         stats = pickle.load(f)
@@ -20,9 +22,6 @@ def stochastic_volatility():
     e_x2 = stats["e_x2"]
     e_x4 = stats["e_x4"]
     var_x2 = e_x4 - e_x2**2
-
-        # e_x2, var_x2 = jnp.load(dirr + 'ground_truth/' + 'StochasticVolatility' + '/moments.npy')
-
 
     stochastic_volatility.sample_transformations["square"] = (
         model.Model.SampleTransformation(
