@@ -128,7 +128,7 @@ def xi(s, r, U, t, P, hbar, gamma):
     term2 = -(t/(P*hbar))*jnp.sum(jax.vmap(U)(r[1:-1] + s/2) - jax.vmap(U)(r[1:-1] - s/2)  )
     return term1 + term2
 
-def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKey(0), sequential=False, sample_init=None, num_unadjusted_steps=100, num_adjusted_steps=100, num_chains=5000, filename=""):
+def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKey(0), sequential=False, sample_init=None, num_unadjusted_steps=100, num_adjusted_steps=100, num_chains=5000, filename=None):
 
 
     P = r.shape[0] - 1
@@ -229,7 +229,7 @@ if __name__ == "__main__":
     """
     Notes for Alan:
     
-    0. To run the code this time, I'll need you to install two packages. First, do `git clone git@github.com:reubenharry/blackjax.git` to obtain my working version of blackjax. Then in the root directory of this repo, do `pip install -e .`
+    0. To run the code this time, I'll need you to install two packages. First, do `git clone git@github.com:reubenharry/blackjax.git` to obtain my working version of blackjax. Then in the root directory of this repo, do first `git checkout emaus` and second: `pip install -e .`
     1. Secondly, do `git clone git@github.com:reubenharry/sampler-benchmarks.git` and in the directory `sampler-evaluation`, do `pip install -e .`
     2. If you encounter any issues with either of the above, just let me know - I'm more than happy to troubleshoot.
     3. If this has worked, you should be able to run this file from the `sampler-comparison` directory of the repo cloned in step 1. Hopefully it should slot into your existing code in exactly the same way as the previous code I sent. 
@@ -286,7 +286,7 @@ if __name__ == "__main__":
         sample_init=lambda init_key: jax.random.normal(key=init_key, shape=(r_length-2,)),
         num_unadjusted_steps=5000, # md = unadjusted. This could probably be fewer.
         num_adjusted_steps=1000, # mc = adjusted. 
-        filename="first",
+        # filename="first",
         num_chains=12000 # this should be at large as possible while still fitting in memory.
         )
     
@@ -305,7 +305,7 @@ if __name__ == "__main__":
         sample_init=sample_init,
         num_unadjusted_steps=100, # this is intentionally chosen to be small. For large outer steps, it could be made larger. Conveniently, the burn_in phase will abort early if it detects convergence (across chains), so there's often litle harm in making this number larger. 
         num_adjusted_steps=50, # it's likely that this could also be smaller, especially in the regime where you only need a single effective sample per chain.
-        filename="second",
+        # filename="second",
         num_chains=12000
         )
     
