@@ -18,10 +18,16 @@ import sampler_evaluation
 from sampler_evaluation.models.banana_mams_paper import banana_mams_paper
 from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unadjusted_mclmc
 from sampler_evaluation.models.phi4 import phi4
-
+from sampler_comparison.samplers.annealing.annealing import annealed
 
 L = 4
 lam = 1
+
+identity = lambda x:x
+
+beta_schedule = [10.0, 5.0, 2.0]
+
+
 
 
 run_benchmarks(
@@ -30,10 +36,10 @@ run_benchmarks(
         },
         samplers={
 
-            "adjusted_microcanonical": lambda: adjusted_mclmc(num_tuning_steps=5000),
-            "adjusted_microcanonical_langevin": lambda: adjusted_mclmc(L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
-            "nuts": lambda: nuts(num_tuning_steps=5000),
-            "unadjusted_microcanonical": lambda: unadjusted_mclmc(num_tuning_steps=10000),
+            "adjusted_microcanonical": lambda: annealed(adjusted_mclmc, beta_schedule=beta_schedule, num_tuning_steps=5000),
+            # "adjusted_microcanonical_langevin": lambda: adjusted_mclmc(L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
+            # "nuts": lambda: nuts(num_tuning_steps=5000),
+            # "unadjusted_microcanonical": lambda: unadjusted_mclmc(num_tuning_steps=10000),
         },
         batch_size=batch_size,
         num_steps=20000,

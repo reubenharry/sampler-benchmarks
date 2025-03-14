@@ -10,6 +10,9 @@ from blackjax.mcmc.adjusted_mclmc_dynamic import rescale
 from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import (
     adjusted_mclmc_no_tuning,
 )
+from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import (
+    unadjusted_mclmc_no_tuning,
+)
 from blackjax.adaptation.adjusted_mclmc_adaptation import (
     adjusted_mclmc_make_L_step_size_adaptation,
 )
@@ -29,6 +32,8 @@ def grid_search_only_L(
     grid_size,
     opt="max",
     grid_iterations=2,
+    num_tuning_steps=10000,
+    sampler_type='adjusted'
 ):
 
     logdensity_fn = make_log_density_fn(model)
@@ -50,7 +55,7 @@ def grid_search_only_L(
     )
 
     (blackjax_state_after_tuning, nuts_params), inf = warmup.run(
-        nuts_key, initial_position, 10000
+        nuts_key, initial_position, num_tuning_steps
     )
     blackjax_state_after_tuning = blackjax.mcmc.adjusted_mclmc_dynamic.init(
         position=blackjax_state_after_tuning.position,
@@ -70,17 +75,29 @@ def grid_search_only_L(
         jax.random.uniform(k) * rescale(avg_num_integration_steps)
     )
 
-    kernel = lambda rng_key, state, avg_num_integration_steps, step_size, inverse_mass_matrix: blackjax.mcmc.adjusted_mclmc_dynamic.build_kernel(
-        integrator=integrator,
-        integration_steps_fn=integration_steps_fn(avg_num_integration_steps),
-        inverse_mass_matrix=inverse_mass_matrix,
-    )(
-        rng_key=rng_key,
-        state=state,
-        step_size=step_size,
+    if sampler_type=='adjusted':
+
+        kernel = lambda rng_key, state, avg_num_integration_steps, step_size, inverse_mass_matrix: blackjax.mcmc.adjusted_mclmc_dynamic.build_kernel(
+            integrator=integrator,
+            integration_steps_fn=integration_steps_fn(avg_num_integration_steps),
+            inverse_mass_matrix=inverse_mass_matrix,
+        )(
+            rng_key=rng_key,
+            state=state,
+            step_size=step_size,
+            logdensity_fn=logdensity_fn,
+            L_proposal_factor=jnp.inf,
+        )
+
+    elif sampler_type=='unadjusted':
+        kernel = lambda inverse_mass_matrix: blackjax.mcmc.mclmc.build_kernel(
         logdensity_fn=logdensity_fn,
-        L_proposal_factor=jnp.inf,
-    )
+        integrator=map_integrator_type_to_integrator["mclmc"][integrator_type],
+        inverse_mass_matrix=inverse_mass_matrix,
+        )
+    else:
+        raise Exception('sampler not recognized')
+        
 
     integrator = map_integrator_type_to_integrator["mclmc"][integrator_type]
 
@@ -117,30 +134,43 @@ def grid_search_only_L(
                 inverse_mass_matrix=inverse_mass_matrix,
             )
 
-            (blackjax_state_after_tuning, params, _, _) = (
-                adjusted_mclmc_make_L_step_size_adaptation(
-                    kernel=kernel,
-                    dim=model.ndims,
-                    frac_tune1=0.1,
-                    frac_tune2=0.0,
-                    target=0.9,
-                    diagonal_preconditioning=False,
-                    fix_L_first_da=True,
-                )(state, params, num_steps, da_key_per_iter)
-            )
+            if sampler_type=='adjusted':
+
+                (blackjax_state_after_tuning, params, _, _) = (
+                    adjusted_mclmc_make_L_step_size_adaptation(
+                        kernel=kernel,
+                        dim=model.ndims,
+                        frac_tune1=0.1,
+                        frac_tune2=0.0,
+                        target=0.9,
+                        diagonal_preconditioning=False,
+                        fix_L_first_da=True,
+                    )(state, params, num_steps, da_key_per_iter)
+                )
+
+                
+
+                sampler = adjusted_mclmc_no_tuning(
+                        initial_state=blackjax_state_after_tuning,
+                        integrator_type=integrator_type,
+                        inverse_mass_matrix=inverse_mass_matrix,
+                        L=Lgrid[i],
+                        step_size=params.step_size,
+                        L_proposal_factor=jnp.inf,
+                        random_trajectory_length=True,
+                        # return_ess_corr=False,
+                    )
+
+            elif sampler_type=='unadjusted':
+                pass
 
             (stats, sq_error) = sampler_grads_to_low_error(
                 model=model,
-                sampler=adjusted_mclmc_no_tuning(
-                    initial_state=blackjax_state_after_tuning,
-                    integrator_type=integrator_type,
-                    inverse_mass_matrix=inverse_mass_matrix,
-                    L=Lgrid[i],
-                    step_size=params.step_size,
-                    L_proposal_factor=jnp.inf,
-                    random_trajectory_length=True,
-                    # return_ess_corr=False,
-                ),
+                sampler=jax.pmap(
+            lambda key, pos: sampler(
+                model=model, num_steps=num_steps, initial_position=pos, key=key
+                )
+            ),
                 key=bench_key_per_iter,
                 num_steps=num_steps,
                 batch_size=num_chains,
@@ -179,3 +209,107 @@ def grid_search_only_L(
         inverse_mass_matrix,
         blackjax_state_after_tuning,
     )
+
+def grid_search_adjusted_mclmc(
+    num_chains,
+    integrator_type,
+    grid_size=10,
+    opt="max",
+    grid_iterations=2,
+    num_tuning_steps=10000,
+):
+    
+    def s(model, num_steps, initial_position, key):
+
+        (
+            L,
+            step_size,
+            num_grads,
+            num_grads_avg,
+            edge,
+            inverse_mass_matrix,
+            blackjax_state_after_tuning,
+        ) = grid_search_only_L(
+            model=model,
+            num_steps=num_steps,
+            num_chains=num_chains,
+            integrator_type=integrator_type,
+            key=jax.random.key(0),
+            grid_size=grid_size,
+            opt=opt,
+            grid_iterations=grid_iterations,
+            num_tuning_steps=num_tuning_steps,
+        )
+
+        sampler=adjusted_mclmc_no_tuning(
+                    initial_state=blackjax_state_after_tuning,
+                    integrator_type=integrator_type,
+                    inverse_mass_matrix=inverse_mass_matrix,
+                    L=L,
+                    step_size=step_size,
+                    L_proposal_factor=jnp.inf,
+                    random_trajectory_length=True,
+                    # return_ess_corr=False,
+                )
+        
+ 
+
+        return jax.pmap(
+            lambda key, pos: sampler(
+                model=model, num_steps=num_steps, initial_position=pos, key=key
+                )
+            )(key, initial_position)
+        
+    return s
+
+
+def grid_search_unadjusted_mclmc(
+    num_chains,
+    integrator_type,
+    grid_size=10,
+    opt="max",
+    grid_iterations=2,
+    num_tuning_steps=10000,
+):
+    
+    def s(model, num_steps, initial_position, key):
+
+        (
+            L,
+            step_size,
+            num_grads,
+            num_grads_avg,
+            edge,
+            inverse_mass_matrix,
+            blackjax_state_after_tuning,
+        ) = grid_search_only_L(
+            model=model,
+            num_steps=num_steps,
+            num_chains=num_chains,
+            integrator_type=integrator_type,
+            key=jax.random.key(0),
+            grid_size=grid_size,
+            opt=opt,
+            grid_iterations=grid_iterations,
+            num_tuning_steps=num_tuning_steps,
+            sampler_type='unadjusted'
+        )
+
+        sampler=unadjusted_mclmc_no_tuning(
+                    initial_state=blackjax_state_after_tuning,
+                    integrator_type=integrator_type,
+                    inverse_mass_matrix=inverse_mass_matrix,
+                    L=L,
+                    step_size=step_size,
+                    # return_ess_corr=False,
+                )
+        
+ 
+
+        return jax.pmap(
+            lambda key, pos: sampler(
+                model=model, num_steps=num_steps, initial_position=pos, key=key
+                )
+            )(key, initial_position)
+        
+    return s

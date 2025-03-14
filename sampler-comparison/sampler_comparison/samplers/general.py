@@ -156,6 +156,8 @@ def sampler_grads_to_low_error(
 
     initial_position = jax.vmap(lambda key: initialize_model(model, key))(init_keys)
 
+    # sampler(initial_position=None,key=None)
+
     samples, metadata = sampler(
         keys,
         initial_position,

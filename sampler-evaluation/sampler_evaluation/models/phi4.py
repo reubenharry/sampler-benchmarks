@@ -1,6 +1,7 @@
 import jax.numpy as jnp
 from sampler_evaluation.models.model import make_model
 import pickle
+import numpy as np
 
 import os
 module_dir = os.path.dirname(os.path.abspath(__file__))
@@ -9,16 +10,16 @@ def phi4(L,lam):
 
     ndims = L**2
 
-    with open(
-        f"{module_dir}/data/Phi4_L{L}_lam{lam}_expectations.pkl",
-        "rb",
-    ) as f:
-        stats = pickle.load(f)
+    # with open(
+    #     f"{module_dir}/data/Phi4_L{L}_lam{lam}_expectations.pkl",
+    #     "rb",
+    # ) as f:
+    #     stats = pickle.load(f)
 
-    e_x = stats["e_x"]
-    e_x2 = stats["e_x2"]
-    e_x4 = stats["e_x4"]
-    var_x2 = e_x4 - e_x2**2
+    # e_x = stats["e_x"]
+    # e_x2 = stats["e_x2"]
+    # e_x4 = stats["e_x4"]
+    # var_x2 = e_x4 - e_x2**2
 
         
 
@@ -39,14 +40,15 @@ def phi4(L,lam):
         logdensity_fn=logdensity_fn,
         ndims=ndims,
         transform=psd,
-        # x_ground_truth_mean=jnp.zeros(ndims),
-        # x_ground_truth_std=jnp.sqrt((jnp.zeros(ndims))),
-        # x2_ground_truth_mean=jnp.zeros(ndims),
-        # x2_ground_truth_std=jnp.sqrt((jnp.zeros(ndims))),
-        x_ground_truth_mean=e_x,
-        x_ground_truth_std=jnp.sqrt(e_x2 - e_x**2),
-        x2_ground_truth_mean=e_x2,
-        x2_ground_truth_std=jnp.sqrt(var_x2),
+        x_ground_truth_mean=jnp.zeros(ndims),
+        x_ground_truth_std=jnp.sqrt((jnp.zeros(ndims))),
+        x2_ground_truth_mean=jnp.zeros(ndims),
+        x2_ground_truth_std=jnp.sqrt((jnp.zeros(ndims))),
+
+        # x_ground_truth_mean=e_x,
+        # x_ground_truth_std=jnp.sqrt(e_x2 - e_x**2),
+        # x2_ground_truth_mean=e_x2,
+        # x2_ground_truth_std=jnp.sqrt(var_x2),
         exact_sample=None,
         name=f'Phi4_L{L}_lam{lam}',
     )
@@ -55,3 +57,14 @@ def phi4(L,lam):
 if __name__ == "__main__":
     print(phi4(4, 1).sample_transformations["identity"].ground_truth_mean)
     print(phi4(4, 1).sample_transformations["identity"].ground_truth_standard_deviation)
+
+    reduced_lam = jnp.linspace(-2.5, 7.5, 16) #lambda range around the critical point (m^2 = -4 is fixed)
+
+
+    def unreduce_lam(reduced_lam, side):
+        """see Fig 3 in https://arxiv.org/pdf/2207.00283.pdf"""
+        return 4.25 * (reduced_lam * np.power(side, -1.0) + 1.0)
+
+    print(unreduce_lam(reduced_lam=reduced_lam,side=4))
+
+    

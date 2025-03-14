@@ -14,20 +14,26 @@ import jax
 import pickle
 
 
-class Rosenbrock_36D(model.Model):
+class Rosenbrock(model.Model):
     def __init__(
         self,
-        name="rosenbrock_36D",
-        pretty_name="Rosenbrock_36D",
+        D=18,
+        
+
     ):
-        ndims = 36
+
+
+        ndims = D * 2
         self.ndims = ndims
         self.Q = 0.1
 
+        name = f"rosenbrock_{ndims}d"
+        pretty_name = f"Rosenbrock {ndims}D"
+
         # todo: ground truths should be calculated from 2D rosenbrock and then composed as independent products
+
        
 
-        D = ndims // 2
         e_x = jnp.array(
             [
                 1.0,
@@ -75,7 +81,7 @@ class Rosenbrock_36D(model.Model):
             ),
         }
 
-        super(Rosenbrock_36D, self).__init__(
+        super(Rosenbrock, self).__init__(
             default_event_space_bijector=tfb.Identity(),
             event_shape=tf.TensorShape([ndims]),
             dtype=np.float32,

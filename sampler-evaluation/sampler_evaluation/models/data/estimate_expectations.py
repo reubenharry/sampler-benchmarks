@@ -22,10 +22,11 @@ from sampler_evaluation.models.banana import banana
 from sampler_evaluation.models.banana_mams_paper import banana_mams_paper
 from sampler_evaluation.models.phi4 import phi4
 from sampler_evaluation.models.neals_funnel import neals_funnel
-from sampler_evaluation.models.rosenbrock import Rosenbrock_36D
+from sampler_evaluation.models.rosenbrock import Rosenbrock
 from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
 import sampler_evaluation
 from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
+from sampler_comparison.samplers.annealing.annealing import annealed
 
 
 
@@ -50,7 +51,7 @@ def expectations_from_exact_samples(model, key, num_samples=1000):
     return e_x, e_x2, e_x4
 
 
-def estimate_ground_truth(model, num_samples):
+def estimate_ground_truth(model, num_samples, annealing=False):
 
     if hasattr(model, "exact_sample") and model.exact_sample is not None:
         key = jax.random.PRNGKey(0)
@@ -73,6 +74,9 @@ def estimate_ground_truth(model, num_samples):
             num_tuning_steps=5000,
             return_only_final=True,
         )
+
+        if annealing:
+            sampler = annealed(sampler, beta_schedule=[10.0, 5.0, 2.0], num_tuning_steps=5000, intermediate_num_steps=100000)
 
         key = jax.random.PRNGKey(1)
         run_keys = jax.random.split(key, num_chains)
@@ -156,13 +160,24 @@ if __name__ == "__main__":
         # sampler_evaluation.models.stochastic_volatility(): 1000,
         # stochastic_volatility_mams_paper: 400000,
         # sampler_evaluation.models.item_response(): 1000000,
-        # Rosenbrock_36D(): 10000000,
+        # Rosenbrock(): 10000000,
     
-    model = phi4(L=4, lam=1)
+    reduced_lam = jnp.linspace(-2.5, 7.5, 16) #lambda range around the critical point (m^2 = -4 is fixed)
 
-    print(f"Estimating ground truth for {model}")
-    toc = time.time()
-    estimate_ground_truth(model, num_samples=1000000)
-    tic = time.time()
-    print(f"Time taken: {tic - toc}")
-    print("Done")
+
+    def unreduce_lam(reduced_lam, side):
+        """see Fig 3 in https://arxiv.org/pdf/2207.00283.pdf"""
+        return 4.25 * (reduced_lam * np.power(side, -1.0) + 1.0)
+
+    lams = unreduce_lam(reduced_lam=reduced_lam,side=4)
+
+    for lam in lams:
+    
+        model = phi4(L=8, lam=lam)
+
+        print(f"Estimating ground truth for {model}")
+        toc = time.time()
+        estimate_ground_truth(model, num_samples=1000000, annealing=True)
+        tic = time.time()
+        print(f"Time taken: {tic - toc}")
+        print("Done")

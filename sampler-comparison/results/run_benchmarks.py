@@ -24,9 +24,6 @@ def run_benchmarks(
 
         key = jax.random.fold_in(key, i)
 
-        # sampler = 
-
-        # sampler = 
 
         (stats, _) = sampler_grads_to_low_error(
             sampler=map(

@@ -10,7 +10,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 
 def banana():
 
-    banana = gym.targets.Banana()
+    banana = gym.targets.Banana(dtype=jax.numpy.float64)
 
     try:
         with open(

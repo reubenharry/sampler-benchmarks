@@ -36,7 +36,7 @@ def run_emaus(
         info, grads_per_step, _acc_prob, final_state = emaus(
             logdensity_fn=logdensity_fn,
             sample_init=sample_init,
-            transform=transform,
+            # transform=transform,
             ndims=ndims,
             num_steps1=num_unadjusted_steps,
             num_steps2=num_adjusted_steps,
@@ -45,17 +45,33 @@ def run_emaus(
             rng_key=key,
             alpha=1.9,
             C=0.1,
-            early_stop=0,
+            early_stop=True,
             r_end=1e-2,
             diagonal_preconditioning=diagonal_preconditioning,
             integrator_coefficients=integrator_coefficients,
             steps_per_sample=15,
             acc_prob=None,
             ensemble_observables=lambda x: x,
+            observables_for_bias=lambda x: jnp.square(x),
             # ensemble_observables = lambda x: vec @ x
         )  # run the algorithm
 
-        # print((info["phase_2"][1].shape), "SHAPE")
+        print((info["phase_2"][1].shape), "SHAPE")
+
+        print("steps_done", info["phase_1"]["steps_done"])
+
+        return final_state.position
+
+        results = info["phase_2"][1]
+
+        reshaped_results = results.reshape(results.shape[0]*results.shape[1], results.shape[2])
+
+        print(reshaped_results.shape, "reshaped results shape")
+
+        return reshaped_results
+
+
+        return results.reshape(results.shape[0]*results.shape[1], results.shape[2])
 
         return final_state.position
 
@@ -70,7 +86,7 @@ def analytic(lam, i, K, Minv):
     return (1/ (2*np.sqrt(2*np.pi))) *2*(Minv[:,i]@K)*((1/(K @ Minv @ K))**(3/2))*lam*np.exp( (-(lam**2)) / (2 * K @ Minv @ K) )
 
 
-def make_unsigned_histogram(filename, samples, weights, K, Minv, i):
+def make_histograms(filename, samples, weights, K, Minv, i):
 
     num_bins = 100
     samples = np.array(samples)
@@ -107,6 +123,10 @@ def make_M_Minv_K(P, t, U, r, beta, hbar,m):
 
     return M, Minv, K, alpha, gamma, r
 
+def xi(s, r, U, t, P, hbar, gamma):
+    term1 = gamma * ((r[2:-1] - r[1:-2]).dot(s[1:] - s[:-1])  + (r[1] - r[0])*s[0] + (r[-1] - r[-2])*s[-1] )
+    term2 = -(t/(P*hbar))*jnp.sum(jax.vmap(U)(r[1:-1] + s/2) - jax.vmap(U)(r[1:-1] - s/2)  )
+    return term1 + term2
 
 def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKey(0), sequential=False, sample_init=None, num_unadjusted_steps=100, num_adjusted_steps=100, num_chains=5000, filename=""):
 
@@ -123,15 +143,15 @@ def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKe
         term1 = (alpha / 2) * (sqnorm(s[1:] - s[:-1]) + (  (s[0]**2) + (s[-1]**2) ))
         term2 = (beta / (2*P)) * jnp.sum(jax.vmap(U)(r[1:-1] + s/2) + jax.vmap(U)(r[1:-1] - s/2))
         return  -(term1 + term2)
+    
 
-    def xi(s):
-        term1 = gamma * ((r[2:-1] - r[1:-2]).dot(s[1:] - s[:-1])  + (r[1] - r[0])*s[0] + (r[-1] - r[-2])*s[-1] )
-        term2 = -(t/(P*hbar))*jnp.sum(jax.vmap(U)(r[1:-1] + s/2) - jax.vmap(U)(r[1:-1] - s/2)  )
-        return term1 + term2
+
     
     def transform(state, info):
         x = state.position
-        return (xi(x),x[i])
+        return (xi(x,r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma
+                   
+                   ),x[i])
         
     
     init_key, run_key = jax.random.split(rng_key)
@@ -155,7 +175,7 @@ def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKe
             initial_position=jax.random.normal(init_key, (P-1,)), 
             key=jax.random.key(0))
 
-        samples, weights = (jax.vmap(lambda x : (xi(x), x[i]))(raw_samples))
+        samples, weights = (jax.vmap(lambda x : (xi(x,r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma), x[i]))(raw_samples))
 
     else:
 
@@ -177,44 +197,65 @@ def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKe
             num_chains=num_chains
         )
 
-        print(raw_samples.shape, "sample shape")
-
-        error_at_each_step = get_standardized_squared_error(
-            jnp.expand_dims(jax.vmap(xi)(raw_samples),[0,2]), 
-            f=lambda x: x**2,
-            E_f=(K @ Minv @ K),
-            Var_f=2.0 * (K @ Minv @ K)**2,
-        )
+        # print(raw_samples.shape, "sample shape")
 
 
-        # gradient_calls_per_chain = metadata['num_grads_per_proposal'].mean()
-        # gradient_calls_per_chain = 2.0 
-        # print(samples_to_low_error(error_at_each_step, low_error=1/100) * gradient_calls_per_chain)
+        samples, weights = (jax.vmap(lambda x : (xi(x,r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma), x[i]))(raw_samples))
 
-        samples, weights = (jax.vmap(lambda x : (xi(x), x[i]))(raw_samples))
+    # error_at_each_step = get_standardized_squared_error(
+    #     jnp.expand_dims(jax.vmap(functools.partial(xi, r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma))(raw_samples),[0,2]), 
+    #     f=lambda x: x**2,
+    #     E_f=(K @ Minv @ K),
+    #     Var_f=2.0 * (K @ Minv @ K)**2,
+    # )
+    # gradient_calls_per_chain = metadata['num_grads_per_proposal'].mean()
+    # gradient_calls_per_chain = 2.0 
+    # print(samples_to_low_error(error_at_each_step, low_error=1/100), "ess")
     
     tic = time.time()
     print(tic - toc, "time")
     
-    make_unsigned_histogram(filename, samples=samples, weights=weights, K=K, Minv=Minv, i=i)
+    if filename:   
+        make_histograms(filename, samples=samples, weights=weights, K=K, Minv=Minv, i=i)
     
     # samples are \xi(s), weights are s[i]
     return samples, weights, raw_samples
 
 
 
-beta_hbar_omega = 15.8
-m_omega_over_hbar = 0.03
-m = 1.0
-hbar = 1.0
-omega = (m_omega_over_hbar * hbar) / m
-beta = (beta_hbar_omega / (hbar * omega))
-
-r_length = 33
 
 if __name__ == "__main__":
 
+    """
+    Notes for Alan:
+    
+    0. To run the code this time, I'll need you to install two packages. First, do `git clone git@github.com:reubenharry/blackjax.git` to obtain my working version of blackjax. Then in the root directory of this repo, do `pip install -e .`
+    1. Secondly, do `git clone git@github.com:reubenharry/sampler-benchmarks.git` and in the directory `sampler-evaluation`, do `pip install -e .`
+    2. If you encounter any issues with either of the above, just let me know - I'm more than happy to troubleshoot.
+    3. If this has worked, you should be able to run this file from the `sampler-comparison` directory of the repo cloned in step 1. Hopefully it should slot into your existing code in exactly the same way as the previous code I sent. 
+    4. If you are able to run this code within your setup, the first thing to establish is whether the code works to your satisfaction (i.e. the results are accurate enough). Because there are a few more knobs to turn this time than before, it's likely that to get satisfactory performance, a few things will need to be tweaked (number of burn in MD steps, number of chains, etc), and those are all things I can advise on once the code runs.
 
+    Below is the code, set up to run with the harmonic potential. See the comments
+    
+    """
+
+    beta_hbar_omega = 15.8
+    m_omega_over_hbar = 0.03
+    m = 1.0
+    hbar = 1.0
+    omega = (m_omega_over_hbar * hbar) / m
+    beta = (beta_hbar_omega / (hbar * omega))
+
+    r_length = 33
+    P = r_length - 1
+
+    t=1
+    i=1
+    
+
+    ### This is the sequential version of the code (only runs a single chain)
+    ### you shouldn't need to use it, but it's here for reference
+    ### Note that it may be a fair bit faster (in the sense of requiring fewer samples) than the last version, because I added preconditioning
     samples, weights, raw_samples = sample_s_chi(
         t=1,
         i=1,
@@ -227,12 +268,12 @@ if __name__ == "__main__":
         sequential=True,
         sample_init=lambda init_key: jax.random.normal(key=init_key, shape=(r_length-2,)),
         num_unadjusted_steps=50000,
-        num_adjusted_steps=0,
-        filename="first",
-        # num_chains=5000
+        # num_adjusted_steps=5000,
+        filename="sequential",
         )
-    
-    
+
+
+    # This is the parallel version of the code, to be run on the first iteration of the inner loop.
     samples, weights, raw_samples = sample_s_chi(
         t=1,
         i=1,
@@ -241,49 +282,31 @@ if __name__ == "__main__":
         m=m,
         U = lambda x : 0.5*m*(omega**2)*(x**2),
         r=jax.random.normal(jax.random.PRNGKey(3), (r_length,)),
-        # r=jax.random.uniform(jax.random.PRNGKey(1), (r_length,)),
         sequential=False,
         sample_init=lambda init_key: jax.random.normal(key=init_key, shape=(r_length-2,)),
-        num_unadjusted_steps=500,
-        num_adjusted_steps=500,
-        filename="second",
-        num_chains=15000
+        num_unadjusted_steps=5000, # md = unadjusted. This could probably be fewer.
+        num_adjusted_steps=1000, # mc = adjusted. 
+        filename="first",
+        num_chains=12000 # this should be at large as possible while still fitting in memory.
         )
     
     
-
-    # sample_init = lambda init_key: jax.random.choice(init_key, raw_samples, axis=0)
-
-
-
-    
-    # samples, weights, raw_samples = sample_s_chi(
-    #     t=1,
-    #     i=1,
-    #     beta=beta,
-    #     hbar=hbar,
-    #     m=m,
-    #     U = lambda x : 0.5*m*(omega**2)*(x**2),
-    #     r=jax.random.normal(jax.random.PRNGKey(3), (r_length,)),
-    #     # r=jax.random.uniform(jax.random.PRNGKey(1), (r_length,)),
-    #     sequential=False,
-    #     sample_init=sample_init,
-    #     num_unadjusted_steps=10,
-    #     num_adjusted_steps=10,
-    #     filename="second",
-    #     num_chains=5000
-    #     )
+    ### This is the parallel version of the code, to be run on the subsequent iterations of the inner loop. Note that `sample_init` depends on the raw samples (i.e. the P-dimensional samples) from the previous inner loop calculation.
+    sample_init = lambda init_key: jax.random.choice(init_key, raw_samples, axis=0)
+    samples, weights, raw_samples = sample_s_chi(
+        t=1,
+        i=1,
+        beta=beta,
+        hbar=hbar,
+        m=m,
+        U = lambda x : 0.5*m*(omega**2)*(x**2),
+        r=jax.random.normal(jax.random.PRNGKey(3), (r_length,)),
+        sequential=False,
+        sample_init=sample_init,
+        num_unadjusted_steps=100, # this is intentionally chosen to be small. For large outer steps, it could be made larger. Conveniently, the burn_in phase will abort early if it detects convergence (across chains), so there's often litle harm in making this number larger. 
+        num_adjusted_steps=50, # it's likely that this could also be smaller, especially in the regime where you only need a single effective sample per chain.
+        filename="second",
+        num_chains=12000
+        )
     
 
-
-#     jax.debug.print("foo {x}",x=raw_samples.shape)
-
-#     ixs = jax.vmap(lambda k: jax.random.choice(key=k,a=jax.numpy.arange(50000)))(jax.random.split(jax.random.key(0),50000))
-
-#     new_samples = samples[ixs]
-#     new_weights = weights[ixs]
-
-#     M, Minv, K, alpha, gamma, r = make_M_Minv_K(32, 1, U=lambda x : 0.5*m*(omega**2)*(x**2), r=jax.random.normal(jax.random.PRNGKey(3), (r_length,)), beta=beta, hbar=hbar, m=m)
-#     make_unsigned_histogram("third", new_samples, new_weights, K, Minv, 1)
-
-#     # jax.debug.print("bar {x}", x=jax.vmap(lambda k: jax.random.choice(k, raw_samples, axis=0,))(jax.random.split(jax.random.key(0), 50000)).shape)
