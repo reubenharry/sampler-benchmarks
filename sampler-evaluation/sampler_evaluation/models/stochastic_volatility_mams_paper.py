@@ -1,17 +1,15 @@
-from collections import namedtuple
 import os
 import jax
-jax.config.update("jax_enable_x64", True)
-import sampler_evaluation
-
-batch_size = 32
-os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
-num_cores = jax.local_device_count()
-
-
-from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
-import sampler_evaluation
 import jax.numpy as jnp
+jax.config.update("jax_enable_x64", True)
+from collections import namedtuple
+import sampler_evaluation
+
+# batch_size = 32
+# os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
+# num_cores = jax.local_device_count()
+
+
 
 def nlogp_StudentT(x, df, scale):
     y = x / scale
