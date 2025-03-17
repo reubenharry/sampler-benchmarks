@@ -4,7 +4,7 @@ import jax
 
 identity = lambda x:x # why tf is this not in the python standard library
 
-def annealed(sampler, beta_schedule, intermediate_num_steps):
+def annealed(sampler, beta_schedule, intermediate_num_steps,kwargs={}):
     def s(model, num_steps, initial_position, key):
 
         old_bijector = model.default_event_space_bijector
@@ -21,7 +21,7 @@ def annealed(sampler, beta_schedule, intermediate_num_steps):
                 log_density_fn = lambda x: base_density(x) * beta
             )
         
-            samples, _ = sampler(num_tuning_steps=1000, return_samples=True, return_only_final=False)(model, intermediate_num_steps, initial_position, key)
+            samples, _ = sampler(return_samples=True, **kwargs)(model, intermediate_num_steps, initial_position, key)
 
 
             initial_position = samples[-1]
@@ -35,5 +35,5 @@ def annealed(sampler, beta_schedule, intermediate_num_steps):
         )
 
         key = jax.random.fold_in(key, i+1)
-        return sampler(num_tuning_steps=1000, return_samples=False)(model, num_steps, initial_position, key)
+        return sampler(return_samples=False, return_only_final=True, **kwargs)(model, num_steps, initial_position, key)
     return s

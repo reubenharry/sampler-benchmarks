@@ -11,6 +11,7 @@ num_cores = jax.local_device_count()
 import sys
 sys.path.append(".")
 sys.path.append("../../blackjax")
+sys.path.append("../../blackjax-benchmarks/sampler-evaluation")
 
 from results.run_benchmarks import run_benchmarks
 from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import (
@@ -22,9 +23,13 @@ from sampler_evaluation.models.rosenbrock import Rosenbrock
 from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unadjusted_mclmc
 import numpy as np
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_adjusted_mclmc
+from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc
 
 
-Ds = np.concatenate([np.array([1,2,4,6,7,8,10]), np.ceil(np.logspace(2,5, 5)).astype(int)])
+Ds = np.concatenate([np.array([1,2,4,6,7,8,10]), np.ceil(np.logspace(2,5, 5)).astype(int)])[10:]
+
+# print(Ds)
+# raise Exception
 
 integrator_types = ['velocity_verlet', 'mclachlan', 'omelyan']
 
@@ -35,25 +40,25 @@ for D, integrator_type in itertools.product(Ds, integrator_types):
 
     print(f"Running for dim={dim}, integrator_type={integrator_type}, batch_size={batch_size}")
 
-    run_benchmarks(
-            models={
-                f"Rosenbrock_{dim}": Rosenbrock(D=D),
-            },
-            samplers={
+    # run_benchmarks(
+    #         models={
+    #             f"Rosenbrock_{dim}": Rosenbrock(D=D),
+    #         },
+    #         samplers={
 
-                f"adjusted_microcanonical_{integrator_type}": lambda: adjusted_mclmc(num_tuning_steps=5000, integrator_type=integrator_type),
+    #             f"adjusted_microcanonical_{integrator_type}": lambda: adjusted_mclmc(num_tuning_steps=5000, integrator_type=integrator_type),
             
-                # f"unadjusted_microcanonical__{integrator_type}": lambda: unadjusted_mclmc(num_tuning_steps=20000, integrator_type=integrator_type),
+    #             f"unadjusted_microcanonical__{integrator_type}": lambda: unadjusted_mclmc(num_tuning_steps=20000, integrator_type=integrator_type),
 
-            },
+    #         },
             
             
-            batch_size=batch_size,
-            num_steps=10000,
-            save_dir=f"sampler_comparison/experiments/dimensional_scaling",
-            key=jax.random.key(19),
-            map=jax.pmap
-        )
+    #         batch_size=batch_size,
+    #         num_steps=10000,
+    #         save_dir=f"sampler_comparison/experiments/dimensional_scaling/results",
+    #         key=jax.random.key(19),
+    #         map=jax.pmap
+    #     )
     
 
     run_benchmarks(
@@ -62,7 +67,9 @@ for D, integrator_type in itertools.product(Ds, integrator_types):
             },
             samplers={
 
-                f"grid_search_adjusted_microcanonical_{integrator_type}": lambda: grid_search_adjusted_mclmc(num_chains=128, num_tuning_steps=5000, integrator_type=integrator_type),
+                f"grid_search_adjusted_microcanonical_{integrator_type}": lambda: grid_search_adjusted_mclmc(num_chains=batch_size, num_tuning_steps=500, integrator_type=integrator_type),
+
+                # f"grid_search_unadjusted_microcanonical_{integrator_type}": lambda: grid_search_unadjusted_mclmc(num_chains=batch_size, num_tuning_steps=10000, integrator_type=integrator_type),
 
 
                 # f"adjusted_microcanonical_{integrator_type}": lambda: adjusted_mclmc(num_tuning_steps=5000, integrator_type=integrator_type),
@@ -73,8 +80,8 @@ for D, integrator_type in itertools.product(Ds, integrator_types):
             
             
             batch_size=batch_size,
-            num_steps=100000,
+            num_steps=1000,
             save_dir=f"sampler_comparison/experiments/dimensional_scaling/results",
             key=jax.random.key(19),
-            map=jax.pmap
+            map=lambda f:f
         )

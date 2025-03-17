@@ -16,6 +16,7 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import (
 from blackjax.adaptation.adjusted_mclmc_adaptation import (
     adjusted_mclmc_make_L_step_size_adaptation,
 )
+from blackjax.adaptation.mclmc_adaptation import make_L_step_size_adaptation
 from blackjax.adaptation.mclmc_adaptation import MCLMCAdaptationState
 from sampler_comparison.samplers.general import sampler_grads_to_low_error
 from sampler_comparison.samplers.general import (
@@ -162,7 +163,34 @@ def grid_search_only_L(
                     )
 
             elif sampler_type=='unadjusted':
-                pass
+                
+                mclmc_state = blackjax.mcmc.mclmc.init(
+                    position=state.position,
+                    logdensity_fn=logdensity_fn,
+                    rng_key=jax.random.key(0),
+                )
+
+                (blackjax_state_after_tuning, params) = (
+                        make_L_step_size_adaptation(
+                            kernel=kernel,
+                            dim=model.ndims,
+                            frac_tune1=0.1,
+                            frac_tune2=0.0,
+                            # target=0.9,
+                            diagonal_preconditioning=False,
+                        )(mclmc_state, params, num_steps, da_key_per_iter)
+                    )
+
+                sampler = unadjusted_mclmc_no_tuning(
+                        initial_state=blackjax_state_after_tuning,
+                        integrator_type=integrator_type,
+                        inverse_mass_matrix=inverse_mass_matrix,
+                        L=Lgrid[i],
+                        step_size=params.step_size,
+                        # L_proposal_factor=jnp.inf,
+                        # random_trajectory_length=True,
+                        # return_ess_corr=False,
+                    )
 
             (stats, sq_error) = sampler_grads_to_low_error(
                 model=model,

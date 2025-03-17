@@ -11,7 +11,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 def neals_funnel():
 
     ndims = 20
-    neals_funnel = gym.targets.NealsFunnel(ndims=ndims)
+    neals_funnel = gym.targets.NealsFunnel(ndims=ndims, dtype=jax.numpy.float64)
     neals_funnel.ndims = ndims
 
     try:

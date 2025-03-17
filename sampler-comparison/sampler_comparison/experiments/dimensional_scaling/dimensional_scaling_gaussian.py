@@ -9,6 +9,9 @@ num_cores = jax.local_device_count()
 
 import sys
 sys.path.append(".")
+sys.path.append("../../blackjax")
+sys.path.append("../../blackjax-benchmarks/sampler-evaluation")
+
 
 from results.run_benchmarks import run_benchmarks
 from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import (
@@ -17,11 +20,12 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import (
 from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
 import sampler_evaluation
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_adjusted_mclmc
+from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc
 from sampler_evaluation.models.gaussian_mams_paper import IllConditionedGaussian
 from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unadjusted_mclmc
 import numpy as np
 
-dims = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,5, 5)).astype(int)])[:1]
+dims = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,5, 5)).astype(int)])[10:]
 
 integrator_types = ['velocity_verlet', 'mclachlan', 'omelyan']
 
@@ -39,12 +43,9 @@ for dim, integrator_type in itertools.product(dims, integrator_types):
 
                 f"grid_search_adjusted_microcanonical_{integrator_type}": lambda: grid_search_adjusted_mclmc(num_chains=batch_size, num_tuning_steps=5000, integrator_type=integrator_type),
 
-                f"grid_search_unadjusted_microcanonical_{integrator_type}": lambda: grid_search_adjusted_mclmc(num_chains=batch_size, num_tuning_steps=10000, integrator_type=integrator_type),
+                f"grid_search_unadjusted_microcanonical_{integrator_type}": lambda: grid_search_unadjusted_mclmc(num_chains=batch_size, num_tuning_steps=10000, integrator_type=integrator_type),
          
-                f"adjusted_microcanonical_{integrator_type}": lambda: adjusted_mclmc(num_tuning_steps=5000, integrator_type=integrator_type),
-            
-                f"unadjusted_microcanonical__{integrator_type}": lambda: unadjusted_mclmc(num_tuning_steps=10000, integrator_type=integrator_type),
-
+         
             },
             
             
@@ -52,5 +53,25 @@ for dim, integrator_type in itertools.product(dims, integrator_types):
             num_steps=10000,
             save_dir=f"sampler_comparison/experiments/dimensional_scaling/results",
             key=jax.random.key(19),
+            map=lambda f:f
         )
+    
+    # run_benchmarks(
+    #         models={
+    #             f"Gaussian_{dim}": IllConditionedGaussian(ndims=dim, condition_number=1, eigenvalues='log'),
+    #         },
+    #         samplers={
+
+    #             f"adjusted_microcanonical_{integrator_type}": lambda: adjusted_mclmc(num_tuning_steps=5000, integrator_type=integrator_type),
+            
+    #             f"unadjusted_microcanonical__{integrator_type}": lambda: unadjusted_mclmc(num_tuning_steps=10000, integrator_type=integrator_type),
+
+    #         },
+            
+            
+    #         batch_size=batch_size,
+    #         num_steps=10000,
+    #         save_dir=f"sampler_comparison/experiments/dimensional_scaling/results",
+    #         key=jax.random.key(19),
+    #     )
     

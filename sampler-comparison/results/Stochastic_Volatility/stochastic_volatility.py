@@ -31,10 +31,12 @@ run_benchmarks(
             # "adjusted_microcanonical": lambda: adjusted_mclmc(num_tuning_steps=5000),
             # "adjusted_microcanonical_langevin": lambda: adjusted_mclmc(L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
             # "nuts": lambda: nuts(num_tuning_steps=5000),
-            "unadjusted_microcanonical": lambda: unadjusted_mclmc(num_tuning_steps=20000, desired_energy_var=2e-7),
+            "unadjusted_microcanonical": lambda: unadjusted_mclmc(num_tuning_steps=25000, 
+                                                                  desired_energy_var=5e-6
+                                                                  ),
         },
         batch_size=batch_size,
-        num_steps=300000,
+        num_steps=500000,
         save_dir="results/Stochastic_Volatility",
         key=jax.random.key(19),
         map=jax.pmap

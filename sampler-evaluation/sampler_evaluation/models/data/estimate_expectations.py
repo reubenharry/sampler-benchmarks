@@ -76,7 +76,14 @@ def estimate_ground_truth(model, num_samples, annealing=False):
         )
 
         if annealing:
-            sampler = annealed(sampler, beta_schedule=[10.0, 5.0, 2.0], num_tuning_steps=5000, intermediate_num_steps=100000)
+            sampler = annealed(nuts, beta_schedule=[10.0, 5.0, 2.0], intermediate_num_steps=100000, kwargs={
+                'integrator_type':"velocity_verlet",
+                'diagonal_preconditioning':True,
+                # 'return_samples':True,
+                'incremental_value_transform':lambda x: x,
+                'num_tuning_steps':5000,
+                # 'return_only_final':False,
+            })
 
         key = jax.random.PRNGKey(1)
         run_keys = jax.random.split(key, num_chains)
@@ -171,12 +178,15 @@ if __name__ == "__main__":
 
     lams = unreduce_lam(reduced_lam=reduced_lam,side=4)
 
+    print(lams)
+
     for lam in lams:
     
         model = phi4(L=8, lam=lam)
 
         print(f"Estimating ground truth for {model}")
         toc = time.time()
+        ### SET ANNEALING TO TRUE!!!
         estimate_ground_truth(model, num_samples=1000000, annealing=True)
         tic = time.time()
         print(f"Time taken: {tic - toc}")

@@ -28,6 +28,8 @@ def samples_to_low_error(err_t, low_error=0.01):
     """Uses the error of the expectation values to compute the effective sample size n_eff
     b^2 = 1/n_eff"""
 
+    jax.debug.print("final error is {x}", x=err_t[-1])
+
     cutoff_reached = err_t[-1] < low_error
     # if not cutoff_reached:
     #     jax.debug.print("Error never below threshold, final error is {x}", x=err_t[-1])

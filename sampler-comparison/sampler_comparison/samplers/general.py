@@ -137,7 +137,7 @@ def make_log_density_fn(model):
 
 
 def sampler_grads_to_low_error(
-    sampler, model, num_steps, batch_size, key, postprocess_samples=lambda x:jnp.median(x, axis=0)
+    sampler, model, num_steps, batch_size, key, postprocess_samples=lambda x:jnp.nanmedian(x, axis=0)
 ):
 
     try:
