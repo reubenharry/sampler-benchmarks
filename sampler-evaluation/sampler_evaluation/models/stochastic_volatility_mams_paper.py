@@ -1,7 +1,7 @@
 import os
 import jax
-from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
-import sampler_evaluation
+#from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
+#import sampler_evaluation
 import jax.numpy as jnp
 
 import os

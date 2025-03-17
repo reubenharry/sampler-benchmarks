@@ -1,6 +1,6 @@
 import os
 import jax
-jax.config.update("jax_enable_x64", True)
+#jax.config.update("jax_enable_x64", True)
 
 #from jax.lib import xla_bridge
 #print(xla_bridge.get_backend().platform)
@@ -19,10 +19,10 @@ sys.path.append(current_path + '/../sampler-evaluation/')
 
 
 from sampler_evaluation.models.banana_mams_paper import banana_mams_paper
-from sampler_evaluation.models.stochastic_volatility import stochastic_volatility
-from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
+#from sampler_evaluation.models.stochastic_volatility import stochastic_volatility
+#from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
 from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.emaus import parallel_microcanonical
-from sampler_evaluation.models.gaussian_mams_paper import IllConditionedGaussian
+#from sampler_evaluation.models.gaussian_mams_paper import IllConditionedGaussian
 from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unadjusted_mclmc
 from sampler_comparison.samplers.general import initialize_model
 from sampler_evaluation.models.banana import banana
