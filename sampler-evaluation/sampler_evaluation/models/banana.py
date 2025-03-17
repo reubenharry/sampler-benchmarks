@@ -4,15 +4,17 @@ from inference_gym.targets import model
 import jax.numpy as jnp
 import jax
 
+import os
+
+module_dir = os.path.dirname(os.path.abspath(__file__))
 
 def banana():
 
-    banana = gym.targets.Banana()
-
+    banana = gym.targets.Banana(dtype=jax.numpy.float64)
 
     try:
         with open(
-            f"../sampler-evaluation/sampler_evaluation/models/data/{banana.name}_expectations.pkl",
+            f"{module_dir}/data/{banana.name}_expectations.pkl",
             "rb",
         ) as f:
             stats = pickle.load(f)

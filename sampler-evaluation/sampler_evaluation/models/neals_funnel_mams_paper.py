@@ -4,15 +4,13 @@ import jax
 jax.config.update("jax_enable_x64", True)
 import sampler_evaluation
 
-batch_size = 32
-os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
-num_cores = jax.local_device_count()
 
 import sys
-
-sys.path.append(".")
-sys.path.append("../sampler-evaluation")
 import jax.numpy as jnp 
+
+import os
+module_dir = os.path.dirname(os.path.abspath(__file__))
+
 
 def logdensity_fn_funnel(x):
         # return 1.0

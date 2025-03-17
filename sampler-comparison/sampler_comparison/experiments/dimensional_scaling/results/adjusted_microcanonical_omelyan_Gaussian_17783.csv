@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_microcanonical_omelyan,Gaussian_17783,21246.500000016516,True,x2,290136.25,134.78423348745005,122.53112135213095
+1,adjusted_microcanonical_omelyan,Gaussian_17783,1133.0000000008808,False,x2,290136.25,134.78423348745005,122.53112135213095
+2,adjusted_microcanonical_omelyan,Gaussian_17783,34694.00000002697,True,x,290136.25,134.78423348745005,122.53112135213095
+3,adjusted_microcanonical_omelyan,Gaussian_17783,1859.0000000014452,False,x,290136.25,134.78423348745005,122.53112135213095

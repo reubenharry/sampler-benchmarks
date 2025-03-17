@@ -1,5 +1,0 @@
-,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
-0,adjusted_microcanonical_velocity_verlet,Gaussian_9,715.2545879060814,True,x2,21439.388671875,3.0947693214924037,2.8079176215493655
-1,adjusted_microcanonical_velocity_verlet,Gaussian_9,200.5798690275914,False,x2,21439.388671875,3.0947693214924037,2.8079176215493655
-2,adjusted_microcanonical_velocity_verlet,Gaussian_9,1092.1684077271598,True,x,21439.388671875,3.0947693214924037,2.8079176215493655
-3,adjusted_microcanonical_velocity_verlet,Gaussian_9,317.4011114282765,False,x,21439.388671875,3.0947693214924037,2.8079176215493655

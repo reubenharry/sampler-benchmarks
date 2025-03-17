@@ -137,7 +137,7 @@ def make_log_density_fn(model):
 
 
 def sampler_grads_to_low_error(
-    sampler, model, num_steps, batch_size, key, postprocess_samples=lambda x:jnp.median(x, axis=0)
+    sampler, model, num_steps, batch_size, key, postprocess_samples=lambda x:jnp.nanmedian(x, axis=0)
 ):
 
     try:
@@ -155,6 +155,8 @@ def sampler_grads_to_low_error(
     init_keys = jax.random.split(jax.random.key(2), batch_size)
 
     initial_position = jax.vmap(lambda key: initialize_model(model, key))(init_keys)
+
+    # sampler(initial_position=None,key=None)
 
     samples, metadata = sampler(
         keys,

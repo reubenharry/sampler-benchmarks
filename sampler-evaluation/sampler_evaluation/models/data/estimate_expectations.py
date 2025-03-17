@@ -19,12 +19,14 @@ import time
 
 # from sampler_evaluation.models.brownian import brownian_motion
 from sampler_evaluation.models.banana import banana
+from sampler_evaluation.models.banana_mams_paper import banana_mams_paper
+from sampler_evaluation.models.phi4 import phi4
 from sampler_evaluation.models.neals_funnel import neals_funnel
-from sampler_evaluation.models.rosenbrock import Rosenbrock_36D
+from sampler_evaluation.models.rosenbrock import Rosenbrock
 from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
 import sampler_evaluation
-from sampler_evaluation.models.ill_conditioned_gaussian import IllConditionedGaussian
 from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
+from sampler_comparison.samplers.annealing.annealing import annealed
 
 
 
@@ -49,12 +51,12 @@ def expectations_from_exact_samples(model, key, num_samples=1000):
     return e_x, e_x2, e_x4
 
 
-def estimate_ground_truth(model):
+def estimate_ground_truth(model, num_samples, annealing=False):
 
-    if hasattr(model, "exact_sample"):
+    if hasattr(model, "exact_sample") and model.exact_sample is not None:
         key = jax.random.PRNGKey(0)
         e_x, e_x2, e_x4 = expectations_from_exact_samples(
-            model, key, num_samples=gold_standard_expectation_steps[model]
+            model, key, num_samples=num_samples
         )
         results = {
             "e_x": e_x,
@@ -73,6 +75,16 @@ def estimate_ground_truth(model):
             return_only_final=True,
         )
 
+        if annealing:
+            sampler = annealed(nuts, beta_schedule=[10.0, 5.0, 2.0], intermediate_num_steps=100000, kwargs={
+                'integrator_type':"velocity_verlet",
+                'diagonal_preconditioning':True,
+                # 'return_samples':True,
+                'incremental_value_transform':lambda x: x,
+                'num_tuning_steps':5000,
+                # 'return_only_final':False,
+            })
+
         key = jax.random.PRNGKey(1)
         run_keys = jax.random.split(key, num_chains)
         init_pos = jax.random.normal(
@@ -86,7 +98,7 @@ def estimate_ground_truth(model):
         expectation = jax.vmap(
             lambda pos, key: sampler(
                 model=model,
-                num_steps=gold_standard_expectation_steps[model],
+                num_steps=num_samples,
                 initial_position=pos,
                 key=key,
             )
@@ -101,6 +113,8 @@ def estimate_ground_truth(model):
         e_x_avg = jnp.nanmean(e_x, axis=0)
         e_x2_avg = jnp.nanmean(e_x2, axis=0)
         e_x4_avg = jnp.nanmean(e_x4, axis=0)
+
+        jax.debug.print("avgs {x}", x=(e_x_avg, e_x2_avg, e_x4_avg))
 
         results = {
             "e_x": e_x_avg,
@@ -141,23 +155,39 @@ if __name__ == "__main__":
 
     num_chains = 4
 
-    gold_standard_expectation_steps = {
-        # banana(): 10000000,
+    # gold_standard_expectation_steps = {
+        # phi4(L=4, lam=1): 40000,
+        # banana_mams_paper: 10000000,
+    # }
         # neals_funnel(): 1000000,
         # Gaussian(ndims=100) : 10000
         # IllConditionedGaussian(ndims=100, condition_number=100, eigenvalues='log') : 10000,
         # sampler_evaluation.models.brownian_motion(): 2000000,
         # sampler_evaluation.models.german_credit(): 10000000,
         # sampler_evaluation.models.stochastic_volatility(): 1000,
-        stochastic_volatility_mams_paper: 400000,
+        # stochastic_volatility_mams_paper: 400000,
         # sampler_evaluation.models.item_response(): 1000000,
-        # Rosenbrock_36D(): 10000000,
-    }
+        # Rosenbrock(): 10000000,
+    
+    reduced_lam = jnp.linspace(-2.5, 7.5, 16) #lambda range around the critical point (m^2 = -4 is fixed)
 
-    for model in gold_standard_expectation_steps:
+
+    def unreduce_lam(reduced_lam, side):
+        """see Fig 3 in https://arxiv.org/pdf/2207.00283.pdf"""
+        return 4.25 * (reduced_lam * np.power(side, -1.0) + 1.0)
+
+    lams = unreduce_lam(reduced_lam=reduced_lam,side=4)
+
+    print(lams)
+
+    for lam in lams:
+    
+        model = phi4(L=8, lam=lam)
+
         print(f"Estimating ground truth for {model}")
         toc = time.time()
-        estimate_ground_truth(model)
+        ### SET ANNEALING TO TRUE!!!
+        estimate_ground_truth(model, num_samples=1000000, annealing=True)
         tic = time.time()
         print(f"Time taken: {tic - toc}")
         print("Done")

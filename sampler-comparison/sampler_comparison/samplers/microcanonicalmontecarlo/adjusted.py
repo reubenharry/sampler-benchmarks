@@ -85,7 +85,7 @@ def adjusted_mclmc_no_tuning(
             initial_state=state,
             inference_algorithm=alg,
             num_steps=num_steps,
-            transform=(lambda a, b: None) if return_only_final else transform,
+            transform=(lambda a, b: (a,b)) if return_only_final else transform,
             progress_bar=True,
         )
 
@@ -332,6 +332,7 @@ def adjusted_mclmc(
     num_tuning_steps=20000,
     L_factor_stage_3=0.3,
     return_samples=False,
+    return_only_final=False,
     warmup='nuts',
 ):
     """
@@ -394,6 +395,7 @@ def adjusted_mclmc(
             L_proposal_factor=L_proposal_factor,
             random_trajectory_length=random_trajectory_length,
             return_samples=return_samples,
+            return_only_final=return_only_final,
         )(model, num_steps, initial_position, run_key)
 
 

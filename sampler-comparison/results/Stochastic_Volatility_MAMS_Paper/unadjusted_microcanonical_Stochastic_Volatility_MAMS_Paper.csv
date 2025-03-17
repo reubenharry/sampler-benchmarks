@@ -1,5 +1,5 @@
 ,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
-0,unadjusted_microcanonical,Stochastic_Volatility_MAMS_Paper,inf,True,x2,44446.0,336.7838398698667,5.667755427326884
-1,unadjusted_microcanonical,Stochastic_Volatility_MAMS_Paper,9064.0,False,x2,44446.0,336.7838398698667,5.667755427326884
-2,unadjusted_microcanonical,Stochastic_Volatility_MAMS_Paper,inf,True,x,44446.0,336.7838398698667,5.667755427326884
-3,unadjusted_microcanonical,Stochastic_Volatility_MAMS_Paper,inf,False,x,44446.0,336.7838398698667,5.667755427326884
+0,unadjusted_microcanonical,Stochastic_Volatility_MAMS_Paper,319118.0,True,x2,44446.0,292.1613831460287,2.21841159074864
+1,unadjusted_microcanonical,Stochastic_Volatility_MAMS_Paper,16854.0,False,x2,44446.0,292.1613831460287,2.21841159074864
+2,unadjusted_microcanonical,Stochastic_Volatility_MAMS_Paper,inf,True,x,44446.0,292.1613831460287,2.21841159074864
+3,unadjusted_microcanonical,Stochastic_Volatility_MAMS_Paper,inf,False,x,44446.0,292.1613831460287,2.21841159074864

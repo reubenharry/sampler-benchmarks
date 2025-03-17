@@ -28,11 +28,13 @@ def samples_to_low_error(err_t, low_error=0.01):
     """Uses the error of the expectation values to compute the effective sample size n_eff
     b^2 = 1/n_eff"""
 
+    jax.debug.print("final error is {x}", x=err_t[-1])
+
     cutoff_reached = err_t[-1] < low_error
-    if not cutoff_reached:
-        jax.debug.print("Error never below threshold, final error is {x}", x=err_t[-1])
-    else:
-        jax.debug.print("Error below threshold at final error {x}", x=err_t[-1])
+    # if not cutoff_reached:
+    #     jax.debug.print("Error never below threshold, final error is {x}", x=err_t[-1])
+    # else:
+    #     jax.debug.print("Error below threshold at final error {x}", x=err_t[-1])
     crossing = find_crossing(err_t, low_error)
     return crossing * (1 / cutoff_reached)
 
@@ -58,7 +60,7 @@ def find_crossing(array, cutoff):
     """the smallest M such that array[m] < cutoff for all m > M"""
 
     b = array > cutoff
-    indices = jnp.argwhere(b)
+    indices = jnp.argwhere(b, size=array.shape[0])
     if indices.shape[0] == 0:
         warnings.warn("Error always below threshold.")
         return 1

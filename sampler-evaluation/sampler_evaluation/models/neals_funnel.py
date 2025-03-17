@@ -4,16 +4,19 @@ from inference_gym.targets import model
 import jax.numpy as jnp
 import jax
 
+import os
+module_dir = os.path.dirname(os.path.abspath(__file__))
+
 
 def neals_funnel():
 
     ndims = 20
-    neals_funnel = gym.targets.NealsFunnel(ndims=ndims)
+    neals_funnel = gym.targets.NealsFunnel(ndims=ndims, dtype=jax.numpy.float64)
     neals_funnel.ndims = ndims
 
     try:
         with open(
-            f"../sampler-evaluation/sampler_evaluation/models/data/{neals_funnel.name}_expectations.pkl",
+            f"{module_dir}/data/{neals_funnel.name}_expectations.pkl",
             "rb",
         ) as f:
             stats = pickle.load(f)

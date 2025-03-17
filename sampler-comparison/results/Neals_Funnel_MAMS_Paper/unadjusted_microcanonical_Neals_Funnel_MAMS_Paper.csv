@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
+0,unadjusted_microcanonical,Neals_Funnel_MAMS_Paper,19651340.0,True,x2,44446.0,18.007174060061306,0.1436749378920105
+1,unadjusted_microcanonical,Neals_Funnel_MAMS_Paper,28098.0,False,x2,44446.0,18.007174060061306,0.1436749378920105
+2,unadjusted_microcanonical,Neals_Funnel_MAMS_Paper,inf,True,x,44446.0,18.007174060061306,0.1436749378920105
+3,unadjusted_microcanonical,Neals_Funnel_MAMS_Paper,inf,False,x,44446.0,18.007174060061306,0.1436749378920105

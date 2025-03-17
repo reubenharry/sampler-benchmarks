@@ -24,7 +24,7 @@ from sampler_comparison.samplers.general import (
 )
 from sampler_evaluation.evaluation.ess import samples_to_low_error
 
-
+import time
 import jax
 import jax.numpy as jnp
 jax.config.update("jax_enable_x64", True)
@@ -49,6 +49,7 @@ def parallel_microcanonical(num_steps1, num_steps2, num_chains, mesh, diagonal_p
             model.default_event_space_bijector(jax.flatten_util.ravel_pytree(position)[0])
         )
 
+        toc = time.time()
         info, grads_per_step, _acc_prob, final_state = emaus(
     
             logdensity_fn=logdensity_fn, 
@@ -67,7 +68,10 @@ def parallel_microcanonical(num_steps1, num_steps2, num_chains, mesh, diagonal_p
             ensemble_observables= lambda x: x,
             observables_for_bias=observables_for_bias,
             contract = contract,
+            r_end=0.01
             ) 
+        tic = time.time()
+        print("Time taken: ", tic-toc)
         
 
         jax.debug.print("info {x}", x=info["phase_2"][0]['bias'])
@@ -77,6 +81,8 @@ def parallel_microcanonical(num_steps1, num_steps2, num_chains, mesh, diagonal_p
         # grads_per_step = 2 # TODO: do this systematically!!!!!!
 
         n1 = info["phase_1"]["steps_done"] # info1['step_size'].shape[0]
+
+        jax.debug.print("phase 1 steps {x}", x=n1)
         # steps1 = jnp.arange(1, n1+1)
         steps2 = jnp.cumsum(info['phase_2'][0]['steps_per_sample']) * grads_per_step + n1
         # steps = np.concatenate((steps1, steps2))
