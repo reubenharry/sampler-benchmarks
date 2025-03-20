@@ -76,7 +76,7 @@ def estimate_ground_truth(model, num_samples, annealing=False):
         )
 
         if annealing:
-            sampler = annealed(nuts, beta_schedule=[10.0, 5.0, 2.0], intermediate_num_steps=100000, kwargs={
+            sampler = annealed(nuts, beta_schedule=[10.0, 5.0, 2.0], intermediate_num_steps=100000, return_only_final=True,kwargs={
                 'integrator_type':"velocity_verlet",
                 'diagonal_preconditioning':True,
                 # 'return_samples':True,
@@ -169,25 +169,24 @@ if __name__ == "__main__":
         # sampler_evaluation.models.item_response(): 1000000,
         # Rosenbrock(): 10000000,
     
-    reduced_lam = jnp.linspace(-2.5, 7.5, 16) #lambda range around the critical point (m^2 = -4 is fixed)
+    reduced_lam = jnp.linspace(-2.5, 7.5, 8) #lambda range around the critical point (m^2 = -4 is fixed)
 
 
     def unreduce_lam(reduced_lam, side):
         """see Fig 3 in https://arxiv.org/pdf/2207.00283.pdf"""
         return 4.25 * (reduced_lam * np.power(side, -1.0) + 1.0)
 
-    lams = unreduce_lam(reduced_lam=reduced_lam,side=4)
 
-    print(lams)
-
-    for lam in lams:
+    for L in [8,16,32,64]:
+        lams = unreduce_lam(reduced_lam=reduced_lam,side=L)
+        for lam in lams:
     
-        model = phi4(L=8, lam=lam)
+            model = phi4(L=L, lam=lam)
 
-        print(f"Estimating ground truth for {model}")
-        toc = time.time()
-        ### SET ANNEALING TO TRUE!!!
-        estimate_ground_truth(model, num_samples=1000000, annealing=True)
-        tic = time.time()
-        print(f"Time taken: {tic - toc}")
-        print("Done")
+            print(f"Estimating ground truth for {model}")
+            toc = time.time()
+            ### SET ANNEALING TO TRUE!!!
+            estimate_ground_truth(model, num_samples=1000000, annealing=True)
+            tic = time.time()
+            print(f"Time taken: {tic - toc}")
+            print("Done")

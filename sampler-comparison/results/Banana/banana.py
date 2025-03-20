@@ -16,6 +16,7 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import (
 from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
 import sampler_evaluation
 from sampler_evaluation.models.banana import banana
+from sampler_evaluation.models.banana_mams_paper import banana_mams_paper
 from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unadjusted_mclmc
 
 
@@ -23,7 +24,7 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unad
 
 run_benchmarks(
         models={
-            "Banana": banana(),
+            "Banana": banana_mams_paper,
         },
         samplers={
 

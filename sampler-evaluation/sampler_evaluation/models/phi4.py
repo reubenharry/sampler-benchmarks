@@ -13,16 +13,19 @@ def phi4(L,lam):
 
     lam_str = str(lam)[:5]
 
-    # with open(
-    #     f"{module_dir}/data/Phi4_L{L}_lam"+lam_str+"expectations.pkl",
-    #     "rb",
-    # ) as f:
-    #     stats = pickle.load(f)
+    with open(
+        f"{module_dir}/data/Phi4_L{L}_lam"+lam_str+"_expectations.pkl",
+        "rb",
+    ) as f:
+        stats = pickle.load(f)
 
-    # e_x = stats["e_x"]
-    # e_x2 = stats["e_x2"]
-    # e_x4 = stats["e_x4"]
-    # var_x2 = e_x4 - e_x2**2
+    e_x = stats["e_x"]
+    e_x2 = stats["e_x2"]
+    e_x4 = stats["e_x4"]
+    var_x2 = e_x4 - e_x2**2
+
+    jax.debug.print("e_x {x}", x=e_x)
+    jax.debug.print("e_x2 {x}", x=e_x2)
 
 
 
@@ -46,15 +49,15 @@ def phi4(L,lam):
         ndims=ndims,
         transform=psd,
 
-        x_ground_truth_mean=jnp.zeros((L,L)),
-        x_ground_truth_std=jnp.sqrt((jnp.zeros((L,L)))),
-        x2_ground_truth_mean=jnp.zeros((L,L)),
-        x2_ground_truth_std=jnp.sqrt((jnp.zeros((L,L)))),
+        # x_ground_truth_mean=jnp.zeros((L,L)),
+        # x_ground_truth_std=jnp.sqrt((jnp.zeros((L,L)))),
+        # x2_ground_truth_mean=jnp.zeros((L,L)),
+        # x2_ground_truth_std=jnp.sqrt((jnp.zeros((L,L)))),
 
-        # x_ground_truth_mean=e_x,
-        # x_ground_truth_std=jnp.sqrt(e_x2 - e_x**2),
-        # x2_ground_truth_mean=e_x2,
-        # x2_ground_truth_std=jnp.sqrt(var_x2),
+        x_ground_truth_mean=e_x,
+        x_ground_truth_std=jnp.sqrt(e_x2 - e_x**2),
+        x2_ground_truth_mean=e_x2,
+        x2_ground_truth_std=jnp.sqrt(var_x2),
         exact_sample=None,
         name=f'Phi4_L{L}_lam'+lam_str,
     )

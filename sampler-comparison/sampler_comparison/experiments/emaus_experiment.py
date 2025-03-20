@@ -13,17 +13,18 @@ import os, sys
 current_path = os.getcwd()
 sys.path.append(current_path + '/../../blackjax/')
 sys.path.append(current_path + '/../sampler-evaluation/')
+# sys.path.append(current_path + '/src/inference-gym/')
 
 
 
 from sampler_evaluation.models.banana_mams_paper import banana_mams_paper
-from sampler_evaluation.models.stochastic_volatility import stochastic_volatility
-from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
+# from sampler_evaluation.models.stochastic_volatility import stochastic_volatility
+# from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
 from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.emaus import parallel_microcanonical
-from sampler_evaluation.models.gaussian_mams_paper import IllConditionedGaussian
+# from sampler_evaluation.models.gaussian_mams_paper import IllConditionedGaussian
 from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unadjusted_mclmc
 from sampler_comparison.samplers.general import initialize_model
-from sampler_evaluation.models.banana import banana
+# from sampler_evaluation.models.banana import banana
 import time
 
 batch_size = 2056
@@ -31,7 +32,7 @@ batch_size = 2056
 mesh = jax.sharding.Mesh(jax.devices(), 'chains')
 print('Number of devices: ', len(jax.devices()))
 
-model = banana() # IllConditionedGaussian(ndims=2, condition_number=1)
+model = banana_mams_paper # IllConditionedGaussian(ndims=2, condition_number=1)
 
 initial_position = initialize_model(model=model, key=jax.random.key(0))
 toc = time.time()

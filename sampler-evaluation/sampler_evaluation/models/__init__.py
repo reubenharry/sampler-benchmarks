@@ -8,11 +8,11 @@ from sampler_evaluation.models.neals_funnel import neals_funnel
 
 
 models = {
-    "Banana": banana(),
+    # "Banana": banana(),
     "Brownian_Motion": brownian_motion(),
     "German_Credit": german_credit(),
     "Rosenbrock": Rosenbrock(),
-    "Neals_Funnel": neals_funnel(),
+    # "Neals_Funnel": neals_funnel(),
     "Stochastic_Volatility": stochastic_volatility(),
     "Item_Response": item_response(),
 }
