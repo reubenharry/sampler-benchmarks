@@ -54,7 +54,7 @@ def unadjusted_mclmc_no_tuning(
                 info,
             )
 
-            get_final_sample = lambda _: None
+            get_final_sample = lambda state, info: (model.default_event_space_bijector(state.position), info)
 
             state = initial_state
 
@@ -80,7 +80,7 @@ def unadjusted_mclmc_no_tuning(
 
         if return_only_final:
 
-            return get_final_sample(final_output)
+            return get_final_sample(final_output, {})
 
         (expectations, info) = history
 

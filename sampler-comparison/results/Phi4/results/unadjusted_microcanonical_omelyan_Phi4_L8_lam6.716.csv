@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
+0,unadjusted_microcanonical_omelyan,Phi4_L8_lam6.716,9005.0,True,x2,55550.0,17.688542040057563,6.7744159782569175
+1,unadjusted_microcanonical_omelyan,Phi4_L8_lam6.716,995.0,False,x2,55550.0,17.688542040057563,6.7744159782569175
+2,unadjusted_microcanonical_omelyan,Phi4_L8_lam6.716,6140.0,True,x,55550.0,17.688542040057563,6.7744159782569175
+3,unadjusted_microcanonical_omelyan,Phi4_L8_lam6.716,1055.0,False,x,55550.0,17.688542040057563,6.7744159782569175

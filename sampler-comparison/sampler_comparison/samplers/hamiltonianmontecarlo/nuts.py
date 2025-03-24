@@ -60,7 +60,7 @@ def nuts(
                 info,
             )
 
-            get_final_sample = lambda _: None
+            get_final_sample = lambda state, info: (model.default_event_space_bijector(state.position), info)
 
         else:
             alg, init, transform = with_only_statistics(
@@ -71,7 +71,7 @@ def nuts(
 
             state = init(state)
 
-            get_final_sample = lambda output: output[1][1]
+            get_final_sample = lambda output, info: (output[1][1], info)
 
         final_output, history = run_inference_algorithm(
             rng_key=rng_key,
@@ -85,7 +85,10 @@ def nuts(
 
         if return_only_final:
 
-            return get_final_sample(final_output)
+            # jax.debug.print("final output {x}", x=final_output.position.shape)
+            # jax.debug.print("final output transformed {x}", x=get_final_sample(final_output).shape)
+
+            return get_final_sample(final_output, {})
 
         (expectations, info) = history
 

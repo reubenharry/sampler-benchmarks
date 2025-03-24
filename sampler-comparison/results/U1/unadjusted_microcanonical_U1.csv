@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
+0,unadjusted_microcanonical,U1,344.0,True,x2,22220.0,23.565170828057738,0.07688822651950225
+1,unadjusted_microcanonical,U1,218.0,False,x2,22220.0,23.565170828057738,0.07688822651950225
+2,unadjusted_microcanonical,U1,524.0,True,x,22220.0,23.565170828057738,0.07688822651950225
+3,unadjusted_microcanonical,U1,304.0,False,x,22220.0,23.565170828057738,0.07688822651950225

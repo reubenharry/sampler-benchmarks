@@ -21,10 +21,14 @@ def annealed(sampler, beta_schedule, intermediate_num_steps,kwargs={}, return_on
                 log_density_fn = lambda x: base_density(x) * beta
             )
         
-            samples, _ = sampler(return_samples=True, **kwargs)(model, intermediate_num_steps, initial_position, key)
+            samples, _ = sampler(return_samples=True, return_only_final=True, **kwargs)(model, intermediate_num_steps, initial_position, key)
+
+            # jax.debug.print("samples shape {x}",x=samples.shape)
+
+            # raise Exception
 
 
-            initial_position = samples[-1]
+            initial_position = samples
 
 
         model =model._replace(

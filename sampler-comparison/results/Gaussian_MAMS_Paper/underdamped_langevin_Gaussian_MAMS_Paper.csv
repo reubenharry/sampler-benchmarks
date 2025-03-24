@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
+0,underdamped_langevin,Gaussian_MAMS_Paper,2289.0,True,x2,5001.0,0.9307308332091525,0.1264899862378907
+1,underdamped_langevin,Gaussian_MAMS_Paper,1201.0,False,x2,5001.0,0.9307308332091525,0.1264899862378907
+2,underdamped_langevin,Gaussian_MAMS_Paper,2132.0,True,x,5001.0,0.9307308332091525,0.1264899862378907
+3,underdamped_langevin,Gaussian_MAMS_Paper,1304.0,False,x,5001.0,0.9307308332091525,0.1264899862378907

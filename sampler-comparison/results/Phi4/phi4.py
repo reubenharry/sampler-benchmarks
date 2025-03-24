@@ -34,29 +34,31 @@ def unreduce_lam(reduced_lam, side):
     """see Fig 3 in https://arxiv.org/pdf/2207.00283.pdf"""
     return 4.25 * (reduced_lam * np.power(side, -1.0) + 1.0)
 
-for L in [32,64]:
-    lams = unreduce_lam(reduced_lam=reduced_lam,side=L)
+for L in [8,16,32]:
+    for integrator_type in ['velocity_verlet', 'mclachlan', 'omelyan']:
+
+        lams = unreduce_lam(reduced_lam=reduced_lam,side=L)
 
 
-    for lam in lams:
+        for lam in lams:
 
-        model = phi4(L=L, lam=lam)
+            model = phi4(L=L, lam=lam)
 
-        run_benchmarks(
-                models={
-                    model.name: model,
-                },
-                samplers={
+            run_benchmarks(
+                    models={
+                        model.name: model,
+                    },
+                    samplers={
 
-                    # "adjusted_microcanonical": lambda: adjusted_mclmc(num_tuning_steps=5000)
-                    # "nuts": lambda: nuts(num_tuning_steps=5000)
-                    "adjusted_microcanonical": lambda: annealed(adjusted_mclmc, beta_schedule=beta_schedule, intermediate_num_steps=10000, kwargs={"num_tuning_steps":5000}),
-                    "nuts": lambda: annealed(nuts, beta_schedule=beta_schedule, intermediate_num_steps=10000, kwargs={"num_tuning_steps":5000}),
-                    "unadjusted_microcanonical": lambda: annealed(unadjusted_mclmc, beta_schedule=beta_schedule, intermediate_num_steps=10000, kwargs={"num_tuning_steps":10000}),
-                },
-                batch_size=batch_size,
-                num_steps=20000,
-                save_dir=f"results/Phi4/results",
-                key=jax.random.key(20),
-                map=jax.pmap
-            )
+                        # "adjusted_microcanonical": lambda: adjusted_mclmc(num_tuning_steps=5000)
+                        # "nuts": lambda: nuts(num_tuning_steps=5000)
+                        f"adjusted_microcanonical_{integrator_type}": lambda: annealed(adjusted_mclmc, beta_schedule=beta_schedule, intermediate_num_steps=10000, return_only_final=False, kwargs={"num_tuning_steps":5000, "integrator_type":integrator_type}),
+                        f"nuts_{integrator_type}": lambda: annealed(nuts, beta_schedule=beta_schedule, intermediate_num_steps=10000, return_only_final=False,  kwargs={"num_tuning_steps":5000, 'integrator_type':integrator_type, }),
+                        f"unadjusted_microcanonical_{integrator_type}": lambda: annealed(unadjusted_mclmc, beta_schedule=beta_schedule, intermediate_num_steps=10000, return_only_final=False, kwargs={"num_tuning_steps":10000, 'integrator_type':integrator_type}),
+                    },
+                    batch_size=batch_size,
+                    num_steps=20000,
+                    save_dir=f"results/Phi4/results",
+                    key=jax.random.key(20),
+                    map=jax.pmap
+                )

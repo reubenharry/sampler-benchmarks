@@ -65,7 +65,7 @@ def adjusted_mclmc_no_tuning(
                 info,
             )
 
-            get_final_sample = lambda _: None
+            get_final_sample = lambda state, info: (model.default_event_space_bijector(state.position), info)
 
             state = initial_state
 
@@ -85,13 +85,14 @@ def adjusted_mclmc_no_tuning(
             initial_state=state,
             inference_algorithm=alg,
             num_steps=num_steps,
-            transform=(lambda a, b: (a,b)) if return_only_final else transform,
+            transform=(lambda a, b: None) if return_only_final else transform,
             progress_bar=True,
         )
 
         if return_only_final:
 
-            return get_final_sample(final_output)
+
+            return get_final_sample(final_output, {})
 
         (expectations, info) = history
 

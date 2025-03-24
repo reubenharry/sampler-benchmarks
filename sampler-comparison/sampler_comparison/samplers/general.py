@@ -154,7 +154,11 @@ def sampler_grads_to_low_error(
     # this key is deliberately fixed to the same value: we want the set of initial positions to be the same for different samplers
     init_keys = jax.random.split(jax.random.key(2), batch_size)
 
-    initial_position = jax.vmap(lambda key: initialize_model(model, key))(init_keys)
+    if hasattr(model, "sample_init") and model.sample_init is not None:
+        initial_position = jax.vmap(model.sample_init)(init_keys)
+        print("using sample init")
+    else:
+        initial_position = jax.vmap(lambda key: initialize_model(model, key))(init_keys)
 
     # sampler(initial_position=None,key=None)
 
@@ -163,10 +167,32 @@ def sampler_grads_to_low_error(
         initial_position,
     )
 
+    runs = jax.pmap(samples_to_low_error)(samples[:,:,1])
+
+    failures = jnp.argwhere(jnp.isinf(runs))
+    successes = jnp.argwhere(1-jnp.isinf(runs))
+
+    num_failures = failures.shape[0]
+    percent_failures = num_failures / batch_size
+    good_runs = runs[successes.squeeze()]
+
+    mean_runs = jnp.mean(good_runs)
+
+    # jax.debug.print("\nfoo\n {x}", x=runs)
+    # jax.debug.print("\nbar\n {x}", x=jnp.argwhere(jnp.isinf(runs)))
+    jax.debug.print("\npercent failures\n {x}", x=percent_failures)
+
     # squared_errors = postprocess_samples(jnp.expand_dims(samples,0).shape)
     squared_errors = postprocess_samples(samples)
 
     grad_evals_per_step = metadata["num_grads_per_proposal"].mean()
+    # jax.debug.print("\ngrads\n {x}", x=mean_runs * grad_evals_per_step)
+
+    std = jnp.std(good_runs* grad_evals_per_step)
+
+    mean_grads = mean_runs* grad_evals_per_step
+
+    jax.debug.print("\nresult\n {x}", x=(mean_grads-std, mean_grads , mean_grads+std))
 
     err_t_avg_x2 = (squared_errors[:, 0])
     grads_to_low_avg_x2 = (

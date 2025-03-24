@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
+0,unadjusted_microcanonical_velocity_verlet,Phi4_L8_lam6.716,7036.0,True,x2,11110.0,17.299740142415377,1.7718771234755675
+1,unadjusted_microcanonical_velocity_verlet,Phi4_L8_lam6.716,659.0,False,x2,11110.0,17.299740142415377,1.7718771234755675
+2,unadjusted_microcanonical_velocity_verlet,Phi4_L8_lam6.716,7037.0,True,x,11110.0,17.299740142415377,1.7718771234755675
+3,unadjusted_microcanonical_velocity_verlet,Phi4_L8_lam6.716,953.0,False,x,11110.0,17.299740142415377,1.7718771234755675
