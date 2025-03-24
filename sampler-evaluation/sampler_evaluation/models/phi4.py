@@ -2,7 +2,6 @@ import jax.numpy as jnp
 from sampler_evaluation.models.model import make_model
 import pickle
 import numpy as np
-import jax
 import os
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -13,19 +12,25 @@ def phi4(L,lam):
 
     lam_str = str(lam)[:5]
 
-    with open(
-        f"{module_dir}/data/Phi4_L{L}_lam"+lam_str+"_expectations.pkl",
-        "rb",
-    ) as f:
-        stats = pickle.load(f)
+    try:
+        with open(
+            f"{module_dir}/data/Phi4_L{L}_lam"+lam_str+"_expectations.pkl",
+            "rb",
+        ) as f:
+            stats = pickle.load(f)
 
-    e_x = stats["e_x"]
-    e_x2 = stats["e_x2"]
-    e_x4 = stats["e_x4"]
-    var_x2 = e_x4 - e_x2**2
+        e_x = stats["e_x"]
+        e_x2 = stats["e_x2"]
+        e_x4 = stats["e_x4"]
+        var_x2 = e_x4 - e_x2**2
 
-    jax.debug.print("e_x {x}", x=e_x)
-    jax.debug.print("e_x2 {x}", x=e_x2)
+    except:
+        e_x = 0
+        e_x2 = 0
+        var_x2 = 0
+
+    # jax.debug.print("e_x {x}", x=e_x)
+    # jax.debug.print("e_x2 {x}", x=e_x2)
 
 
 
