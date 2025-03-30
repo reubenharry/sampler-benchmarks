@@ -55,7 +55,7 @@ run_benchmarks(
             #     L=1.,
             #     inverse_mass_matrix=inverse_mass_matrix,
             # ),
-            "underdamped_langevin": lambda: unadjusted_lmc(desired_energy_var=1e-1, num_tuning_steps=5000, diagonal_preconditioning=False),
+            "underdamped_langevin": lambda: unadjusted_lmc(desired_energy_var=1e-2, num_tuning_steps=5000, diagonal_preconditioning=False),
             # "adjusted_microcanonical": lambda: adjusted_mclmc(num_tuning_steps=500),
             # "adjusted_microcanonical_langevin": lambda: adjusted_mclmc(L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
             # "nuts": lambda: nuts(num_tuning_steps=5000),

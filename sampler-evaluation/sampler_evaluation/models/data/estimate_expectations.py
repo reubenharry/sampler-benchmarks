@@ -29,7 +29,7 @@ from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
 import sampler_evaluation
 from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
 from sampler_comparison.samplers.annealing.annealing import annealed
-from sampler_evaluation.models.stochastic_volatility_artifical_20000 import stochastic_volatility_artificial_20000
+from sampler_evaluation.models.stochastic_volatility_artificial_20000 import stochastic_volatility_artificial_20000
 
 
 def relative_fluctuations(expectation, square_expectation):
@@ -173,7 +173,7 @@ if __name__ == "__main__":
         # sampler_evaluation.models.item_response(): 1000000,
         # Rosenbrock(): 10000000,
     
-    reduced_lam = jnp.linspace(-2.5, 7.5, 8)[4:] #lambda range around the critical point (m^2 = -4 is fixed)
+    reduced_lam = jnp.linspace(-2.5, 7.5, 8)[6:] #lambda range around the critical point (m^2 = -4 is fixed)
 
 
     def unreduce_lam(reduced_lam, side):
@@ -181,7 +181,7 @@ if __name__ == "__main__":
         return 4.25 * (reduced_lam * np.power(side, -1.0) + 1.0)
 
 
-    for L in [64]:
+    for L in [128,256,512,1024]:
         lams = unreduce_lam(reduced_lam=reduced_lam,side=L)
         for lam in lams:
     
@@ -190,7 +190,7 @@ if __name__ == "__main__":
             print(f"Estimating ground truth for {model}")
             toc = time.time()
             ### SET ANNEALING TO TRUE!!!
-            estimate_ground_truth(model, num_samples=1000000, annealing=True)
+            estimate_ground_truth(model, num_samples=100000, annealing=True)
             tic = time.time()
             print(f"Time taken: {tic - toc}")
             print("Done")

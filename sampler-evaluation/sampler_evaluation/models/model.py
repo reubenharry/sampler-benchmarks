@@ -4,7 +4,7 @@ from collections import namedtuple
 
 SampleTransformation = namedtuple("SampleTransformation", ["ground_truth_mean", "ground_truth_standard_deviation"])
 
-Model = namedtuple("Model", ["ndims", "log_density_fn", "default_event_space_bijector", "sample_transformations", "exact_sample", "name" ])
+Model = namedtuple("Model", ["ndims", "log_density_fn", "default_event_space_bijector", "sample_transformations", "exact_sample", "name", "sample_init" ])
 
 
 def make_model(logdensity_fn, ndims, name, transform, x_ground_truth_mean, x_ground_truth_std, x2_ground_truth_mean, x2_ground_truth_std, exact_sample, sample_init=None):
@@ -18,4 +18,5 @@ def make_model(logdensity_fn, ndims, name, transform, x_ground_truth_mean, x_gro
         },
         exact_sample=exact_sample,
         name=name,
+        sample_init=sample_init
     )

@@ -26,12 +26,15 @@ from sampler_comparison.samplers.grid_search.grid_search import grid_search_adju
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc
 
 
-Ds = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,4, 5)).astype(int)])[9:]
+# Ds = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,4, 5)).astype(int)])[9:]
+
+Ds = [50, 500, 5000]
 
 # print(Ds)
 # raise Exception
 
-integrator_types = ['velocity_verlet', 'mclachlan', 'omelyan']
+# integrator_types = ['velocity_verlet', 'mclachlan', 'omelyan']
+integrator_types = ['velocity_verlet'] # , 'mclachlan']
 
 for D, integrator_type in itertools.product(Ds, integrator_types):
 
@@ -47,6 +50,8 @@ for D, integrator_type in itertools.product(Ds, integrator_types):
             samplers={
 
                 f"adjusted_microcanonical_{integrator_type}": lambda: adjusted_mclmc(num_tuning_steps=5000, integrator_type=integrator_type),
+
+                f"nuts_{integrator_type}": lambda: nuts(num_tuning_steps=5000),
             
                 # f"unadjusted_microcanonical__{integrator_type}": lambda: unadjusted_mclmc(num_tuning_steps=20000, integrator_type=integrator_type),
 
@@ -60,25 +65,25 @@ for D, integrator_type in itertools.product(Ds, integrator_types):
             map=jax.pmap
         )
     
-    run_benchmarks(
-            models={
-                f"Rosenbrock_{dim}": Rosenbrock(D=D),
-            },
-            samplers={
+    # run_benchmarks(
+    #         models={
+    #             f"Rosenbrock_{dim}": Rosenbrock(D=D),
+    #         },
+    #         samplers={
 
-                # f"adjusted_microcanonical_{integrator_type}": lambda: adjusted_mclmc(num_tuning_steps=1000, integrator_type=integrator_type),
+    #             # f"adjusted_microcanonical_{integrator_type}": lambda: adjusted_mclmc(num_tuning_steps=1000, integrator_type=integrator_type),
             
-                f"unadjusted_microcanonical__{integrator_type}": lambda: unadjusted_mclmc(num_tuning_steps=50000, integrator_type=integrator_type),
+    #             f"unadjusted_microcanonical__{integrator_type}": lambda: unadjusted_mclmc(num_tuning_steps=50000, integrator_type=integrator_type),
 
-            },
+    #         },
             
             
-            batch_size=batch_size,
-            num_steps=200000,
-            save_dir=f"sampler_comparison/experiments/dimensional_scaling/results/tuned/Rosenbrock",
-            key=jax.random.key(19),
-            map=jax.pmap
-        )
+    #         batch_size=batch_size,
+    #         num_steps=200000,
+    #         save_dir=f"sampler_comparison/experiments/dimensional_scaling/results/tuned/Rosenbrock",
+    #         key=jax.random.key(19),
+    #         map=jax.pmap
+    #     )
     
 
     # run_benchmarks(

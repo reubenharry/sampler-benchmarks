@@ -386,6 +386,8 @@ def adjusted_mclmc(
             warmup=warmup,
         )
 
+        jax.debug.print("initial state {x}",x=blackjax_state_after_tuning)
+
 
         expectations, metadata = adjusted_mclmc_no_tuning(
             initial_state=blackjax_state_after_tuning,
@@ -398,6 +400,9 @@ def adjusted_mclmc(
             return_samples=return_samples,
             return_only_final=return_only_final,
         )(model, num_steps, initial_position, run_key)
+
+        jax.debug.print("intermediate {x}",x=expectations[0,:])
+        print("intermediate", expectations.shape)
 
 
 

@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
+0,nuts_velocity_verlet,Rosenbrock_10000,2178904.0,True,x2,2410878.5,6.615926977275437,0.012947019525000856
+1,nuts_velocity_verlet,Rosenbrock_10000,107310.0,False,x2,2410878.5,6.615926977275437,0.012947019525000856
+2,nuts_velocity_verlet,Rosenbrock_10000,1646953.0,True,x,2410878.5,6.615926977275437,0.012947019525000856
+3,nuts_velocity_verlet,Rosenbrock_10000,72051.0,False,x,2410878.5,6.615926977275437,0.012947019525000856

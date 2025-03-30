@@ -24,17 +24,23 @@ def run_benchmarks(
 
         key = jax.random.fold_in(key, i)
 
+        calculate_ess_corr = True
+
 
         (stats, _) = sampler_grads_to_low_error(
             sampler=map(
-            lambda key, pos: samplers[sampler]()(
-                model=models[model], num_steps=num_steps, initial_position=pos, key=key
+            lambda key, pos: samplers[sampler](calculate_ess_corr)(
+                model=models[model], 
+                initial_position=pos, 
+                key=key,
+                num_steps=num_steps,
+                
                 )
             ),
             model=models[model],
-            num_steps=num_steps,
             batch_size=batch_size,
             key=key,
+            calculate_ess_corr=calculate_ess_corr
             # pvmap=map,
         )
 

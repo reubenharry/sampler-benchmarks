@@ -31,8 +31,20 @@ typical_sigma, typical_nu = 0.02, 10.0
 with open(f'{module_dir}/data/SP500_artificial_20000.pkl', 'rb') as f:
     SP500_returns = pickle.load(f)
 
-E_x2 = 0.0
-Var_x2 = 0.0
+
+with open(
+        f"{module_dir}/data/StochasticVolatility_Artificial_20000_expectations.pkl",
+        "rb",
+    ) as f:
+        stats = pickle.load(f)
+
+e_x = stats["e_x"]
+e_x2 = stats["e_x2"]
+e_x4 = stats["e_x4"]
+var_x2 = e_x4 - e_x2**2
+
+print(e_x, "e_x")
+
 
 ndims = SP500_returns.shape[0] + 2
 # jnp.load(f'{module_dir}/data/' + 'SP500.npy')  
@@ -67,8 +79,8 @@ stochastic_volatility_artificial_20000 = Model(
     log_density_fn=logdensity_fn,
     default_event_space_bijector=transform,
     sample_transformations={
-        "identity": SampleTransformation(ground_truth_mean=E_x2+jnp.inf, ground_truth_standard_deviation=jnp.sqrt(Var_x2)+jnp.inf),
-        "square": SampleTransformation(ground_truth_mean=E_x2, ground_truth_standard_deviation=jnp.sqrt(Var_x2)),
+        "identity": SampleTransformation(ground_truth_mean=e_x, ground_truth_standard_deviation=jnp.sqrt(e_x2-e_x**2)),
+        "square": SampleTransformation(ground_truth_mean=e_x2, ground_truth_standard_deviation=jnp.sqrt(var_x2)),
     },
     name="StochasticVolatility_Artificial_20000"
 )

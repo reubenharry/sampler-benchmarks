@@ -77,5 +77,6 @@ def U1(Lt, Lx, beta= 1.):
         x2_ground_truth_mean=e_x2,
         x2_ground_truth_std=jnp.sqrt(var_x2),
         exact_sample=None,
+        sample_init=sample_init,
         name=f'U1_Lt{Lt}_Lx{Lx}_beta{beta}',
     )

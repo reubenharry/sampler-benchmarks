@@ -3,7 +3,7 @@ import os
 import jax
 jax.config.update("jax_enable_x64", True)
 
-batch_size = 128
+batch_size = 64
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 num_cores = jax.local_device_count()
 
@@ -31,13 +31,13 @@ run_benchmarks(
         },
         samplers={
 
-            # "adjusted_microcanonical": lambda: adjusted_mclmc(num_tuning_steps=500),
+            "adjusted_microcanonical": lambda: adjusted_mclmc(num_tuning_steps=500),
             # "adjusted_microcanonical_langevin": lambda: adjusted_mclmc(L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
-            # "nuts": lambda: nuts(num_tuning_steps=500),
+            "nuts": lambda: nuts(num_tuning_steps=500),
             "unadjusted_microcanonical": lambda: unadjusted_mclmc(num_tuning_steps=10000),
         },
         batch_size=batch_size,
-        num_steps=100000,
+        num_steps=2000,
         save_dir="results/U1",
         key=jax.random.key(20),
         map=jax.pmap
