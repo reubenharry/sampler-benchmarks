@@ -1,5 +1,0 @@
-,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
-0,unadjusted_microcanonical__omelyan,Rosenbrock_8,inf,True,x2,27780.0,6.978470806056179,0.35493178957679417
-1,unadjusted_microcanonical__omelyan,Rosenbrock_8,18580.0,False,x2,27780.0,6.978470806056179,0.35493178957679417
-2,unadjusted_microcanonical__omelyan,Rosenbrock_8,49995.0,True,x,27780.0,6.978470806056179,0.35493178957679417
-3,unadjusted_microcanonical__omelyan,Rosenbrock_8,15360.0,False,x,27780.0,6.978470806056179,0.35493178957679417

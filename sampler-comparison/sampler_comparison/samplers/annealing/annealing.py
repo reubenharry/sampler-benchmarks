@@ -4,7 +4,7 @@ import jax
 
 identity = lambda x:x # why tf is this not in the python standard library
 
-def annealed(sampler, beta_schedule, intermediate_num_steps,kwargs={}):
+def annealed(sampler, beta_schedule, intermediate_num_steps,kwargs={}, return_only_final=False):
     def s(model, num_steps, initial_position, key):
 
         old_bijector = model.default_event_space_bijector
@@ -21,10 +21,14 @@ def annealed(sampler, beta_schedule, intermediate_num_steps,kwargs={}):
                 log_density_fn = lambda x: base_density(x) * beta
             )
         
-            samples, _ = sampler(return_samples=True, **kwargs)(model, intermediate_num_steps, initial_position, key)
+            samples, _ = sampler(return_samples=True, return_only_final=True, **kwargs)(model, intermediate_num_steps, initial_position, key)
+
+            # jax.debug.print("samples shape {x}",x=samples.shape)
+
+            # raise Exception
 
 
-            initial_position = samples[-1]
+            initial_position = samples
 
 
         model =model._replace(
@@ -35,5 +39,5 @@ def annealed(sampler, beta_schedule, intermediate_num_steps,kwargs={}):
         )
 
         key = jax.random.fold_in(key, i+1)
-        return sampler(return_samples=False, return_only_final=True, **kwargs)(model, num_steps, initial_position, key)
+        return sampler(return_samples=False, return_only_final=return_only_final, **kwargs)(model, num_steps, initial_position, key)
     return s

@@ -13,6 +13,7 @@ import os
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(4)
 sys.path.append("./")
 sys.path.append("../sampler-comparison")
+sys.path.append("../../blackjax")
 import jax
 import jax.numpy as jnp
 import time
@@ -21,13 +22,14 @@ import time
 from sampler_evaluation.models.banana import banana
 from sampler_evaluation.models.banana_mams_paper import banana_mams_paper
 from sampler_evaluation.models.phi4 import phi4
+from sampler_evaluation.models.u1 import U1
 from sampler_evaluation.models.neals_funnel import neals_funnel
 from sampler_evaluation.models.rosenbrock import Rosenbrock
 from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
 import sampler_evaluation
 from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
 from sampler_comparison.samplers.annealing.annealing import annealed
-
+from sampler_evaluation.models.stochastic_volatility_artificial_20000 import stochastic_volatility_artificial_20000
 
 
 def relative_fluctuations(expectation, square_expectation):
@@ -76,7 +78,7 @@ def estimate_ground_truth(model, num_samples, annealing=False):
         )
 
         if annealing:
-            sampler = annealed(nuts, beta_schedule=[10.0, 5.0, 2.0], intermediate_num_steps=100000, kwargs={
+            sampler = annealed(nuts, beta_schedule=[10.0, 5.0, 2.0], intermediate_num_steps=100000, return_only_final=True,kwargs={
                 'integrator_type':"velocity_verlet",
                 'diagonal_preconditioning':True,
                 # 'return_samples':True,
@@ -95,7 +97,7 @@ def estimate_ground_truth(model, num_samples, annealing=False):
             key=jax.random.key(0),
         )
 
-        expectation = jax.vmap(
+        expectation, _ = jax.vmap(
             lambda pos, key: sampler(
                 model=model,
                 num_steps=num_samples,
@@ -114,7 +116,9 @@ def estimate_ground_truth(model, num_samples, annealing=False):
         e_x2_avg = jnp.nanmean(e_x2, axis=0)
         e_x4_avg = jnp.nanmean(e_x4, axis=0)
 
-        jax.debug.print("avgs {x}", x=(e_x_avg, e_x2_avg, e_x4_avg))
+        jax.debug.print("shape {x}", x=e_x_avg.shape)
+
+        # jax.debug.print("avgs {x}", x=(e_x_avg, e_x2_avg, e_x4_avg))
 
         results = {
             "e_x": e_x_avg,
@@ -131,7 +135,7 @@ def estimate_ground_truth(model, num_samples, annealing=False):
             ),
         }
 
-    print(results)
+    # print(results)
 
     ## pickle to data
     with open(
@@ -169,25 +173,35 @@ if __name__ == "__main__":
         # sampler_evaluation.models.item_response(): 1000000,
         # Rosenbrock(): 10000000,
     
-    reduced_lam = jnp.linspace(-2.5, 7.5, 16) #lambda range around the critical point (m^2 = -4 is fixed)
+    reduced_lam = jnp.linspace(-2.5, 7.5, 8)[6:] #lambda range around the critical point (m^2 = -4 is fixed)
 
 
     def unreduce_lam(reduced_lam, side):
         """see Fig 3 in https://arxiv.org/pdf/2207.00283.pdf"""
         return 4.25 * (reduced_lam * np.power(side, -1.0) + 1.0)
 
-    lams = unreduce_lam(reduced_lam=reduced_lam,side=4)
 
-    print(lams)
-
-    for lam in lams:
+    for L in [128,256,512,1024]:
+        lams = unreduce_lam(reduced_lam=reduced_lam,side=L)
+        for lam in lams:
     
-        model = phi4(L=8, lam=lam)
+            model = phi4(L=L, lam=lam)
 
-        print(f"Estimating ground truth for {model}")
-        toc = time.time()
-        ### SET ANNEALING TO TRUE!!!
-        estimate_ground_truth(model, num_samples=1000000, annealing=True)
-        tic = time.time()
-        print(f"Time taken: {tic - toc}")
-        print("Done")
+            print(f"Estimating ground truth for {model}")
+            toc = time.time()
+            ### SET ANNEALING TO TRUE!!!
+            estimate_ground_truth(model, num_samples=100000, annealing=True)
+            tic = time.time()
+            print(f"Time taken: {tic - toc}")
+            print("Done")
+
+    # # model = U1(Lt=4, Lx=4, beta=1)
+    # model = stochastic_volatility_artificial_20000
+
+    # print(f"Estimating ground truth for {model}")
+    # toc = time.time()
+    # ### SET ANNEALING TO TRUE!!!
+    # estimate_ground_truth(model, num_samples=1000000, annealing=False)
+    # tic = time.time()
+    # print(f"Time taken: {tic - toc}")
+    # print("Done")

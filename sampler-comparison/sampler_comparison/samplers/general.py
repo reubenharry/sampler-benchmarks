@@ -5,7 +5,7 @@ from blackjax.util import store_only_expectation_values
 
 from sampler_comparison.util import *
 from sampler_evaluation.evaluation.ess import samples_to_low_error
-
+from sampler_evaluation.evaluation.ess import get_standardized_squared_error
 # awaiting switch to full pytree support
 # make_transform = lambda model : lambda pos : jax.tree.map(lambda z, b: b(z), pos, model.default_event_space_bijector)
 
@@ -137,7 +137,8 @@ def make_log_density_fn(model):
 
 
 def sampler_grads_to_low_error(
-    sampler, model, num_steps, batch_size, key, postprocess_samples=lambda x:jnp.nanmedian(x, axis=0)
+    sampler, model, batch_size, key, postprocess_samples=lambda x:jnp.nanmedian(x, axis=0),
+    calculate_ess_corr=False,
 ):
 
     try:
@@ -154,7 +155,11 @@ def sampler_grads_to_low_error(
     # this key is deliberately fixed to the same value: we want the set of initial positions to be the same for different samplers
     init_keys = jax.random.split(jax.random.key(2), batch_size)
 
-    initial_position = jax.vmap(lambda key: initialize_model(model, key))(init_keys)
+    if hasattr(model, "sample_init") and model.sample_init is not None:
+        initial_position = jax.vmap(model.sample_init)(init_keys)
+        jax.debug.print("using sample init {x}",x=True)
+    else:
+        initial_position = jax.vmap(lambda key: initialize_model(model, key))(init_keys)
 
     # sampler(initial_position=None,key=None)
 
@@ -163,8 +168,75 @@ def sampler_grads_to_low_error(
         initial_position,
     )
 
-    # squared_errors = postprocess_samples(jnp.expand_dims(samples,0).shape)
-    squared_errors = postprocess_samples(samples)
+    # jax.debug.print("shape {x}",x=samples[:, 0, 0])
+    jax.debug.print("shape {x}",x=samples[0, 0, :])
+
+    if False:
+
+        runs = jax.pmap(samples_to_low_error)(samples[:,:,1])
+
+        failures = jnp.argwhere(jnp.isinf(runs))
+        successes = jnp.argwhere(1-jnp.isinf(runs))
+
+        num_failures = failures.shape[0]
+        percent_failures = num_failures / batch_size
+        good_runs = runs[successes.squeeze()]
+
+        mean_runs = jnp.mean(good_runs)
+
+        # jax.debug.print("\nfoo\n {x}", x=runs)
+        # jax.debug.print("\nbar\n {x}", x=jnp.argwhere(jnp.isinf(runs)))
+        jax.debug.print("\npercent failures\n {x}", x=percent_failures)
+
+        # squared_errors = postprocess_samples(jnp.expand_dims(samples,0).shape)
+        
+        # jax.debug.print("\ngrads\n {x}", x=mean_runs * grad_evals_per_step)
+
+        std = jnp.std(good_runs* grad_evals_per_step)
+
+        mean_grads = mean_runs* grad_evals_per_step
+
+        jax.debug.print("\nresult\n {x}", x=(mean_grads-std, mean_grads , mean_grads+std))
+
+
+    if calculate_ess_corr:
+
+        jax.debug.print("\nAVERAGE: {x}\n",x=jnp.mean(samples, axis=1))
+        jax.debug.print("\nAVERAGE: {x}\n",x=jnp.max(jnp.mean(samples, axis=1)))
+
+        squared_errors_max_x2 = get_standardized_squared_error(samples, lambda x:x**2,
+            model.sample_transformations["square"].ground_truth_mean,
+            model.sample_transformations["square"].ground_truth_standard_deviation**2,
+            contract_fn=jnp.max)
+        squared_errors_avg_x2 = get_standardized_squared_error(samples, lambda x:x**2,
+            model.sample_transformations["square"].ground_truth_mean,
+            model.sample_transformations["square"].ground_truth_standard_deviation**2,
+            contract_fn=jnp.mean)
+        squared_errors_max_x = get_standardized_squared_error(samples, lambda x:x,
+            model.sample_transformations["identity"].ground_truth_mean,
+            model.sample_transformations["identity"].ground_truth_standard_deviation**2,
+            contract_fn=jnp.max)
+        squared_errors_avg_x = get_standardized_squared_error(samples, lambda x:x,
+            model.sample_transformations["identity"].ground_truth_mean,
+            model.sample_transformations["identity"].ground_truth_standard_deviation**2,
+            contract_fn=jnp.mean)
+        
+        jax.debug.print("squared errors {x}", x=squared_errors_max_x2[:3])
+        
+        squared_errors = jnp.stack([squared_errors_avg_x2, squared_errors_max_x2, squared_errors_avg_x, squared_errors_max_x], axis=1)
+
+        # jax.debug.print("shape 1 {x}", x=squared_errors.shape)
+        # jax.debug.print("shape 2 {x}", x=squared_errors_max_x2.shape)
+
+
+    else:
+
+
+        samples = postprocess_samples(samples)
+        squared_errors = samples
+        jax.debug.print("\nAVERAGE: {x}\n",x=squared_errors[-1, 2])
+        # jax.debug.print("squared errors {x}", x=squared_errors[:2, 1]) 
+
 
     grad_evals_per_step = metadata["num_grads_per_proposal"].mean()
 

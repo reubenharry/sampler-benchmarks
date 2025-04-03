@@ -65,7 +65,7 @@ def adjusted_mclmc_no_tuning(
                 info,
             )
 
-            get_final_sample = lambda _: None
+            get_final_sample = lambda state, info: (model.default_event_space_bijector(state.position), info)
 
             state = initial_state
 
@@ -85,13 +85,14 @@ def adjusted_mclmc_no_tuning(
             initial_state=state,
             inference_algorithm=alg,
             num_steps=num_steps,
-            transform=(lambda a, b: (a,b)) if return_only_final else transform,
-            progress_bar=True,
+            transform=(lambda a, b: None) if return_only_final else transform,
+            progress_bar=False,
         )
 
         if return_only_final:
 
-            return get_final_sample(final_output)
+
+            return get_final_sample(final_output, {})
 
         (expectations, info) = history
 
@@ -385,6 +386,8 @@ def adjusted_mclmc(
             warmup=warmup,
         )
 
+        # jax.debug.print("initial state {x}",x=blackjax_state_after_tuning)
+
 
         expectations, metadata = adjusted_mclmc_no_tuning(
             initial_state=blackjax_state_after_tuning,
@@ -397,6 +400,9 @@ def adjusted_mclmc(
             return_samples=return_samples,
             return_only_final=return_only_final,
         )(model, num_steps, initial_position, run_key)
+
+        # jax.debug.print("intermediate {x}",x=expectations[0,:])
+        # print("intermediate", expectations.shape)
 
 
 

@@ -2,7 +2,7 @@ import os
 import jax
 jax.config.update("jax_enable_x64", True)
 
-batch_size = 128
+batch_size = 4
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 num_cores = jax.local_device_count()
 
@@ -22,40 +22,44 @@ from sampler_comparison.samplers.annealing.annealing import annealed
 import jax.numpy as jnp 
 import numpy as np
 
-L = 8
 
 identity = lambda x:x
 
 beta_schedule = [10.0, 5.0, 2.0]
 
-reduced_lam = jnp.linspace(-2.5, 7.5, 16) #lambda range around the critical point (m^2 = -4 is fixed)
+
+
+# reduced_lam = jnp.linspace(-2.5, 7.5, 8) #lambda range around the critical point (m^2 = -4 is fixed)
+reduced_lam = jnp.array([7.5])
 
 def unreduce_lam(reduced_lam, side):
-        """see Fig 3 in https://arxiv.org/pdf/2207.00283.pdf"""
-        return 4.25 * (reduced_lam * np.power(side, -1.0) + 1.0)
+    """see Fig 3 in https://arxiv.org/pdf/2207.00283.pdf"""
+    return 4.25 * (reduced_lam * np.power(side, -1.0) + 1.0)
 
-lams = unreduce_lam(reduced_lam=reduced_lam,side=4)
+for L in [64]:
+    for integrator_type in ['velocity_verlet', 'mclachlan', 'omelyan']:
 
-# print(lams)
+        lams = unreduce_lam(reduced_lam=reduced_lam,side=L)
 
-for lam in lams:
 
-    run_benchmarks(
-            models={
-                f"Phi4_L{L}_lam{lam}": phi4(L=L, lam=lam),
-            },
-            samplers={
+        for lam in lams:
 
-                # "adjusted_microcanonical": lambda: adjusted_mclmc(num_tuning_steps=5000)
-                "nuts": lambda: nuts(num_tuning_steps=5000)
-                # "adjusted_microcanonical": lambda: annealed(adjusted_mclmc, beta_schedule=beta_schedule, intermediate_num_steps=10000, kwargs={"num_tuning_steps":5000}),
-                # "adjusted_microcanonical_langevin": lambda: adjusted_mclmc(L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
-                # "nuts": lambda: annealed(nuts, beta_schedule=beta_schedule, intermediate_num_steps=10000, kwargs={"num_tuning_steps":5000}),
-                # "unadjusted_microcanonical": lambda: annealed(unadjusted_mclmc, beta_schedule=beta_schedule, intermediate_num_steps=10000, kwargs={"num_tuning_steps":10000}),
-            },
-            batch_size=batch_size,
-            num_steps=20000,
-            save_dir=f"results/Phi4",
-            key=jax.random.key(20),
-            map=jax.pmap
-        )
+            model = phi4(L=L, lam=lam)
+
+            run_benchmarks(
+                    models={
+                        model.name: model,
+                    },
+                    samplers={
+
+                        
+                        f"adjusted_microcanonical_{integrator_type}": lambda: annealed(adjusted_mclmc, beta_schedule=beta_schedule, intermediate_num_steps=1000, return_only_final=False, kwargs={"num_tuning_steps":5000, "integrator_type":integrator_type}),
+                        # f"nuts_{integrator_type}": lambda: annealed(nuts, beta_schedule=beta_schedule, intermediate_num_steps=1000, return_only_final=False,  kwargs={"num_tuning_steps":1000, 'integrator_type':integrator_type, }),
+                        # f"unadjusted_microcanonical_{integrator_type}": lambda: annealed(unadjusted_mclmc, beta_schedule=beta_schedule, intermediate_num_steps=10000, return_only_final=False, kwargs={"num_tuning_steps":10000, 'integrator_type':integrator_type}),
+                    },
+                    batch_size=batch_size,
+                    num_steps=50000,
+                    save_dir=f"results/Phi4/results",
+                    key=jax.random.key(20),
+                    map=jax.pmap
+                )

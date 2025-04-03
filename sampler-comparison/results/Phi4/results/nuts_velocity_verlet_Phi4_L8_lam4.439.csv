@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
+0,nuts_velocity_verlet,Phi4_L8_lam4.439,28515.760400000003,True,x2,67832.0,2.714377310393078,0.1810006521235693
+1,nuts_velocity_verlet,Phi4_L8_lam4.439,4350.116,False,x2,67832.0,2.714377310393078,0.1810006521235693
+2,nuts_velocity_verlet,Phi4_L8_lam4.439,28530.7608,True,x,67832.0,2.714377310393078,0.1810006521235693
+3,nuts_velocity_verlet,Phi4_L8_lam4.439,4470.1192,False,x,67832.0,2.714377310393078,0.1810006521235693
