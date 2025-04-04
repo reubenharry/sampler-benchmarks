@@ -12,7 +12,7 @@ from blackjax.diagnostics import effective_sample_size
 
 
 # produce a kernel that only stores the average values of the bias for E[x_2] and Var[x_2]
-def with_only_statistics(model, alg, incremental_value_transform=None):
+def with_only_statistics(model, alg, incremental_value_transform=None, f=(lambda x: x**2, lambda x: x**4)):
 
     if incremental_value_transform is None:
         incremental_value_transform = lambda x: jnp.array(
@@ -73,14 +73,12 @@ def with_only_statistics(model, alg, incremental_value_transform=None):
                 outer_transform(
                     model.default_event_space_bijector(state.position)
                 ),
-                outer_transform(
+                f[0](outer_transform(
                     model.default_event_space_bijector(state.position)
-                )
-                ** 2,
-                outer_transform(
+                )),
+                f[1](outer_transform(
                     model.default_event_space_bijector(state.position)
-                )
-                ** 4,
+                )),
             ]
         ),
         incremental_value_transform=incremental_value_transform,

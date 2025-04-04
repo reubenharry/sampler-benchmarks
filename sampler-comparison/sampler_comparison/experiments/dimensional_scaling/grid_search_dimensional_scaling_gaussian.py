@@ -27,9 +27,9 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unad
 import numpy as np
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc, grid_search_hmc
 
-# dims = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,5, 5)).astype(int)])[10:]
+dims = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,5, 5)).astype(int)])
 
-dims = [100, 1000, 10000]
+# dims = [100, 1000, 10000]
 
 # integrator_types = ['velocity_verlet', 'mclachlan', 'omelyan']
 integrator_types = ['velocity_verlet']
