@@ -143,7 +143,7 @@ def unadjusted_lmc_tuning(
 
     dim = initial_position.shape[0]
     params = MCLMCAdaptationState(
-        4 * jnp.sqrt(dim), jnp.sqrt(dim) , inverse_mass_matrix=jnp.ones((dim,))
+        4, 1 , inverse_mass_matrix=jnp.ones((dim,))
     )
 
     return blackjax.mclmc_find_L_and_step_size(
@@ -156,7 +156,8 @@ def unadjusted_lmc_tuning(
         frac_tune2=frac_tune2,
         frac_tune1=frac_tune1,
         params=params,
-        desired_energy_var=desired_energy_var
+        desired_energy_var=desired_energy_var,
+        euclidean=True,
     )
 
 

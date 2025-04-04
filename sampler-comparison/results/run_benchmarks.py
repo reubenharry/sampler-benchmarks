@@ -15,7 +15,7 @@ import pandas as pd
 
 
 def run_benchmarks(
-    models, samplers, batch_size, num_steps, key=jax.random.PRNGKey(1), save_dir=None,map=jax.pmap
+    models, samplers, batch_size, num_steps, key=jax.random.PRNGKey(1), save_dir=None,map=jax.pmap, calculate_ess_corr=False,
 ):
 
 
@@ -24,12 +24,10 @@ def run_benchmarks(
 
         key = jax.random.fold_in(key, i)
 
-        calculate_ess_corr = True
-
 
         (stats, _) = sampler_grads_to_low_error(
             sampler=map(
-            lambda key, pos: samplers[sampler](calculate_ess_corr)(
+            lambda key, pos: samplers[sampler](return_samples=calculate_ess_corr)(
                 model=models[model], 
                 initial_position=pos, 
                 key=key,
@@ -51,6 +49,7 @@ def run_benchmarks(
                 "num_grads_to_low_error": stats["max_over_parameters"]["square"][
                     "grads_to_low_error"
                 ],
+                "ess_corr": stats["max_over_parameters"]["autocorrelation"],
                 "max": True,
                 "statistic": "x2",
                 "num_tuning_grads": stats["num_tuning_grads"],
@@ -65,6 +64,7 @@ def run_benchmarks(
                 "num_grads_to_low_error": stats["avg_over_parameters"]["square"][
                     "grads_to_low_error"
                 ],
+                "ess_corr": stats["avg_over_parameters"]["autocorrelation"],
                 "max": False,
                 "statistic": "x2",
                 "num_tuning_grads": stats["num_tuning_grads"],
@@ -80,6 +80,7 @@ def run_benchmarks(
                 "num_grads_to_low_error": stats["max_over_parameters"]["identity"][
                     "grads_to_low_error"
                 ],
+                "ess_corr": stats["max_over_parameters"]["autocorrelation"],
                 "max": True,
                 "statistic": "x",
                 "num_tuning_grads": stats["num_tuning_grads"],
@@ -94,6 +95,7 @@ def run_benchmarks(
                 "num_grads_to_low_error": stats["avg_over_parameters"]["identity"][
                     "grads_to_low_error"
                 ],
+                "ess_corr": stats["avg_over_parameters"]["autocorrelation"],
                 "max": False,
                 "statistic": "x",
                 "num_tuning_grads": stats["num_tuning_grads"],

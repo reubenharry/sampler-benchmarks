@@ -130,6 +130,8 @@ def adjusted_mclmc_tuning(
     L_factor_stage_3=0.3,
     warmup='nuts',
 ):
+    
+    # by default, we use NUTS to find a preconditioning matrix. One could use MAMS or unadjusted MCLMC also.
 
     init_key, tune_key = jax.random.split(rng_key, 2)
 
@@ -138,10 +140,6 @@ def adjusted_mclmc_tuning(
         logdensity_fn=logdensity_fn,
         random_generator_arg=init_key,
     )
-
-    frac_tune1 = num_tuning_steps / (3 * num_steps)
-    frac_tune2 = num_tuning_steps / (3 * num_steps)
-    frac_tune3 = num_tuning_steps / (3 * num_steps)
 
     if random_trajectory_length:
         integration_steps_fn = lambda avg_num_integration_steps: lambda k: jnp.ceil(

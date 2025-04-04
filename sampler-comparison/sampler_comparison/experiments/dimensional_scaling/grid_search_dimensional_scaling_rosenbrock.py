@@ -1,3 +1,4 @@
+from functools import partial
 import itertools
 import os
 
@@ -24,6 +25,7 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unad
 import numpy as np
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_adjusted_mclmc
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc
+from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc, grid_search_hmc
 
 
 Ds = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,5, 5)).astype(int)])
@@ -48,7 +50,9 @@ for D, integrator_type in itertools.product(Ds, integrator_types):
             },
             samplers={
 
-                f"grid_search_adjusted_microcanonical_{integrator_type}": lambda: grid_search_adjusted_mclmc(num_chains=batch_size, num_tuning_steps=5000, integrator_type=integrator_type),
+                # f"grid_search_adjusted_microcanonical_{integrator_type}": lambda: grid_search_adjusted_mclmc(num_chains=batch_size, num_tuning_steps=5000, integrator_type=integrator_type),
+
+                f"grid_search_hmc_{integrator_type}": partial(grid_search_hmc,num_chains=batch_size, num_tuning_steps=5000, opt='avg',integrator_type=integrator_type),
 
                 # f"grid_search_unadjusted_microcanonical_{integrator_type}": lambda: grid_search_unadjusted_mclmc(num_chains=batch_size, num_tuning_steps=10000, integrator_type=integrator_type),
 

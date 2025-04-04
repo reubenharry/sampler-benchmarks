@@ -8,6 +8,7 @@ from sampler_evaluation.evaluation.ess import samples_to_low_error
 from sampler_evaluation.evaluation.ess import get_standardized_squared_error
 # awaiting switch to full pytree support
 # make_transform = lambda model : lambda pos : jax.tree.map(lambda z, b: b(z), pos, model.default_event_space_bijector)
+from blackjax.diagnostics import effective_sample_size
 
 
 # produce a kernel that only stores the average values of the bias for E[x_2] and Var[x_2]
@@ -162,6 +163,38 @@ def sampler_grads_to_low_error(
         initial_position = jax.vmap(lambda key: initialize_model(model, key))(init_keys)
 
     # sampler(initial_position=None,key=None)
+    # from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import (
+    #     adjusted_mclmc,
+    # )
+    
+    # samples, metadata = jax.pmap(
+    #         lambda key, pos: adjusted_mclmc(num_tuning_steps=5000, return_samples=True)(
+    #         model=model, num_steps=4000, initial_position=pos, key=key
+    #         )
+    #         )(
+    #         keys,
+    #         initial_position,
+    #         )
+    
+    # error_at_each_step = get_standardized_squared_error(
+    #     samples, 
+    #     f=lambda x:x**2,
+    #     E_f=model.sample_transformations["square"].ground_truth_mean,
+    #     Var_f=model.sample_transformations["square"].ground_truth_standard_deviation**2,
+    #     contract_fn=jnp.mean
+    #     )
+    
+    # grad_evals_per_step = metadata['num_grads_per_proposal'].mean()
+    # grads_to_low_avg_x2 = (
+    #     samples_to_low_error(
+    #         error_at_each_step,
+    #     )
+    #     * grad_evals_per_step
+    # )
+    
+    # jax.debug.print("grads to low avg{x}",x=grads_to_low_avg_x2)
+
+    # samples_to_low_err = samples_to_low_error(error_at_each_step) * gradient_calls_per_proposal
 
     samples, metadata = sampler(
         keys,
@@ -198,11 +231,15 @@ def sampler_grads_to_low_error(
 
         jax.debug.print("\nresult\n {x}", x=(mean_grads-std, mean_grads , mean_grads+std))
 
+    grad_evals_per_step = metadata["num_grads_per_proposal"].mean()
 
     if calculate_ess_corr:
 
-        jax.debug.print("\nAVERAGE: {x}\n",x=jnp.mean(samples, axis=1))
-        jax.debug.print("\nAVERAGE: {x}\n",x=jnp.max(jnp.mean(samples, axis=1)))
+        ess_correlation_max = jnp.min(effective_sample_size(samples) / (samples.shape[1] * batch_size * grad_evals_per_step))
+        ess_correlation_avg = jnp.mean(effective_sample_size(samples) / (samples.shape[1] * batch_size * grad_evals_per_step))
+
+        # jax.debug.print("\nAVERAGE: {x}\n",x=jnp.mean(samples, axis=1))
+        # jax.debug.print("\nAVERAGE: {x}\n",x=jnp.max(jnp.mean(samples, axis=1)))
 
         squared_errors_max_x2 = get_standardized_squared_error(samples, lambda x:x**2,
             model.sample_transformations["square"].ground_truth_mean,
@@ -221,7 +258,7 @@ def sampler_grads_to_low_error(
             model.sample_transformations["identity"].ground_truth_standard_deviation**2,
             contract_fn=jnp.mean)
         
-        jax.debug.print("squared errors {x}", x=squared_errors_max_x2[:3])
+        # jax.debug.print("squared errors {x}", x=squared_errors_max_x2[:3])
         
         squared_errors = jnp.stack([squared_errors_avg_x2, squared_errors_max_x2, squared_errors_avg_x, squared_errors_max_x], axis=1)
 
@@ -234,11 +271,12 @@ def sampler_grads_to_low_error(
 
         samples = postprocess_samples(samples)
         squared_errors = samples
-        jax.debug.print("\nAVERAGE: {x}\n",x=squared_errors[-1, 2])
+        ess_correlation_max = ess_correlation_avg = jnp.nan
+        # jax.debug.print("\nAVERAGE: {x}\n",x=squared_errors[-1, 2])
         # jax.debug.print("squared errors {x}", x=squared_errors[:2, 1]) 
 
 
-    grad_evals_per_step = metadata["num_grads_per_proposal"].mean()
+    
 
     err_t_avg_x2 = (squared_errors[:, 0])
     grads_to_low_avg_x2 = (
@@ -283,6 +321,7 @@ def sampler_grads_to_low_error(
                     "error": err_t_max_x,
                     "grads_to_low_error": grads_to_low_max_x.item(),
                 },
+                "autocorrelation": ess_correlation_max
             },
             "avg_over_parameters": {
                 "square": {
@@ -293,6 +332,7 @@ def sampler_grads_to_low_error(
                     "error": err_t_avg_x,
                     "grads_to_low_error": grads_to_low_avg_x.item(),
                 },
+                "autocorrelation": ess_correlation_avg
             },
             "num_tuning_grads": metadata["num_tuning_grads"].mean().item(),
             "L": metadata["L"].mean().item(),

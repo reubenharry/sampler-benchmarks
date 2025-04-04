@@ -25,11 +25,11 @@ from sampler_comparison.samplers.grid_search.grid_search import grid_search_unad
 from sampler_evaluation.models.gaussian_mams_paper import IllConditionedGaussian
 from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unadjusted_mclmc
 import numpy as np
-from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import adjusted_hmc
+from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc, grid_search_hmc
 
-dims = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,5, 5)).astype(int)])
+# dims = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,5, 5)).astype(int)])[10:]
 
-# dims = [100, 1000, 10000]
+dims = [100, 1000, 10000]
 
 # integrator_types = ['velocity_verlet', 'mclachlan', 'omelyan']
 integrator_types = ['velocity_verlet']
@@ -40,28 +40,27 @@ for dim, integrator_type in itertools.product(dims, integrator_types):
 
     print(f"Running for dim={dim}, integrator_type={integrator_type}, batch_size={batch_size}")
 
-
-    
     run_benchmarks(
             models={
                 f"Gaussian_{dim}": IllConditionedGaussian(ndims=dim, condition_number=1, eigenvalues='log'),
             },
             samplers={
 
-                # f"adjusted_microcanonical_{integrator_type}": lambda: adjusted_mclmc(num_tuning_steps=5000, integrator_type=integrator_type),
+                # f"grid_search_adjusted_microcanonical_{integrator_type}": lambda: grid_search_adjusted_mclmc(num_chains=batch_size, num_tuning_steps=5000, integrator_type=integrator_type),
 
-                "adjusted_hmc": partial(adjusted_hmc,num_tuning_steps=5000)
-            
-                # f"unadjusted_microcanonical__{integrator_type}": lambda: unadjusted_mclmc(num_tuning_steps=10000, integrator_type=integrator_type),
+                # f"grid_search_unadjusted_microcanonical_{integrator_type}": lambda: grid_search_unadjusted_mclmc(num_chains=batch_size, num_tuning_steps=10000, integrator_type=integrator_type),
 
-                # f"nuts_{integrator_type}": lambda: nuts(num_tuning_steps=5000),
-
+                f"grid_search_hmc_{integrator_type}": partial(grid_search_hmc,num_chains=batch_size, num_tuning_steps=5000, opt='avg',integrator_type=integrator_type),
+         
+         
             },
             
             
             batch_size=batch_size,
             num_steps=10000,
-            save_dir=f"sampler_comparison/experiments/dimensional_scaling/results/tuned/Gaussian",
+            save_dir=f"sampler_comparison/experiments/dimensional_scaling/results",
             key=jax.random.key(19),
+            map=lambda f:f
         )
+    
     
