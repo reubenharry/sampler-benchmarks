@@ -3,6 +3,8 @@ import jax.numpy as jnp
 from sampler_evaluation.models.model import make_model
 import pickle
 import os
+from sampler_evaluation.models.model import SampleTransformation, make_model
+
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -22,15 +24,21 @@ def U1(Lt, Lx, beta= 1.):
         ) as f:
             stats = pickle.load(f)
 
-        e_x = stats["e_x"]
-        e_x2 = stats["e_x2"]
-        e_x4 = stats["e_x4"]
-        var_x2 = e_x4 - e_x2**2
+        e_x = stats["polyakov"]
+        e_x2 = stats["polyakov^2"]
+        e_x4 = jnp.nan # stats["e_x4"]
+        # var_x2 = e_x4 - e_x2**2
 
     except:
         e_x = 0
         e_x2 = 0
+        e_x4 = 0
         var_x2 = 0
+
+    jax.debug.print("e_x {x}", x=e_x)
+    jax.debug.print("e_x^2 {x}", x=e_x2)
+    jax.debug.print("std {x}", x=jnp.sqrt(e_x2 - e_x**2))
+    # raise Exception
 
 
     ndims = 2 * Lt*Lx
@@ -70,12 +78,19 @@ def U1(Lt, Lx, beta= 1.):
     return make_model(
         logdensity_fn=logdensity_fn,
         ndims=ndims,
-        transform=polyakov_autocorr,
-
-        x_ground_truth_mean=e_x,
-        x_ground_truth_std=jnp.sqrt(e_x2 - e_x**2),
-        x2_ground_truth_mean=e_x2,
-        x2_ground_truth_std=jnp.sqrt(var_x2),
+        default_event_space_bijector=lambda x:x,
+        sample_transformations = {
+        'polyakov':SampleTransformation(
+            fn=polyakov_autocorr,
+            ground_truth_mean=e_x,
+            ground_truth_standard_deviation=jnp.sqrt(e_x2 - e_x**2),
+        ),
+        'polyakov^2':SampleTransformation(
+            fn=lambda x: polyakov_autocorr(x)**2,
+            ground_truth_mean=e_x2,
+            ground_truth_standard_deviation=jnp.sqrt(e_x4 - e_x2**2),
+        ),
+        },
         exact_sample=None,
         sample_init=sample_init,
         name=f'U1_Lt{Lt}_Lx{Lx}_beta{beta}',

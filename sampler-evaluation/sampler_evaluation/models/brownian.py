@@ -38,7 +38,7 @@ def brownian_motion():
         model.Model.SampleTransformation(
             fn=lambda params: gym.targets.VectorModel(
                 gym.targets.BrownianMotionUnknownScalesMissingMiddleObservations(),
-                flatten_sample_transformations=True,
+                flatten_sample_transformations=True, # TODO: sub out
             ).sample_transformations["identity"](params),
             pretty_name="Identity",
             ground_truth_mean=e_x,

@@ -108,32 +108,43 @@ def estimate_ground_truth(model, num_samples, annealing=False):
 
         expectation = np.array(expectation)
 
-        e_x = expectation[:, 0, :]
-        e_x2 = expectation[:, 1, :]
-        e_x4 = expectation[:, 2, :]
+        # jax.debug.print("expectation {x}", x=expectation.shape)
 
-        e_x_avg = jnp.nanmean(e_x, axis=0)
-        e_x2_avg = jnp.nanmean(e_x2, axis=0)
-        e_x4_avg = jnp.nanmean(e_x4, axis=0)
+        # raise Exception
 
-        jax.debug.print("shape {x}", x=e_x_avg.shape)
+        expectation = np.nanmean(expectation, axis=0)
+
+        # e_x = expectation[:, 0, :]
+        # e_x2 = expectation[:, 1, :]
+        # e_x4 = expectation[:, 2, :]
+
+        # e_x_avg = jnp.nanmean(e_x, axis=0)
+        # e_x2_avg = jnp.nanmean(e_x2, axis=0)
+        # e_x4_avg = jnp.nanmean(e_x4, axis=0)
+
+        # jax.debug.print("shape {x}", x=e_x_avg.shape)
 
         # jax.debug.print("avgs {x}", x=(e_x_avg, e_x2_avg, e_x4_avg))
 
+        print(model.sample_transformations.keys())
+
         results = {
-            "e_x": e_x_avg,
-            "e_x2": e_x2_avg,
-            "e_x4": e_x4_avg,
+            trans: expectation[i, :]
             # "potential_scale_reduction": (
             #     potential_scale_reduction(e_x),
             #     potential_scale_reduction(e_x2),
             #     potential_scale_reduction(e_x4),
             # ),
-            "relative_fluctuations": (
-                relative_fluctuations(e_x, e_x2),
-                relative_fluctuations(e_x2, e_x4),
-            ),
-        }
+
+        for i,trans in enumerate(model.sample_transformations)}
+
+        
+        # | {
+        #     "relative_fluctuations": (
+        #         relative_fluctuations(e_x, e_x2),
+        #         relative_fluctuations(e_x2, e_x4),
+        #     ),
+        # }
 
     # print(results)
 
@@ -181,27 +192,27 @@ if __name__ == "__main__":
         return 4.25 * (reduced_lam * np.power(side, -1.0) + 1.0)
 
 
-    for L in [128,256,512,1024]:
-        lams = unreduce_lam(reduced_lam=reduced_lam,side=L)
-        for lam in lams:
+    # for L in [128,256,512,1024]:
+    #     lams = unreduce_lam(reduced_lam=reduced_lam,side=L)
+    #     for lam in lams:
     
-            model = phi4(L=L, lam=lam)
+    #         model = phi4(L=L, lam=lam)
 
-            print(f"Estimating ground truth for {model}")
-            toc = time.time()
-            ### SET ANNEALING TO TRUE!!!
-            estimate_ground_truth(model, num_samples=100000, annealing=True)
-            tic = time.time()
-            print(f"Time taken: {tic - toc}")
-            print("Done")
+    #         print(f"Estimating ground truth for {model}")
+    #         toc = time.time()
+    #         ### SET ANNEALING TO TRUE!!!
+    #         estimate_ground_truth(model, num_samples=100000, annealing=True)
+    #         tic = time.time()
+    #         print(f"Time taken: {tic - toc}")
+    #         print("Done")
 
-    # # model = U1(Lt=4, Lx=4, beta=1)
+    model = U1(Lt=4, Lx=4, beta=1)
     # model = stochastic_volatility_artificial_20000
 
-    # print(f"Estimating ground truth for {model}")
-    # toc = time.time()
-    # ### SET ANNEALING TO TRUE!!!
-    # estimate_ground_truth(model, num_samples=1000000, annealing=False)
-    # tic = time.time()
-    # print(f"Time taken: {tic - toc}")
-    # print("Done")
+    print(f"Estimating ground truth for {model.name}")
+    toc = time.time()
+    ### SET ANNEALING TO TRUE!!!
+    estimate_ground_truth(model, num_samples=1000000, annealing=False)
+    tic = time.time()
+    print(f"Time taken: {tic - toc}")
+    print("Done")
