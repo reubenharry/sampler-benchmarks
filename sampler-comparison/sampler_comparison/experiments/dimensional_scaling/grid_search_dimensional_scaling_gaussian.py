@@ -58,7 +58,7 @@ for dim, integrator_type in itertools.product(dims, integrator_types):
             
             batch_size=batch_size,
             num_steps=10000,
-            save_dir=f"sampler_comparison/experiments/dimensional_scaling/results",
+            save_dir=f"sampler_comparison/experiments/dimensional_scaling/results/grid_search",
             key=jax.random.key(19),
             map=lambda f:f
         )

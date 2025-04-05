@@ -15,146 +15,116 @@ import itertools
 def with_only_statistics(model, alg, incremental_value_transform=None):
 
     if incremental_value_transform is None:
-        # incremental_value_transform = lambda x: jnp.array(
-        #     [
-        #         jnp.average(
-        #             jnp.square(
-        #                 x[1] - model.sample_transformations["square"].ground_truth_mean
-        #             )
-        #             / (
-        #                 model.sample_transformations[
-        #                     "square"
-        #                 ].ground_truth_standard_deviation
-        #                 ** 2
-        #             )
-        #         ),
-        #         jnp.max(
-        #             jnp.square(
-        #                 x[1] - model.sample_transformations["square"].ground_truth_mean
-        #             )
-        #             / model.sample_transformations[
-        #                 "square"
-        #             ].ground_truth_standard_deviation
-        #             ** 2
-        #         ),
-        #         jnp.average(
-        #             jnp.square(
-        #                 x[0]
-        #                 - model.sample_transformations["identity"].ground_truth_mean
-        #             )
-        #             / (
-        #                 model.sample_transformations[
-        #                     "identity"
-        #                 ].ground_truth_standard_deviation
-        #                 ** 2
-        #             )
-        #         ),
-        #         jnp.max(
-        #             jnp.square(
-        #                 x[0]
-        #                 - model.sample_transformations["identity"].ground_truth_mean
-        #             )
-        #             / model.sample_transformations[
-        #                 "identity"
-        #             ].ground_truth_standard_deviation
-        #             ** 2
-        #         ),
-        #     ]
-        # )
-
-        incremental_value_transform = lambda expectations: {
-            
-            # 'square' : 
-                                                            
-            #         {
-            #         'avg' : jnp.average(
-            #         jnp.square(
-            #             expectations[1] - model.sample_transformations['square'].ground_truth_mean
-            #         )
-            #         / (
-            #             model.sample_transformations[
-            #                 'square'
-            #             ].ground_truth_standard_deviation
-            #             ** 2
-            #         )),
-            #         'max' : jnp.max(
-            #         jnp.square(
-            #             expectations[1] - model.sample_transformations['square'].ground_truth_mean
-            #         )
-            #         / (
-            #             model.sample_transformations[
-            #                 'square'
-            #             ].ground_truth_standard_deviation
-            #             ** 2
-            #         )),
-                    
-                    
-            #         },
-            
-            # 'identity' : 
-                                                            
-            #         {
-            #         'avg' : jnp.average(
-            #         jnp.square(
-            #             expectations[0] - model.sample_transformations['identity'].ground_truth_mean
-            #         )
-            #         / (
-            #             model.sample_transformations[
-            #                 'identity'
-            #             ].ground_truth_standard_deviation
-            #             ** 2
-            #         )),
-            #         'max' : jnp.max(
-            #         jnp.square(
-            #             expectations[0] - model.sample_transformations['identity'].ground_truth_mean
-            #         )
-            #         / (
-            #             model.sample_transformations[
-            #                 'identity'
-            #             ].ground_truth_standard_deviation
-            #             ** 2
-            #         )),
-            #         }
-
-            trans : 
-                                                            
-                    {
-                    'avg' : jnp.average(
+        incremental_value_transform = lambda x: jnp.array(
+            [
+                jnp.average(
                     jnp.square(
-                        expectation - model.sample_transformations[trans].ground_truth_mean
+                        x[1] - model.sample_transformations["square"].ground_truth_mean
                     )
                     / (
                         model.sample_transformations[
-                            trans
+                            "square"
                         ].ground_truth_standard_deviation
                         ** 2
-                    )),
-                    'max' : jnp.max(
+                    )
+                ),
+                jnp.max(
                     jnp.square(
-                        expectation - model.sample_transformations[trans].ground_truth_mean
+                        x[1] - model.sample_transformations["square"].ground_truth_mean
+                    )
+                    / model.sample_transformations[
+                        "square"
+                    ].ground_truth_standard_deviation
+                    ** 2
+                ),
+                jnp.average(
+                    jnp.square(
+                        x[0]
+                        - model.sample_transformations["identity"].ground_truth_mean
                     )
                     / (
                         model.sample_transformations[
-                            trans
+                            "identity"
                         ].ground_truth_standard_deviation
                         ** 2
-                    )),
-                    }
+                    )
+                ),
+                jnp.max(
+                    jnp.square(
+                        x[0]
+                        - model.sample_transformations["identity"].ground_truth_mean
+                    )
+                    / model.sample_transformations[
+                        "identity"
+                    ].ground_truth_standard_deviation
+                    ** 2
+                ),
+            ]
+        )
+
+        # incremental_value_transform = lambda expectations: {
+            
+        #     'square' : 
+                                                            
+        #             {
+        #             'avg' : jnp.average(
+        #             jnp.square(
+        #                 expectations[1] - model.sample_transformations['square'].ground_truth_mean
+        #             )
+        #             / (
+        #                 model.sample_transformations[
+        #                     'square'
+        #                 ].ground_truth_standard_deviation
+        #                 ** 2
+        #             )),
+        #             'max' : jnp.max(
+        #             jnp.square(
+        #                 expectations[1] - model.sample_transformations['square'].ground_truth_mean
+        #             )
+        #             / (
+        #                 model.sample_transformations[
+        #                     'square'
+        #                 ].ground_truth_standard_deviation
+        #                 ** 2
+        #             )),
                     
                     
+        #             },
+            
+        #     'identity' : 
+                                                            
+        #             {
+        #             'avg' : jnp.average(
+        #             jnp.square(
+        #                 expectations[0] - model.sample_transformations['identity'].ground_truth_mean
+        #             )
+        #             / (
+        #                 model.sample_transformations[
+        #                     'identity'
+        #                 ].ground_truth_standard_deviation
+        #                 ** 2
+        #             )),
+        #             'max' : jnp.max(
+        #             jnp.square(
+        #                 expectations[0] - model.sample_transformations['identity'].ground_truth_mean
+        #             )
+        #             / (
+        #                 model.sample_transformations[
+        #                     'identity'
+        #                 ].ground_truth_standard_deviation
+        #                 ** 2
+        #             )),
+                    
+                    
+        #             },
                      
-                    for trans, expectation in itertools.zip_longest(
-                        model.sample_transformations,
-                        expectations
-                    )
+        #             # for trans, expectation in itertools.product(model.sample_transformations, expectations) 
                     
-                    # [('identity', expectations[0]),('square', expectations[1])] 
                     
-                    }
-                    
+        #             }
         
 
-    # outer_transform = model.sample_transformations["identity"] if callable(model.sample_transformations["identity"]) else lambda x:x
+    outer_transform = model.sample_transformations["identity"] if callable(model.sample_transformations["identity"]) else lambda x:x
 
     fs = [
         lambda x: x**2,
@@ -163,25 +133,24 @@ def with_only_statistics(model, alg, incremental_value_transform=None):
 
     memory_efficient_sampling_alg, transform = store_only_expectation_values(
         sampling_algorithm=alg,
-        # state_transform=lambda state: jnp.array(
-        #     [
-        #         model.sample_transformations["identity"](model.default_event_space_bijector(state.position)),
-        #         model.sample_transformations["square"](model.default_event_space_bijector(state.position)),
-        #     ]
-        #     #     outer_transform(
-        #     #         model.default_event_space_bijector(state.position)
-        #     #     ),
-        #     #     *[f((
-        #     #         model.default_event_space_bijector(state.position)
-        #     #     )) for f in fs]
-        #     # ]
-        # # ),
         state_transform=lambda state: jnp.array(
             [
-                model.sample_transformations[trans].fn(model.default_event_space_bijector(state.position)) for trans in model.sample_transformations
-                
+                # model.sample_transformations["identity"](state.position),
+                # model.sample_transformations["square"](state.position),
+                outer_transform(
+                    model.default_event_space_bijector(state.position)
+                ),
+                *[f(outer_transform(
+                    model.default_event_space_bijector(state.position)
+                )) for f in fs]
             ]
         ),
+        # state_transform=lambda state: jnp.array(
+        #     [
+        #         trans.fn(model.default_event_space_bijector(state.position)) for trans in model.sample_transformations.values()
+                
+        #     ]
+        # ),
         incremental_value_transform=incremental_value_transform,
     )
 
@@ -241,14 +210,14 @@ def sampler_grads_to_low_error(
     calculate_ess_corr=False,
 ):
 
-    # try:
-    #     model.sample_transformations[
-    #         "square"
-    #     ].ground_truth_mean, model.sample_transformations[
-    #         "square"
-    #     ].ground_truth_standard_deviation
-    # except:
-    #     raise AttributeError("Model must have E_x2 and Var_x2 attributes")
+    try:
+        model.sample_transformations[
+            "square"
+        ].ground_truth_mean, model.sample_transformations[
+            "square"
+        ].ground_truth_standard_deviation
+    except:
+        raise AttributeError("Model must have E_x2 and Var_x2 attributes")
 
     keys = jax.random.split(key, batch_size)
 
@@ -376,46 +345,45 @@ def sampler_grads_to_low_error(
 
         # samples = postprocess_samples(samples)
         squared_errors = samples
-        ess_correlation = {'max': jnp.nan,
-             'avg': jnp.nan}
+        ess_correlation_max = ess_correlation_avg = jnp.nan
         # jax.debug.print("\nAVERAGE: {x}\n",x=squared_errors[-1, 2])
         # jax.debug.print("squared errors {x}", x=squared_errors[:2, 1]) 
 
     contract_fn = lambda x : jnp.nanmedian(x, axis=0)
+    squared_errors = contract_fn(squared_errors)
 
-    # squared_errors = contract_fn(squared_errors)
 
-    # err_t_avg_x2 = (squared_errors[:, 0])
-    # grads_to_low_avg_x2 = (
-    #     samples_to_low_error(
-    #         err_t_avg_x2,
-    #     )
-    #     * grad_evals_per_step
-    # )
+    err_t_avg_x2 = (squared_errors[:, 0])
+    grads_to_low_avg_x2 = (
+        samples_to_low_error(
+            err_t_avg_x2,
+        )
+        * grad_evals_per_step
+    )
 
-    # err_t_max_x2 = (squared_errors[:, 1])
-    # grads_to_low_max_x2 = (
-    #     samples_to_low_error(
-    #         err_t_max_x2,
-    #     )
-    #     * grad_evals_per_step
-    # )
+    err_t_max_x2 = (squared_errors[:, 1])
+    grads_to_low_max_x2 = (
+        samples_to_low_error(
+            err_t_max_x2,
+        )
+        * grad_evals_per_step
+    )
 
-    # err_t_avg_x = (squared_errors[:, 2])
-    # grads_to_low_avg_x = (
-    #     samples_to_low_error(
-    #         err_t_avg_x,
-    #     )
-    #     * grad_evals_per_step
-    # )
+    err_t_avg_x = (squared_errors[:, 2])
+    grads_to_low_avg_x = (
+        samples_to_low_error(
+            err_t_avg_x,
+        )
+        * grad_evals_per_step
+    )
 
-    # err_t_max_x = (squared_errors[:, 3])
-    # grads_to_low_max_x = (
-    #     samples_to_low_error(
-    #         err_t_max_x,
-    #     )
-    #     * grad_evals_per_step
-    # )
+    err_t_max_x = (squared_errors[:, 3])
+    grads_to_low_max_x = (
+        samples_to_low_error(
+            err_t_max_x,
+        )
+        * grad_evals_per_step
+    )
     
     # err_t_avg_x2 = contract_fn(squared_errors['square']['avg'])
     # grads_to_low_avg_x2 = (
@@ -451,35 +419,31 @@ def sampler_grads_to_low_error(
 
     return (
         {
-            f"{max}_over_parameters": {
-                expectation: {
-                    "error": contract_fn(squared_errors[expectation][max]),
-                    "grads_to_low_error": (
-                        samples_to_low_error(
-                            contract_fn(squared_errors[expectation][max]),
-                        )
-                        * grad_evals_per_step
-                    ).item(),
-                    "autocorrelation": ess_correlation[max]
-                }
-                
-                # "autocorrelation": jnp.nan
-            
-                for expectation in model.sample_transformations.keys()
-                }
-                
-            
-
-        for max in ["max", "avg"]
-        }
-        
-            
-            | {
-                "num_tuning_grads": metadata["num_tuning_grads"].mean().item(),
-                "L": metadata["L"].mean().item(),
-                "step_size": metadata["step_size"].mean().item(),
+            "max_over_parameters": {
+                "square": {
+                    "error": err_t_max_x2,
+                    "grads_to_low_error": grads_to_low_max_x2.item(),
+                },
+                "identity": {
+                    "error": err_t_max_x,
+                    "grads_to_low_error": grads_to_low_max_x.item(),
+                },
+                "autocorrelation": ess_correlation_max
             },
-            
-        
-        squared_errors
+            "avg_over_parameters": {
+                "square": {
+                    "error": err_t_avg_x2,
+                    "grads_to_low_error": grads_to_low_avg_x2.item(),
+                },
+                "identity": {
+                    "error": err_t_avg_x,
+                    "grads_to_low_error": grads_to_low_avg_x.item(),
+                },
+                "autocorrelation": ess_correlation_avg
+            },
+            "num_tuning_grads": metadata["num_tuning_grads"].mean().item(),
+            "L": metadata["L"].mean().item(),
+            "step_size": metadata["step_size"].mean().item(),
+        },
+        squared_errors,
     )

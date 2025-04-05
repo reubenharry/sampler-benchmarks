@@ -42,67 +42,72 @@ def run_benchmarks(
             # pvmap=map,
         )
 
-        results.append(
-            {
-                "Sampler": sampler,
-                "Model": model,
-                "num_grads_to_low_error": stats["max_over_parameters"]["square"][
-                    "grads_to_low_error"
-                ],
-                "ess_corr": stats["max_over_parameters"]["autocorrelation"],
-                "max": True,
-                "statistic": "x2",
-                "num_tuning_grads": stats["num_tuning_grads"],
-                "L": stats["L"],
-                "step_size": stats["step_size"],
-            }
-        )
-        results.append(
-            {
-                "Sampler": sampler,
-                "Model": model,
-                "num_grads_to_low_error": stats["avg_over_parameters"]["square"][
-                    "grads_to_low_error"
-                ],
-                "ess_corr": stats["avg_over_parameters"]["autocorrelation"],
-                "max": False,
-                "statistic": "x2",
-                "num_tuning_grads": stats["num_tuning_grads"],
-                "L": stats["L"],
-                "step_size": stats["step_size"],
-            }
-        )
+        jax.debug.print("stats {x}", x=stats)
+        # raise Exception
 
-        results.append(
-            {
-                "Sampler": sampler,
-                "Model": model,
-                "num_grads_to_low_error": stats["max_over_parameters"]["identity"][
-                    "grads_to_low_error"
-                ],
-                "ess_corr": stats["max_over_parameters"]["autocorrelation"],
-                "max": True,
-                "statistic": "x",
-                "num_tuning_grads": stats["num_tuning_grads"],
-                "L": stats["L"],
-                "step_size": stats["step_size"],
-            }
-        )
-        results.append(
-            {
-                "Sampler": sampler,
-                "Model": model,
-                "num_grads_to_low_error": stats["avg_over_parameters"]["identity"][
-                    "grads_to_low_error"
-                ],
-                "ess_corr": stats["avg_over_parameters"]["autocorrelation"],
-                "max": False,
-                "statistic": "x",
-                "num_tuning_grads": stats["num_tuning_grads"],
-                "L": stats["L"],
-                "step_size": stats["step_size"],
-            }
-        )
+        for trans in models[model].sample_transformations:
+
+            results.append(
+                {
+                    "Sampler": sampler,
+                    "Model": model,
+                    "num_grads_to_low_error": stats["max_over_parameters"][trans][
+                        "grads_to_low_error"
+                    ],
+                    "ess_corr": stats["max_over_parameters"][trans]["autocorrelation"],
+                    "max": True,
+                    "statistic": trans,
+                    "num_tuning_grads": stats["num_tuning_grads"],
+                    "L": stats["L"],
+                    "step_size": stats["step_size"],
+                }
+            )
+            results.append(
+                {
+                    "Sampler": sampler,
+                    "Model": model,
+                    "num_grads_to_low_error": stats["avg_over_parameters"][trans][
+                        "grads_to_low_error"
+                    ],
+                    "ess_corr": stats["avg_over_parameters"][trans]["autocorrelation"],
+                    "max": False,
+                    "statistic": trans,
+                    "num_tuning_grads": stats["num_tuning_grads"],
+                    "L": stats["L"],
+                    "step_size": stats["step_size"],
+                }
+            )
+
+        # results.append(
+        #     {
+        #         "Sampler": sampler,
+        #         "Model": model,
+        #         "num_grads_to_low_error": stats["max_over_parameters"]["identity"][
+        #             "grads_to_low_error"
+        #         ],
+        #         "ess_corr": stats["max_over_parameters"]["identity"]["autocorrelation"],
+        #         "max": True,
+        #         "statistic": "x",
+        #         "num_tuning_grads": stats["num_tuning_grads"],
+        #         "L": stats["L"],
+        #         "step_size": stats["step_size"],
+        #     }
+        # )
+        # results.append(
+        #     {
+        #         "Sampler": sampler,
+        #         "Model": model,
+        #         "num_grads_to_low_error": stats["avg_over_parameters"]["identity"][
+        #             "grads_to_low_error"
+        #         ],
+        #         "ess_corr": stats["avg_over_parameters"]["identity"]["autocorrelation"],
+        #         "max": False,
+        #         "statistic": "x",
+        #         "num_tuning_grads": stats["num_tuning_grads"],
+        #         "L": stats["L"],
+        #         "step_size": stats["step_size"],
+        #     }
+        # )
         df = pd.DataFrame(results)
 
         if save_dir is not None:
