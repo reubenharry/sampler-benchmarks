@@ -3,7 +3,7 @@ import os
 import jax
 jax.config.update("jax_enable_x64", True)
 
-batch_size = 64
+batch_size = 512
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 num_cores = jax.local_device_count()
 
@@ -33,5 +33,6 @@ run_benchmarks(
         num_steps=40000,
         save_dir="results/Brownian_Motion",
         key=jax.random.key(19),
-        map=jax.pmap
+        map=jax.pmap,
+        calculate_ess_corr=False
     )

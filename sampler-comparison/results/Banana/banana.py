@@ -1,8 +1,9 @@
+from functools import partial
 import os
 import jax
 jax.config.update("jax_enable_x64", True)
 
-batch_size = 2048
+batch_size = 2
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 num_cores = jax.local_device_count()
 
@@ -27,14 +28,15 @@ run_benchmarks(
         },
         samplers={
 
-            "adjusted_microcanonical": lambda: adjusted_mclmc(num_tuning_steps=5000),
-            "adjusted_microcanonical_langevin": lambda: adjusted_mclmc(L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
-            "nuts": lambda: nuts(num_tuning_steps=5000),
-            "unadjusted_microcanonical": lambda: unadjusted_mclmc(num_tuning_steps=10000),
+            "adjusted_microcanonical": partial(adjusted_mclmc,num_tuning_steps=5000),
+            # "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
+            # "nuts": partial(nuts,num_tuning_steps=5000),
+            # "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=10000),
         },
         batch_size=batch_size,
         num_steps=20000,
         save_dir="results/Banana",
         key=jax.random.key(20),
-        map=jax.pmap
+        map=jax.pmap,
+        calculate_ess_corr=True,
     )

@@ -334,7 +334,7 @@ def sampler_grads_to_low_error(
 
     if calculate_ess_corr:
 
-        raise Exception("change to dict")
+        # raise Exception("change to dict")
 
         ess_correlation_max = jnp.min(effective_sample_size(samples) / (samples.shape[1] * batch_size * grad_evals_per_step))
         ess_correlation_avg = jnp.mean(effective_sample_size(samples) / (samples.shape[1] * batch_size * grad_evals_per_step))
@@ -342,26 +342,82 @@ def sampler_grads_to_low_error(
         # jax.debug.print("\nAVERAGE: {x}\n",x=jnp.mean(samples, axis=1))
         # jax.debug.print("\nAVERAGE: {x}\n",x=jnp.max(jnp.mean(samples, axis=1)))
 
-        squared_errors_max_x2 = get_standardized_squared_error(samples, lambda x:x**2,
-            model.sample_transformations["square"].ground_truth_mean,
-            model.sample_transformations["square"].ground_truth_standard_deviation**2,
+        # trans : 
+                                                            
+        #             {
+        #             'avg' : jnp.average(
+        #             jnp.square(
+        #                 expectation - model.sample_transformations[trans].ground_truth_mean
+        #             )
+        #             / (
+        #                 model.sample_transformations[
+        #                     trans
+        #                 ].ground_truth_standard_deviation
+        #                 ** 2
+        #             )),
+        #             'max' : jnp.max(
+        #             jnp.square(
+        #                 expectation - model.sample_transformations[trans].ground_truth_mean
+        #             )
+        #             / (
+        #                 model.sample_transformations[
+        #                     trans
+        #                 ].ground_truth_standard_deviation
+        #                 ** 2
+        #             )),
+        #             }
+                    
+                    
+                     
+        #             for trans, expectation in itertools.zip_longest(
+        #                 model.sample_transformations,
+        #                 expectations
+        #             )
+                    
+        #             # [('identity', expectations[0]),('square', expectations[1])] 
+                    
+        #             }
+
+        ess_correlation = {
+            "max": ess_correlation_max,
+            "avg": ess_correlation_avg,
+        }
+
+        squared_errors = {
+            trans : {
+                'avg' : get_standardized_squared_error(samples, model.sample_transformations[trans].fn,
+            model.sample_transformations[trans].ground_truth_mean,
+            model.sample_transformations[trans].ground_truth_standard_deviation**2,
+            contract_fn=jnp.mean),
+                'max' : get_standardized_squared_error(samples, model.sample_transformations[trans].fn,
+            model.sample_transformations[trans].ground_truth_mean,
+            model.sample_transformations[trans].ground_truth_standard_deviation**2,
             contract_fn=jnp.max)
-        squared_errors_avg_x2 = get_standardized_squared_error(samples, lambda x:x**2,
-            model.sample_transformations["square"].ground_truth_mean,
-            model.sample_transformations["square"].ground_truth_standard_deviation**2,
-            contract_fn=jnp.mean)
-        squared_errors_max_x = get_standardized_squared_error(samples, lambda x:x,
-            model.sample_transformations["identity"].ground_truth_mean,
-            model.sample_transformations["identity"].ground_truth_standard_deviation**2,
-            contract_fn=jnp.max)
-        squared_errors_avg_x = get_standardized_squared_error(samples, lambda x:x,
-            model.sample_transformations["identity"].ground_truth_mean,
-            model.sample_transformations["identity"].ground_truth_standard_deviation**2,
-            contract_fn=jnp.mean)
+            }
+
+            for trans in model.sample_transformations
+        }
+
+        # squared_errors_max_x2 = get_standardized_squared_error(samples, lambda x:x**2,
+        #     model.sample_transformations["square"].ground_truth_mean,
+        #     model.sample_transformations["square"].ground_truth_standard_deviation**2,
+        #     contract_fn=jnp.max)
+        # squared_errors_avg_x2 = get_standardized_squared_error(samples, lambda x:x**2,
+        #     model.sample_transformations["square"].ground_truth_mean,
+        #     model.sample_transformations["square"].ground_truth_standard_deviation**2,
+        #     contract_fn=jnp.mean)
+        # squared_errors_max_x = get_standardized_squared_error(samples, lambda x:x,
+        #     model.sample_transformations["identity"].ground_truth_mean,
+        #     model.sample_transformations["identity"].ground_truth_standard_deviation**2,
+        #     contract_fn=jnp.max)
+        # squared_errors_avg_x = get_standardized_squared_error(samples, lambda x:x,
+        #     model.sample_transformations["identity"].ground_truth_mean,
+        #     model.sample_transformations["identity"].ground_truth_standard_deviation**2,
+        #     contract_fn=jnp.mean)
         
         # jax.debug.print("squared errors {x}", x=squared_errors_max_x2[:3])
         
-        squared_errors = jnp.stack([squared_errors_avg_x2, squared_errors_max_x2, squared_errors_avg_x, squared_errors_max_x], axis=1)
+        # squared_errors = jnp.stack([squared_errors_avg_x2, squared_errors_max_x2, squared_errors_avg_x, squared_errors_max_x], axis=1)
 
         # jax.debug.print("shape 1 {x}", x=squared_errors.shape)
         # jax.debug.print("shape 2 {x}", x=squared_errors_max_x2.shape)

@@ -50,9 +50,9 @@ for dim, integrator_type in itertools.product(dims, integrator_types):
 
                 # f"adjusted_microcanonical_{integrator_type}": lambda: adjusted_mclmc(num_tuning_steps=5000, integrator_type=integrator_type),
 
-                "adjusted_hmc": partial(adjusted_hmc,num_tuning_steps=5000)
+                f"adjusted_hmc_{integrator_type}": partial(adjusted_hmc,num_tuning_steps=5000)
             
-                # f"unadjusted_microcanonical__{integrator_type}": lambda: unadjusted_mclmc(num_tuning_steps=10000, integrator_type=integrator_type),
+                # f"unadjusted_microcanonical_{integrator_type}": lambda: unadjusted_mclmc(num_tuning_steps=10000, integrator_type=integrator_type),
 
                 # f"nuts_{integrator_type}": lambda: nuts(num_tuning_steps=5000),
 
