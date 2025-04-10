@@ -1,5 +1,5 @@
-,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
-0,unadjusted_microcanonical,U1,254.0,True,x2,22220.0,23.016102469063227,0.07444012176147732
-1,unadjusted_microcanonical,U1,192.0,False,x2,22220.0,23.016102469063227,0.07444012176147732
-2,unadjusted_microcanonical,U1,646.0,True,x,22220.0,23.016102469063227,0.07444012176147732
-3,unadjusted_microcanonical,U1,274.0,False,x,22220.0,23.016102469063227,0.07444012176147732
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,unadjusted_microcanonical,U1,1110.0,,True,polyakov,22220.0,23.063250317833415,0.07557713277358508
+1,unadjusted_microcanonical,U1,426.0,,False,polyakov,22220.0,23.063250317833415,0.07557713277358508
+2,unadjusted_microcanonical,U1,inf,,True,polyakov^2,22220.0,23.063250317833415,0.07557713277358508
+3,unadjusted_microcanonical,U1,inf,,False,polyakov^2,22220.0,23.063250317833415,0.07557713277358508
