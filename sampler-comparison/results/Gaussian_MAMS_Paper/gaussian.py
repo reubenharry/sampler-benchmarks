@@ -22,22 +22,15 @@ from functools import partial
 from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import adjusted_hmc
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_adjusted_mclmc
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc, grid_search_hmc
+from sampler_comparison.samplers import samplers
 
-
+model = IllConditionedGaussian(ndims=100, condition_number=100, eigenvalues='log')
 
 
 run_benchmarks(
-        models={
-            "Gaussian_MAMS_Paper": IllConditionedGaussian(ndims=100, condition_number=100, eigenvalues='log'),
-        },
-        samplers={
 
-            "hmc": partial(adjusted_hmc,num_tuning_steps=5000),
-            # "adjusted_microcanonical": partial(adjusted_mclmc,num_tuning_steps=5000),
-            # "adjusted_microcanonical_langevin": partial(adjusted_mclmc, L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
-            # "nuts": partial(nuts, num_tuning_steps=5000),
-            # "unadjusted_microcanonical": partial(unadjusted_mclmc, num_tuning_steps=20000),
-        },
+        models={model.name: model},
+        samplers=samplers,
         batch_size=batch_size,
         num_steps=40000,
         save_dir="results/Gaussian_MAMS_Paper",

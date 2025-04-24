@@ -23,6 +23,8 @@ def unadjusted_lmc_no_tuning(
     return_samples=False,
     incremental_value_transform=None,
     return_only_final=False,
+    desired_energy_var=5e-4,
+    desired_energy_var_max_ratio=jnp.inf,
 ):
     """
     Args:
@@ -46,6 +48,8 @@ def unadjusted_lmc_no_tuning(
             step_size=step_size,
             inverse_mass_matrix=inverse_mass_matrix,
             integrator=map_integrator_type_to_integrator["hmc"][integrator_type],
+            desired_energy_var=desired_energy_var,
+            desired_energy_var_max_ratio=desired_energy_var_max_ratio,
         )
 
         if return_samples:
@@ -84,6 +88,8 @@ def unadjusted_lmc_no_tuning(
 
         (expectations, info) = history
 
+        # jax.debug.print("EEVPD {x}", x=jnp.var(info.energy_change)/model.ndims)
+
         return (
             expectations,
             {
@@ -107,7 +113,10 @@ def unadjusted_lmc_tuning(
     diagonal_preconditioning,
     num_tuning_steps=500,
     stage3=True,
-    desired_energy_var=5e-4
+    desired_energy_var=5e-4,
+    desired_energy_var_max_ratio=jnp.inf,
+    num_windows=2,
+    params=None,
 ):
     """
     Args:
@@ -139,12 +148,16 @@ def unadjusted_lmc_tuning(
         logdensity_fn=logdensity_fn,
         integrator=map_integrator_type_to_integrator["hmc"][integrator_type],
         inverse_mass_matrix=inverse_mass_matrix,
+        desired_energy_var=desired_energy_var,
+        desired_energy_var_max_ratio=desired_energy_var_max_ratio,
+        # (1/desired_energy_var)*10000,
     )
 
     dim = initial_position.shape[0]
-    params = MCLMCAdaptationState(
-        4, 1 , inverse_mass_matrix=jnp.ones((dim,))
-    )
+    if params is None:
+        params = MCLMCAdaptationState(
+            4., 1.0 , inverse_mass_matrix=jnp.ones((dim,))
+        )
 
     return blackjax.mclmc_find_L_and_step_size(
         mclmc_kernel=kernel,
@@ -157,6 +170,7 @@ def unadjusted_lmc_tuning(
         frac_tune1=frac_tune1,
         params=params,
         desired_energy_var=desired_energy_var,
+        num_windows=num_windows,
         euclidean=True,
     )
 
@@ -167,7 +181,10 @@ def unadjusted_lmc(
     num_tuning_steps=20000,
     return_samples=False,
     desired_energy_var=5e-4,
+    desired_energy_var_max_ratio=jnp.inf,
     return_only_final=False,
+    num_windows=2,
+    params=None,
 ):
     def s(model, num_steps, initial_position, key):
 
@@ -190,8 +207,11 @@ def unadjusted_lmc(
             diagonal_preconditioning=diagonal_preconditioning,
             num_tuning_steps=num_tuning_steps,
             desired_energy_var=desired_energy_var,
+            desired_energy_var_max_ratio=desired_energy_var_max_ratio,
+            num_windows=num_windows,
+            params=params,
         )
-        jax.debug.print("params {x}", x=(blackjax_mclmc_sampler_params.step_size, blackjax_mclmc_sampler_params.L))
+        # jax.debug.print("params {x}", x=(blackjax_mclmc_sampler_params))
 
         expectations, metadata = unadjusted_lmc_no_tuning(
             initial_state=blackjax_state_after_tuning,
@@ -201,6 +221,8 @@ def unadjusted_lmc(
             inverse_mass_matrix=blackjax_mclmc_sampler_params.inverse_mass_matrix,
             return_samples=return_samples,
             return_only_final=return_only_final,
+            desired_energy_var=desired_energy_var,
+            desired_energy_var_max_ratio=desired_energy_var_max_ratio,
         )(model, num_steps, initial_position, run_key)
 
         return expectations, metadata | {

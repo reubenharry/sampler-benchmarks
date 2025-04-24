@@ -42,7 +42,7 @@ def run_benchmarks(
             # pvmap=map,
         )
 
-        jax.debug.print("stats {x}", x=stats)
+        # jax.debug.print("stats {x}", x=stats)
         # raise Exception
 
         for trans in models[model].sample_transformations:
@@ -78,36 +78,6 @@ def run_benchmarks(
                 }
             )
 
-        # results.append(
-        #     {
-        #         "Sampler": sampler,
-        #         "Model": model,
-        #         "num_grads_to_low_error": stats["max_over_parameters"]["identity"][
-        #             "grads_to_low_error"
-        #         ],
-        #         "ess_corr": stats["max_over_parameters"]["identity"]["autocorrelation"],
-        #         "max": True,
-        #         "statistic": "x",
-        #         "num_tuning_grads": stats["num_tuning_grads"],
-        #         "L": stats["L"],
-        #         "step_size": stats["step_size"],
-        #     }
-        # )
-        # results.append(
-        #     {
-        #         "Sampler": sampler,
-        #         "Model": model,
-        #         "num_grads_to_low_error": stats["avg_over_parameters"]["identity"][
-        #             "grads_to_low_error"
-        #         ],
-        #         "ess_corr": stats["avg_over_parameters"]["identity"]["autocorrelation"],
-        #         "max": False,
-        #         "statistic": "x",
-        #         "num_tuning_grads": stats["num_tuning_grads"],
-        #         "L": stats["L"],
-        #         "step_size": stats["step_size"],
-        #     }
-        # )
         df = pd.DataFrame(results)
 
         if save_dir is not None:

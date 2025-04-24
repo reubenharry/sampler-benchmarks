@@ -36,7 +36,7 @@ def adjusted_hmc_no_tuning(
     return_only_final=False,
 ):
     
-    print("Begin")
+    # print("Begin")
 
     def s(model, num_steps, initial_position, key):
 
@@ -52,6 +52,8 @@ def adjusted_hmc_no_tuning(
             ).astype('int32')
         else:
             integration_steps_fn = lambda _: num_steps_per_traj.astype(jnp.int32)
+
+        # print(integration_steps_fn(jax.random.key(0)))
 
         alg = blackjax.dynamic_hmc(
             logdensity_fn=logdensity_fn,
@@ -241,7 +243,7 @@ def adjusted_hmc_tuning(
         frac_tune1=2000 / num_steps,
         frac_tune2=0.0,
         target=target_acc_rate,
-        diagonal_preconditioning=True,
+        diagonal_preconditioning=diagonal_preconditioning,
         max=max,
         tuning_factor=tuning_factor,
         fix_L_first_da=True,
@@ -284,7 +286,7 @@ def adjusted_hmc_tuning(
             frac_tune1=2000 / num_steps,
             frac_tune2=0.0,
             target=target_acc_rate,
-            diagonal_preconditioning=True,
+            diagonal_preconditioning=diagonal_preconditioning,
             max=max,
             tuning_factor=tuning_factor,
             fix_L_first_da=True,

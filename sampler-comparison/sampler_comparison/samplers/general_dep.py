@@ -226,7 +226,7 @@ def sampler_grads_to_low_error(
 
     if hasattr(model, "sample_init") and model.sample_init is not None:
         initial_position = jax.vmap(model.sample_init)(init_keys)
-        jax.debug.print("using sample init {x}",x=True)
+        # jax.debug.print("using sample init {x}",x=True)
     else:
         initial_position = jax.vmap(lambda key: initialize_model(model, key))(init_keys)
 

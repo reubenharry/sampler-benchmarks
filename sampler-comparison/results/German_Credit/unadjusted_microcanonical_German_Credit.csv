@@ -1,5 +1,0 @@
-,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
-0,unadjusted_microcanonical,German_Credit,39674.0,True,x2,44446.0,13.875843630995867,0.6045918526138883
-1,unadjusted_microcanonical,German_Credit,4138.0,False,x2,44446.0,13.875843630995867,0.6045918526138883
-2,unadjusted_microcanonical,German_Credit,42152.0,True,x,44446.0,13.875843630995867,0.6045918526138883
-3,unadjusted_microcanonical,German_Credit,5042.0,False,x,44446.0,13.875843630995867,0.6045918526138883

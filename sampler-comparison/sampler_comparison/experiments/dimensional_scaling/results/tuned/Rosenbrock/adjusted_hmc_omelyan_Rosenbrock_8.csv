@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_hmc_omelyan,Rosenbrock_8,28941.007618828473,,True,identity,1441084.96124031,2.0,0.2794461934357965
+1,adjusted_hmc_omelyan,Rosenbrock_8,10924.514014533024,,False,identity,1441084.96124031,2.0,0.2794461934357965
+2,adjusted_hmc_omelyan,Rosenbrock_8,34958.44484650568,,True,square,1441084.96124031,2.0,0.2794461934357965
+3,adjusted_hmc_omelyan,Rosenbrock_8,14792.8665180398,,False,square,1441084.96124031,2.0,0.2794461934357965

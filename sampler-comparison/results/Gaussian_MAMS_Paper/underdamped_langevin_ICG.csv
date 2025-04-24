@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,underdamped_langevin,ICG,65561.0,,True,identity,0.0,0.1,0.05
+1,underdamped_langevin,ICG,34458.0,,False,identity,0.0,0.1,0.05
+2,underdamped_langevin,ICG,24942.0,,True,square,0.0,0.1,0.05
+3,underdamped_langevin,ICG,17371.0,,False,square,0.0,0.1,0.05

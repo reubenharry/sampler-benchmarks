@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,unadjusted_microcanonical,vector_synthetic_item_response_theory,14134.0,,True,identity,44446.0,51.92428139341871,6.573258078090334
+1,unadjusted_microcanonical,vector_synthetic_item_response_theory,1460.0,,False,identity,44446.0,51.92428139341871,6.573258078090334
+2,unadjusted_microcanonical,vector_synthetic_item_response_theory,18766.0,,True,square,44446.0,51.92428139341871,6.573258078090334
+3,unadjusted_microcanonical,vector_synthetic_item_response_theory,1612.0,,False,square,44446.0,51.92428139341871,6.573258078090334

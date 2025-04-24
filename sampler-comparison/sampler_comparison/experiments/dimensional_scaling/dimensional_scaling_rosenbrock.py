@@ -1,3 +1,4 @@
+from functools import partial
 import itertools
 import os
 
@@ -24,11 +25,15 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unad
 import numpy as np
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_adjusted_mclmc
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc
+from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import adjusted_hmc
+from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_langevin import unadjusted_lmc, unadjusted_lmc_no_tuning
+import jax.numpy as jnp
+
+Ds = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,4, 5)).astype(int)])[:]
 
 
-# Ds = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,4, 5)).astype(int)])[9:]
 
-Ds = [50, 500, 5000]
+# Ds = [50, 500, 5000]
 
 # print(Ds)
 # raise Exception
@@ -49,9 +54,19 @@ for D, integrator_type in itertools.product(Ds, integrator_types):
             },
             samplers={
 
-                f"adjusted_microcanonical_{integrator_type}": lambda: adjusted_mclmc(num_tuning_steps=5000, integrator_type=integrator_type),
+                # f"adjusted_microcanonical_{integrator_type}": partial(adjusted_mclmc,num_tuning_steps=5000, integrator_type=integrator_type),
 
-                f"nuts_{integrator_type}": lambda: nuts(num_tuning_steps=5000),
+                # f"nuts_{integrator_type}": partial(nuts,num_tuning_steps=5000),
+
+                # f"adjusted_hmc_{integrator_type}": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type=integrator_type, diagonal_preconditioning=True),
+
+
+
+                f"underdamped_langevin_{integrator_type}": partial(unadjusted_lmc,desired_energy_var=5e-1, 
+                # desired_energy_var_max_ratio=(1/desired_energy_var)*1000000,
+                desired_energy_var_max_ratio=jnp.inf,
+                    
+                    num_tuning_steps=1000, diagonal_preconditioning=False),
             
                 # f"unadjusted_microcanonical__{integrator_type}": lambda: unadjusted_mclmc(num_tuning_steps=20000, integrator_type=integrator_type),
 
@@ -59,7 +74,7 @@ for D, integrator_type in itertools.product(Ds, integrator_types):
             
             
             batch_size=batch_size,
-            num_steps=10000,
+            num_steps=400000,
             save_dir=f"sampler_comparison/experiments/dimensional_scaling/results/tuned/Rosenbrock",
             key=jax.random.key(19),
             map=jax.pmap
