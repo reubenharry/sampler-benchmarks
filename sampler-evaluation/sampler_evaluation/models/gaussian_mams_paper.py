@@ -54,7 +54,7 @@ class IllConditionedGaussian(model.Model):
             self.e_x2 = eigs
             # self.R = jnp.eye(ndims)
             self.inv_cov = 1.0 / eigs
-            self.cov = eigs
+            self.cov = jnp.diag(eigs)
             self._unnormalized_log_prob = lambda x: -0.5 * jnp.sum(
                 jnp.square(x) * self.inv_cov
             )
@@ -91,6 +91,12 @@ class IllConditionedGaussian(model.Model):
                 ground_truth_mean=self.e_x2,
                 ground_truth_standard_deviation=jnp.sqrt(self.var_x2),
             ),
+            # "covariance": model.Model.SampleTransformation(
+            #     fn=lambda params: jnp.outer(params - self.e_x, params - self.e_x),
+            #     pretty_name="Covariance",
+            #     ground_truth_mean=self.cov,
+            #     ground_truth_standard_deviation=jnp.nan,
+            # ),
         }
 
         super(IllConditionedGaussian, self).__init__(

@@ -36,7 +36,7 @@ def adjusted_hmc_no_tuning(
     return_only_final=False,
 ):
     
-    print("Begin")
+    # print("Begin")
 
     def s(model, num_steps, initial_position, key):
 
@@ -52,6 +52,8 @@ def adjusted_hmc_no_tuning(
             ).astype('int32')
         else:
             integration_steps_fn = lambda _: num_steps_per_traj.astype(jnp.int32)
+
+        # print(integration_steps_fn(jax.random.key(0)))
 
         alg = blackjax.dynamic_hmc(
             logdensity_fn=logdensity_fn,
@@ -129,6 +131,7 @@ def adjusted_hmc_tuning(
     num_tuning_steps=500,
     L_factor_stage_3=0.3,
     warmup='nuts',
+    stage_3=True,
 ):
 
     init_key, tune_key = jax.random.split(rng_key, 2)
@@ -241,7 +244,7 @@ def adjusted_hmc_tuning(
         frac_tune1=2000 / num_steps,
         frac_tune2=0.0,
         target=target_acc_rate,
-        diagonal_preconditioning=True,
+        diagonal_preconditioning=diagonal_preconditioning,
         max=max,
         tuning_factor=tuning_factor,
         fix_L_first_da=True,
@@ -251,8 +254,7 @@ def adjusted_hmc_tuning(
     total_tuning_integrator_steps += num_tuning_integrator_steps
 
 
-    alba_tuning = True
-    if alba_tuning:
+    if stage_3:
 
         (
             blackjax_state_after_tuning,
@@ -284,7 +286,7 @@ def adjusted_hmc_tuning(
             frac_tune1=2000 / num_steps,
             frac_tune2=0.0,
             target=target_acc_rate,
-            diagonal_preconditioning=True,
+            diagonal_preconditioning=diagonal_preconditioning,
             max=max,
             tuning_factor=tuning_factor,
             fix_L_first_da=True,
@@ -305,7 +307,6 @@ def adjusted_hmc(
     diagonal_preconditioning=True,
     # L_proposal_factor=jnp.inf,
     target_acc_rate=0.9,
-    initial_params=None,
     max="avg",
     num_windows=2,
     random_trajectory_length=True,
@@ -314,6 +315,7 @@ def adjusted_hmc(
     L_factor_stage_3=0.3,
     return_samples=False,
     return_only_final=False,
+    stage_3=True,
     warmup='nuts',
 ):
     """
@@ -364,6 +366,7 @@ def adjusted_hmc(
             num_tuning_steps=num_tuning_steps,
             L_factor_stage_3=L_factor_stage_3,
             warmup=warmup,
+            stage_3=stage_3,
         )
 
         # jax.debug.print("initial state {x}",x=blackjax_state_after_tuning)

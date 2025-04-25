@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_hmc_omelyan,Gaussian_563,19035.49999997184,,True,identity,521201.0,0.980035697930127,0.8909415435741593
+1,adjusted_hmc_omelyan,Gaussian_563,1891.999999997201,,False,identity,521201.0,0.980035697930127,0.8909415435741593
+2,adjusted_hmc_omelyan,Gaussian_563,12050.499999982172,,True,square,521201.0,0.980035697930127,0.8909415435741593
+3,adjusted_hmc_omelyan,Gaussian_563,1198.9999999982263,,False,square,521201.0,0.980035697930127,0.8909415435741593

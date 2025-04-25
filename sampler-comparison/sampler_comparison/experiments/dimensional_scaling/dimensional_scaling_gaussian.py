@@ -26,10 +26,11 @@ from sampler_evaluation.models.gaussian_mams_paper import IllConditionedGaussian
 from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unadjusted_mclmc
 import numpy as np
 from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import adjusted_hmc
-
+from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_langevin import unadjusted_lmc, unadjusted_lmc_no_tuning
+import jax.numpy as jnp
 dims = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,5, 5)).astype(int)])
 
-# dims = [100, 1000, 10000]
+# dims = [100000]
 
 # integrator_types = ['velocity_verlet', 'mclachlan', 'omelyan']
 integrator_types = ['velocity_verlet']
@@ -50,9 +51,17 @@ for dim, integrator_type in itertools.product(dims, integrator_types):
 
                 # f"adjusted_microcanonical_{integrator_type}": lambda: adjusted_mclmc(num_tuning_steps=5000, integrator_type=integrator_type),
 
-                "adjusted_hmc": partial(adjusted_hmc,num_tuning_steps=5000)
+                # f"adjusted_hmc_{integrator_type}": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type=integrator_type, diagonal_preconditioning=True),
+
+                f"underdamped_langevin_{integrator_type}": partial(unadjusted_lmc,desired_energy_var=1e-1, 
+                # desired_energy_var_max_ratio=(1/desired_energy_var)*1000000,
+                desired_energy_var_max_ratio=jnp.inf,
+                    
+                    num_tuning_steps=20000, diagonal_preconditioning=False),
+
+                # f"underdamped_langevin_{integrator_type}": partial(unadjusted_lmc,desired_energy_var=5e-2, num_tuning_steps=5000, diagonal_preconditioning=False, integrator_type=integrator_type),
             
-                # f"unadjusted_microcanonical__{integrator_type}": lambda: unadjusted_mclmc(num_tuning_steps=10000, integrator_type=integrator_type),
+                # f"unadjusted_microcanonical_{integrator_type}": lambda: unadjusted_mclmc(num_tuning_steps=10000, integrator_type=integrator_type),
 
                 # f"nuts_{integrator_type}": lambda: nuts(num_tuning_steps=5000),
 
@@ -60,7 +69,7 @@ for dim, integrator_type in itertools.product(dims, integrator_types):
             
             
             batch_size=batch_size,
-            num_steps=10000,
+            num_steps=20000,
             save_dir=f"sampler_comparison/experiments/dimensional_scaling/results/tuned/Gaussian",
             key=jax.random.key(19),
         )

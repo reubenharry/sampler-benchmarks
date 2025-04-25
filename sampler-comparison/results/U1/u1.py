@@ -32,9 +32,9 @@ run_benchmarks(
         },
         samplers={
 
-            # "adjusted_microcanonical": partial(adjusted_mclmc,num_tuning_steps=500),
-            "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
-            "nuts": partial(nuts,num_tuning_steps=500),
+            "adjusted_microcanonical": partial(adjusted_mclmc,num_tuning_steps=1000),
+            # "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
+            "nuts": partial(nuts,num_tuning_steps=1000),
             # "nuts": partial(annealed(nuts, beta_schedule=[10.0, 5.0, 2.0],intermediate_num_steps=1000),num_tuning_steps=500),
             "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=10000),
         },

@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_hmc,Stochastic_Volatility,37340.870171950286,,True,identity,393949.78125,1.0105001040555275,0.08302381822368231
+1,adjusted_hmc,Stochastic_Volatility,2557.5938473938554,,False,identity,393949.78125,1.0105001040555275,0.08302381822368231
+2,adjusted_hmc,Stochastic_Volatility,48058.406294362634,,True,square,393949.78125,1.0105001040555275,0.08302381822368231
+3,adjusted_hmc,Stochastic_Volatility,2618.488938998471,,False,square,393949.78125,1.0105001040555275,0.08302381822368231

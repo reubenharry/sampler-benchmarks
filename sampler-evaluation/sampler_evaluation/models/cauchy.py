@@ -1,7 +1,8 @@
 import jax
 import jax.numpy as jnp
 
-from sampler_evaluation.models.model import make_model
+from sampler_evaluation.models.model import SampleTransformation, make_model
+
 # class Cauchy():
 #     """d indpendent copies of the standard Cauchy distribution"""
 
@@ -19,7 +20,14 @@ def cauchy(ndims):
     logdensity_fn=lambda x: -jnp.sum(jnp.log(1. + jnp.square(x))),
     ndims=ndims,
     default_event_space_bijector=lambda x: x,
-    sample_transformations = {},
+    sample_transformations = {
+        SampleTransformation(
+            fn=lambda x: x,
+            pretty_name='Identity',
+            ground_truth_mean=jnp.zeros(ndims),
+            ground_truth_standard_deviation=jnp.ones(ndims),
+        ),
+    },
     name='Cauchy',
 
 )

@@ -212,7 +212,7 @@ if __name__ == "__main__":
     print(f"Estimating ground truth for {model.name}")
     toc = time.time()
     ### SET ANNEALING TO TRUE!!!
-    estimate_ground_truth(model, num_samples=1000000, annealing=False)
+    estimate_ground_truth(model, num_samples=100000, annealing=False)
     tic = time.time()
     print(f"Time taken: {tic - toc}")
     print("Done")

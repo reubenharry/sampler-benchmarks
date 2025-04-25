@@ -2,14 +2,10 @@ from collections import namedtuple
 import os
 import jax
 jax.config.update("jax_enable_x64", True)
-import sampler_evaluation
 
-
-import sys
 import jax.numpy as jnp 
 
 import os
-module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 def logdensity_fn_funnel(x):

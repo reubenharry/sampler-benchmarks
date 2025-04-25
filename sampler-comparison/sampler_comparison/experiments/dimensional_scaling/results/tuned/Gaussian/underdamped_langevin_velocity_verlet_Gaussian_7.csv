@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,underdamped_langevin_velocity_verlet,Gaussian_7,3229.0,,True,identity,20001.0,1.0297374935994732,0.15626446292113091
+1,underdamped_langevin_velocity_verlet,Gaussian_7,1143.0,,False,identity,20001.0,1.0297374935994732,0.15626446292113091
+2,underdamped_langevin_velocity_verlet,Gaussian_7,4276.0,,True,square,20001.0,1.0297374935994732,0.15626446292113091
+3,underdamped_langevin_velocity_verlet,Gaussian_7,1118.0,,False,square,20001.0,1.0297374935994732,0.15626446292113091

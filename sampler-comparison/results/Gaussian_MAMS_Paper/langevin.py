@@ -2,7 +2,7 @@ import os
 import jax
 jax.config.update("jax_enable_x64", True)
 # jax.config.update("jax_debug_nans", True)
-batch_size = 512
+batch_size = 128
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 num_cores = jax.local_device_count()
 
@@ -29,7 +29,9 @@ from functools import partial
 from sampler_evaluation.models.brownian import brownian_motion
 from sampler_evaluation.models.banana import banana
 
-model = banana()
+D = 18
+model = sampler_evaluation.models.Rosenbrock(D=D)
+# model = IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log')
 
 initial_position = jax.random.normal(jax.random.PRNGKey(0), (model.ndims,))
 
@@ -46,27 +48,33 @@ initial_state = blackjax.langevin.init(
         metric=metrics.default_metric(inverse_mass_matrix)
     )
 
+desired_energy_var = 5e-1
 run_benchmarks(
-        models={
-            # "Gaussian_MAMS_Paper": IllConditionedGaussian(ndims=100, condition_number=100, eigenvalues='log'),
-            "Banana": model,
-            # "Brownian": model,
-        },
-        samplers={
+            models={
+                # "Gaussian_MAMS_Paper": IllConditionedGaussian(ndims=100, condition_number=100, eigenvalues='log'),
+                model.name: model,
+                # "Brownian": model,
+            },
+            samplers={
 
-            # "underdamped_langevin": partial(unadjusted_lmc_no_tuning,
-            #     initial_state=initial_state,
-            #     integrator_type='velocity_verlet',
-            #     step_size=0.5,
-            #     L=100.0,
-            #     inverse_mass_matrix=inverse_mass_matrix,
-            # ),
+                # "underdamped_langevin": partial(unadjusted_lmc_no_tuning,
+                #     initial_state=initial_state,
+                #     integrator_type='velocity_verlet',
+                #     step_size=0.05360319,
+                #     L=2.7222815,
+                #     inverse_mass_matrix=inverse_mass_matrix,
+                # ),
 
-            "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=5e-2, num_tuning_steps=5000, diagonal_preconditioning=False),
-        },
-        batch_size=batch_size,
-        num_steps=20000,
-        save_dir="results/Gaussian_MAMS_Paper",
-        key=jax.random.key(19),
-        map=jax.pmap
-    )
+                "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=desired_energy_var, 
+                # desired_energy_var_max_ratio=(1/desired_energy_var)*1000000,
+                desired_energy_var_max_ratio=jnp.inf,
+                    
+                    num_tuning_steps=1000, diagonal_preconditioning=False),
+                
+            },
+            batch_size=batch_size,
+            num_steps=500000,
+            save_dir="results/Gaussian_MAMS_Paper",
+            key=jax.random.key(17),
+            map=jax.pmap
+        )

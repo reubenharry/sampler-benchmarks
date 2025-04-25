@@ -15,7 +15,6 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import (
 from results.run_benchmarks import run_benchmarks
 from sampler_evaluation.models import models
 from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
-from sampler_evaluation.models.gaussian_mams_paper import IllConditionedGaussian
 
 
 def benchmark_grid_search(model):

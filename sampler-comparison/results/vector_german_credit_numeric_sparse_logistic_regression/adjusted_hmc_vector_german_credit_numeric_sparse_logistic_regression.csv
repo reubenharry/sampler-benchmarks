@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_hmc,vector_german_credit_numeric_sparse_logistic_regression,45497.40315695776,,True,identity,637300.345703125,1.971944882135667,0.05315976293211142
+1,adjusted_hmc,vector_german_credit_numeric_sparse_logistic_regression,6796.754920590424,,False,identity,637300.345703125,1.971944882135667,0.05315976293211142
+2,adjusted_hmc,vector_german_credit_numeric_sparse_logistic_regression,56453.9206518986,,True,square,637300.345703125,1.971944882135667,0.05315976293211142
+3,adjusted_hmc,vector_german_credit_numeric_sparse_logistic_regression,7168.162293300283,,False,square,637300.345703125,1.971944882135667,0.05315976293211142

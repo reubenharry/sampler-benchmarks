@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,underdamped_langevin,Gaussian_100,inf,,True,identity,25005.0,1.0329046842844873,0.11116208008316754
+1,underdamped_langevin,Gaussian_100,7935.0,,False,identity,25005.0,1.0329046842844873,0.11116208008316754
+2,underdamped_langevin,Gaussian_100,inf,,True,square,25005.0,1.0329046842844873,0.11116208008316754
+3,underdamped_langevin,Gaussian_100,8810.0,,False,square,25005.0,1.0329046842844873,0.11116208008316754
