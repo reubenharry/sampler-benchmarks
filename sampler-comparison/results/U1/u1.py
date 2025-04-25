@@ -28,7 +28,7 @@ from sampler_evaluation.models.u1 import U1
 
 run_benchmarks(
         models={
-            "U1": U1(Lt=4, Lx=4, beta=1),
+            "U1": U1(Lt=8, Lx=8, beta=1),
         },
         samplers={
 
