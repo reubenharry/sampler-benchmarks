@@ -4,6 +4,7 @@ import jax
 #import sampler_evaluation
 from collections import namedtuple
 import jax.numpy as jnp
+from sampler_evaluation.models.model import SampleTransformation, make_model
 
 import os
 module_dir = os.path.dirname(os.path.abspath(__file__))
@@ -51,16 +52,30 @@ def transform(x):
 
         return z
 
-SampleTransformation = namedtuple("SampleTransformation", ["ground_truth_mean", "ground_truth_standard_deviation"])
-Model = namedtuple("Model", ["ndims", "log_density_fn", "default_event_space_bijector", "sample_transformations", "name" ])
+# SampleTransformation = namedtuple("SampleTransformation", ["ground_truth_mean", "ground_truth_standard_deviation"])
+# Model = namedtuple("Model", ["ndims", "log_density_fn", "default_event_space_bijector", "sample_transformations", "name" ])
 
-stochastic_volatility_mams_paper = Model(
-    ndims = ndims,
-    log_density_fn=logdensity_fn,
-    default_event_space_bijector=transform,
-    sample_transformations={
-        "identity": SampleTransformation(ground_truth_mean=E_x2+jnp.inf, ground_truth_standard_deviation=jnp.sqrt(Var_x2)+jnp.inf),
-        "square": SampleTransformation(ground_truth_mean=E_x2, ground_truth_standard_deviation=jnp.sqrt(Var_x2)),
-    },
-    name="StochasticVolatility_MAMS_Paper"
+# stochastic_volatility_mams_paper = Model(
+#     ndims = ndims,
+#     log_density_fn=logdensity_fn,
+#     default_event_space_bijector=transform,
+#     sample_transformations={
+#         "identity": SampleTransformation(ground_truth_mean=E_x2+jnp.inf, ground_truth_standard_deviation=jnp.sqrt(Var_x2)+jnp.inf),
+#         "square": SampleTransformation(ground_truth_mean=E_x2, ground_truth_standard_deviation=jnp.sqrt(Var_x2)),
+#     },
+#     name="StochasticVolatility_MAMS_Paper"
+# )
+
+stochastic_volatility_mams_paper = make_model(
+        logdensity_fn=logdensity_fn,
+        ndims=ndims,
+        default_event_space_bijector=transform,
+        sample_transformations = {
+        
+        "square": SampleTransformation(
+               fn=lambda x: x**2,
+               ground_truth_mean=E_x2, ground_truth_standard_deviation=jnp.sqrt(Var_x2))},
+
+        exact_sample=None,
+        name="Stochastic_Volatility_MAMS_Paper",
 )

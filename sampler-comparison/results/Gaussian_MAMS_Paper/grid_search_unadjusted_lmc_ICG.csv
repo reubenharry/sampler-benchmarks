@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,grid_search_unadjusted_lmc,ICG,6778.0,,True,identity,0.0,1.2222222222222217,0.17929455539840952
+1,grid_search_unadjusted_lmc,ICG,911.0,,False,identity,0.0,1.2222222222222217,0.17929455539840952
+2,grid_search_unadjusted_lmc,ICG,8950.0,,True,square,0.0,1.2222222222222217,0.17929455539840952
+3,grid_search_unadjusted_lmc,ICG,1142.0,,False,square,0.0,1.2222222222222217,0.17929455539840952

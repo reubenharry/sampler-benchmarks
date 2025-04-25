@@ -29,7 +29,7 @@ from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import adjusted_hmc
 from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_langevin import unadjusted_lmc, unadjusted_lmc_no_tuning
 import jax.numpy as jnp
 
-Ds = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,4, 5)).astype(int)])[:]
+Ds = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,4, 5)).astype(int)])[9:11]
 
 
 
@@ -64,9 +64,9 @@ for D, integrator_type in itertools.product(Ds, integrator_types):
 
                 f"underdamped_langevin_{integrator_type}": partial(unadjusted_lmc,desired_energy_var=5e-1, 
                 # desired_energy_var_max_ratio=(1/desired_energy_var)*1000000,
-                desired_energy_var_max_ratio=jnp.inf,
+                desired_energy_var_max_ratio=1e2,
                     
-                    num_tuning_steps=1000, diagonal_preconditioning=False),
+                    num_tuning_steps=20000, diagonal_preconditioning=True),
             
                 # f"unadjusted_microcanonical__{integrator_type}": lambda: unadjusted_mclmc(num_tuning_steps=20000, integrator_type=integrator_type),
 

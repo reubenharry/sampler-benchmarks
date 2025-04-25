@@ -85,11 +85,11 @@ def U1(Lt, Lx, beta= 1.):
             ground_truth_mean=e_x,
             ground_truth_standard_deviation=jnp.sqrt(e_x2 - e_x**2),
         ),
-        'polyakov^2':SampleTransformation(
-            fn=lambda x: polyakov_autocorr(x)**2,
-            ground_truth_mean=e_x2,
-            ground_truth_standard_deviation=jnp.sqrt(e_x4 - e_x2**2),
-        ),
+        # 'polyakov^2':SampleTransformation(
+        #     fn=lambda x: polyakov_autocorr(x)**2,
+        #     ground_truth_mean=e_x2,
+        #     ground_truth_standard_deviation=jnp.sqrt(e_x4 - e_x2**2),
+        # ),
         },
         exact_sample=None,
         sample_init=sample_init,

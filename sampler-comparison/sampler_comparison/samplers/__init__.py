@@ -4,7 +4,7 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import adjust
 from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import (
     unadjusted_mclmc,
 )
-from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_langevin import unadjusted_lmc, unadjusted_lmc_no_tuning
+from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_langevin import unadjusted_lmc
 from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import adjusted_hmc
 
 

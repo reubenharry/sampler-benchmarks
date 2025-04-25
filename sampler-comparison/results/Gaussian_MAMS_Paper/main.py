@@ -23,9 +23,15 @@ from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import adjusted_hmc
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_adjusted_mclmc
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc, grid_search_hmc
 from sampler_comparison.samplers import samplers
+from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_langevin import unadjusted_lmc
 
 model = IllConditionedGaussian(ndims=100, condition_number=100, eigenvalues='log')
 
+samplers={
+
+            # "adjusted_hmc": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet"),
+            "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=1e-1, num_tuning_steps=20000, diagonal_preconditioning=True),
+}
 
 run_benchmarks(
 

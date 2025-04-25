@@ -1,3 +1,4 @@
+from functools import partial
 import os
 import jax
 jax.config.update("jax_enable_x64", True)
@@ -12,8 +13,13 @@ sys.path.append(".")
 from results.run_benchmarks import run_benchmarks
 import sampler_evaluation
 from sampler_comparison.samplers import samplers
-
+from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import adjusted_hmc
 model = sampler_evaluation.models.german_credit()
+
+samplers={
+
+            "adjusted_hmc_stage_2": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", stage_3=False),
+}
 
 run_benchmarks(
         models={model.name: model},

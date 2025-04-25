@@ -264,7 +264,31 @@ def grid_search_only_L(
                             frac_tune2=0.0,
                             # target=0.9,
                             diagonal_preconditioning=False,
+                            euclidean=True,
+                            desired_energy_var=1e-1,
                         )(lmc_state, params, num_steps, da_key_per_iter)
+                
+                # (
+                #     blackjax_state_after_tuning,
+                #     blackjax_mclmc_sampler_params,
+                #     num_tuning_integrator_steps,
+                # ) =  blackjax.mclmc_find_L_and_step_size(
+                #     mclmc_kernel=kernel,
+                #     num_steps=num_steps,
+                #     state=lmc_state,
+                #     rng_key=da_key_per_iter,
+                #     diagonal_preconditioning=True,
+                #     frac_tune3=0.1,
+                #     frac_tune2=0.0,
+                #     frac_tune1=0.0,
+                #     params=params,
+                #     desired_energy_var=1e-1,
+                #     num_windows=1,
+                #     euclidean=True,
+                # )
+                
+                # jax.debug.print("out {x}", x=blackjax_mclmc_sampler_params.step_size)
+                jax.debug.print("step size {x}", x=params.step_size)
                 
                 sampler = unadjusted_lmc_no_tuning(
                         initial_state=blackjax_state_after_tuning,
@@ -284,6 +308,12 @@ def grid_search_only_L(
                 key=bench_key_per_iter,
                 # num_steps=num_steps,
                 batch_size=num_chains,
+            )
+
+            jax.debug.print("max and avg grads {x}", x=(
+                stats["max_over_parameters"]["square"]["grads_to_low_error"],
+                stats["avg_over_parameters"]["square"]["grads_to_low_error"],
+                )
             )
 
             Num_Grads = Num_Grads.at[i].set(

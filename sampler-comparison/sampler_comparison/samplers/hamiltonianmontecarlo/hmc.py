@@ -131,6 +131,7 @@ def adjusted_hmc_tuning(
     num_tuning_steps=500,
     L_factor_stage_3=0.3,
     warmup='nuts',
+    stage_3=True,
 ):
 
     init_key, tune_key = jax.random.split(rng_key, 2)
@@ -253,8 +254,7 @@ def adjusted_hmc_tuning(
     total_tuning_integrator_steps += num_tuning_integrator_steps
 
 
-    alba_tuning = True
-    if alba_tuning:
+    if stage_3:
 
         (
             blackjax_state_after_tuning,
@@ -307,7 +307,6 @@ def adjusted_hmc(
     diagonal_preconditioning=True,
     # L_proposal_factor=jnp.inf,
     target_acc_rate=0.9,
-    initial_params=None,
     max="avg",
     num_windows=2,
     random_trajectory_length=True,
@@ -316,6 +315,7 @@ def adjusted_hmc(
     L_factor_stage_3=0.3,
     return_samples=False,
     return_only_final=False,
+    stage_3=True,
     warmup='nuts',
 ):
     """
@@ -366,6 +366,7 @@ def adjusted_hmc(
             num_tuning_steps=num_tuning_steps,
             L_factor_stage_3=L_factor_stage_3,
             warmup=warmup,
+            stage_3=stage_3,
         )
 
         # jax.debug.print("initial state {x}",x=blackjax_state_after_tuning)

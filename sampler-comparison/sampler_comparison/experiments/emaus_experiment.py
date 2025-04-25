@@ -29,7 +29,7 @@ from sampler_comparison.samplers.general import initialize_model
 # from sampler_evaluation.models.banana import banana
 import time
 
-batch_size = 4096
+batch_size = 128
 mesh = jax.sharding.Mesh(jax.devices()[:1], 'chains')
 
 print('Number of devices: ', len(jax.devices()))
