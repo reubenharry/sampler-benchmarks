@@ -54,11 +54,11 @@ def U1(Lt, Lx, beta= 1.):
 
     def logdensity_fn(links):
         """Equation 27 in reference [1]"""
-        action_density = jnp.cos(plaquete(unflatten(links)))
+        action_density = jnp.cos(plaquette(unflatten(links)))
         return beta * jnp.sum(action_density)
 
     
-    def plaquete(links):
+    def plaquette(links):
         """Computers theta_{0 1} = Arg(P_{01}(x)) on the lattice. output shape: (L, L)"""
 
         #       theta_0(x) +    theta_1(x + e0)          - theta_0(x+e1)          - x_1(x)
@@ -75,6 +75,17 @@ def U1(Lt, Lx, beta= 1.):
         return jnp.real(jnp.fft.ifft(jnp.square(jnp.abs(jnp.fft.fft(polyakov))))[1:1+Lx//2]) / Lx # fft based autocorrelation, we only store 1:1+Lx//2 (as the autocorrelation is then periodic)
     
 
+    def top_charge(links_flattened):
+        links = unflatten(links_flattened)
+        x = plaquette(links)
+        charge = jnp.sum(jnp.sin(x)) / (2 * jnp.pi)
+        return charge
+    
+    def top_charge_int(links_flattened):
+        x = plaquette(links.reshape(links.shape))
+        charge = jnp.rint(jnp.sum((x + jnp.pi) % (2  * jnp.pi) - jnp.pi) / (2* jnp.pi))
+        return charge
+    
     return make_model(
         logdensity_fn=logdensity_fn,
         ndims=ndims,
@@ -82,14 +93,15 @@ def U1(Lt, Lx, beta= 1.):
         sample_transformations = {
         'polyakov':SampleTransformation(
             fn=polyakov_autocorr,
-            ground_truth_mean=e_x,
-            ground_truth_standard_deviation=jnp.sqrt(e_x2 - e_x**2),
+            ground_truth_mean=jnp.nan,
+            ground_truth_standard_deviation=jnp.nan,
         ),
-        # 'polyakov^2':SampleTransformation(
-        #     fn=lambda x: polyakov_autocorr(x)**2,
-        #     ground_truth_mean=e_x2,
-        #     ground_truth_standard_deviation=jnp.sqrt(e_x4 - e_x2**2),
-        # ),
+        'top_charge':SampleTransformation(
+            fn=top_charge,
+            ground_truth_mean=jnp.nan,
+            ground_truth_standard_deviation=jnp.nan,
+        ),
+            
         },
         exact_sample=None,
         sample_init=sample_init,

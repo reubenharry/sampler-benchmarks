@@ -10,7 +10,7 @@ num_cores = jax.local_device_count()
 
 import sys
 sys.path.append(".")
-
+import blackjax
 from results.run_benchmarks import run_benchmarks
 from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import (
     adjusted_mclmc,
@@ -28,7 +28,7 @@ from sampler_evaluation.models.u1 import U1
 
 run_benchmarks(
         models={
-            "U1": U1(Lt=4, Lx=4, beta=1),
+            "U1": U1(Lt=8, Lx=8, beta=1),
         },
         samplers={
 
