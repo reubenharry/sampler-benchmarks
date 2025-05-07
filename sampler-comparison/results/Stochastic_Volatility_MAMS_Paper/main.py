@@ -35,7 +35,9 @@ run_benchmarks(
             # "adjusted_hmc": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet"),
             # "adjusted_hmc_stage_2": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", stage_3=False),
 
-            "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=1e-6, num_tuning_steps=20000, diagonal_preconditioning=True),
+            "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=1e-4, num_tuning_steps=20000, diagonal_preconditioning=True),
+
+            # "adjusted_malt": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", L_proposal_factor=1.25),
             
 
             # "adjusted_microcanonical": lambda: adjusted_mclmc(num_tuning_steps=5000),
