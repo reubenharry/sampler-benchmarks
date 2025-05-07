@@ -3,7 +3,7 @@ import os
 import jax
 jax.config.update("jax_enable_x64", True)
 
-batch_size = 128
+batch_size = 512
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 num_cores = jax.local_device_count()
 
@@ -35,7 +35,20 @@ from sampler_comparison.samplers import samplers
 
 model = sampler_evaluation.models.brownian_motion()
 
+# samplers_ulmc={
+
+#             # "adjusted_hmc": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet"),
+#             f"underdamped_langevin_{dev}": partial(unadjusted_lmc,desired_energy_var=dev, num_tuning_steps=20000, diagonal_preconditioning=True, stage3=False)
+
+#             for dev in np.logspace(-6, -1, 15)
+            
+#             # "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=20000),
+# }
+
 samplers={
+            "adjusted_hmc": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet"),
+
+            "adjusted_malt": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", L_proposal_factor=1.25),
 
             # "adjusted_hmc": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet"),
 
@@ -45,7 +58,7 @@ samplers={
 
             # "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
 
-            "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=1e-1, num_tuning_steps=20000, diagonal_preconditioning=True, num_windows=1),
+            "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=1e-4, num_tuning_steps=20000, num_windows=1),
 
             # "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=20000),
         }

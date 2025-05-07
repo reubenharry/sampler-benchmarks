@@ -1,4 +1,5 @@
 import os
+import pickle
 import jax
 #from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
 #import sampler_evaluation
@@ -21,7 +22,7 @@ def nlogp_StudentT(x, df, scale):
     )
     return 0.5 * (df + 1.0) * jnp.log1p(y**2.0 / df) + z
 
-name = 'StochasticVolatility'
+name = 'Stochastic_Volatility_MAMS_Paper'
 
 typical_sigma, typical_nu = 0.02, 10.0
 
@@ -66,15 +67,46 @@ def transform(x):
 #     name="StochasticVolatility_MAMS_Paper"
 # )
 
+# with open(
+#         f"{module_dir}/data/{name}_expectations.pkl",
+#         "rb",
+#     ) as f:
+#         stats = pickle.load(f)
+
+# e_x = stats["identity"]
+# cov = stats["covariance"]
+
 stochastic_volatility_mams_paper = make_model(
         logdensity_fn=logdensity_fn,
         ndims=ndims,
         default_event_space_bijector=transform,
         sample_transformations = {
-        
+               
+        "identity": SampleTransformation(
+               fn=lambda x: x,
+               ground_truth_mean=E_x2+jnp.inf, ground_truth_standard_deviation=jnp.sqrt(Var_x2)+jnp.inf),
+
         "square": SampleTransformation(
                fn=lambda x: x**2,
-               ground_truth_mean=E_x2, ground_truth_standard_deviation=jnp.sqrt(Var_x2))},
+               ground_truth_mean=E_x2, ground_truth_standard_deviation=jnp.sqrt(Var_x2)),
+
+ 
+
+        "quartic" : SampleTransformation(
+                fn=lambda params: (params)** 4,
+                ground_truth_mean=jnp.nan,
+                ground_truth_standard_deviation=jnp.nan,
+        ),
+
+
+
+        # "covariance" : 
+        #         SampleTransformation(
+        #         fn=lambda params: jnp.outer((params) - e_x, (params) - e_x),
+        #         ground_truth_mean=cov,
+        #         ground_truth_standard_deviation=jnp.nan,
+        #         )
+        },
 
         exact_sample=None,
         name="Stochastic_Volatility_MAMS_Paper",

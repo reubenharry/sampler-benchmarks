@@ -1,0 +1,7 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_malt,Gaussian_17783,inf,,True,covariance,171183.5,1.3548249586105003,0.09868349124815602
+1,adjusted_malt,Gaussian_17783,inf,,False,covariance,171183.5,1.3548249586105003,0.09868349124815602
+2,adjusted_malt,Gaussian_17783,inf,,True,identity,171183.5,1.3548249586105003,0.09868349124815602
+3,adjusted_malt,Gaussian_17783,3215.1353204578645,,False,identity,171183.5,1.3548249586105003,0.09868349124815602
+4,adjusted_malt,Gaussian_17783,inf,,True,square,171183.5,1.3548249586105003,0.09868349124815602
+5,adjusted_malt,Gaussian_17783,3325.054476712834,,False,square,171183.5,1.3548249586105003,0.09868349124815602

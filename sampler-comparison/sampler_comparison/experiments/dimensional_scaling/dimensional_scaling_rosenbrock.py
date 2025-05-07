@@ -5,7 +5,7 @@ import os
 import jax
 jax.config.update("jax_enable_x64", True)
 
-batch_size = 1024
+batch_size = 2048
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 num_cores = jax.local_device_count()
 
@@ -29,13 +29,15 @@ from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import adjusted_hmc
 from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_langevin import unadjusted_lmc, unadjusted_lmc_no_tuning
 import jax.numpy as jnp
 
-Ds = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,4, 5)).astype(int)])[9:11]
+Ds = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,4, 5)).astype(int)])[12:13]
 
+# print(Ds)
+# raise Exception
 
 
 # Ds = [50, 500, 5000]
 
-# print(Ds)
+# print(Ds*2)
 # raise Exception
 
 # integrator_types = ['velocity_verlet', 'mclachlan', 'omelyan']
@@ -62,11 +64,13 @@ for D, integrator_type in itertools.product(Ds, integrator_types):
 
 
 
-                f"underdamped_langevin_{integrator_type}": partial(unadjusted_lmc,desired_energy_var=5e-1, 
+                # f"underdamped_langevin_{integrator_type}": partial(unadjusted_lmc,desired_energy_var=5e-1, 
                 # desired_energy_var_max_ratio=(1/desired_energy_var)*1000000,
-                desired_energy_var_max_ratio=1e2,
+                # desired_energy_var_max_ratio=1e4,
                     
-                    num_tuning_steps=20000, diagonal_preconditioning=True),
+                    # num_tuning_steps=20000, diagonal_preconditioning=True, num_windows=1),
+
+                "adjusted_malt": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", L_proposal_factor=1.25),
             
                 # f"unadjusted_microcanonical__{integrator_type}": lambda: unadjusted_mclmc(num_tuning_steps=20000, integrator_type=integrator_type),
 
@@ -74,9 +78,9 @@ for D, integrator_type in itertools.product(Ds, integrator_types):
             
             
             batch_size=batch_size,
-            num_steps=400000,
+            num_steps=2000,
             save_dir=f"sampler_comparison/experiments/dimensional_scaling/results/tuned/Rosenbrock",
-            key=jax.random.key(19),
+            key=jax.random.key(18),
             map=jax.pmap
         )
     

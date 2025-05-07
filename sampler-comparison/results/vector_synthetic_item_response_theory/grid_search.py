@@ -32,17 +32,24 @@ import blackjax.mcmc.metrics as metrics
 from results.run_benchmarks import run_benchmarks
 import sampler_evaluation
 from sampler_comparison.samplers import samplers
-from sampler_comparison.samplers.grid_search.grid_search import grid_search_hmc
+from sampler_comparison.samplers.grid_search.grid_search import grid_search_hmc, grid_search_unadjusted_lmc
 from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
+from sampler_evaluation.models.item_response import item_response
 
+model = item_response()
 
-model = sampler_evaluation.models.item_response()
+samplers={
+            # "grid_search_hmc": partial(grid_search_hmc, num_tuning_steps=5000, integrator_type="velocity_verlet", num_chains=batch_size),
+            "grid_search_unadjusted_lmc": partial(grid_search_unadjusted_lmc, num_tuning_steps=20000, integrator_type="velocity_verlet", num_chains=batch_size, opt='max'),
+            "grid_search_malt": partial(grid_search_hmc, num_tuning_steps=5000, integrator_type="velocity_verlet", num_chains=batch_size, L_proposal_factor=1.25),
+            # "grid_search_unadjusted_mclmc": partial(grid_search_unadjusted_mclmc, num_tuning_steps=20000, integrator_type="mclachlan", num_chains=batch_size, opt='max'),
+}
 
 run_benchmarks(
         models={model.name: model},
-        samplers={"grid_search_hmc": partial(grid_search_hmc, num_tuning_steps=5000, integrator_type="velocity_verlet", num_chains=batch_size)},
+        samplers=samplers,
         batch_size=batch_size,
-        num_steps=100000,
+        num_steps=4000,
         save_dir=f"results/{model.name}",
         key=jax.random.key(20),
         map=lambda x : x,

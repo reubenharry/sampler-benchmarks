@@ -3,7 +3,7 @@ import os
 import jax
 jax.config.update("jax_enable_x64", True)
 
-batch_size = 512
+batch_size = 128
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 num_cores = jax.local_device_count()
 
@@ -32,14 +32,22 @@ import blackjax.mcmc.metrics as metrics
 from results.run_benchmarks import run_benchmarks
 import sampler_evaluation
 from sampler_comparison.samplers import samplers
-from sampler_comparison.samplers.grid_search.grid_search import grid_search_hmc
+from sampler_comparison.samplers.grid_search.grid_search import grid_search_hmc, grid_search_unadjusted_lmc
 
 model = sampler_evaluation.models.brownian_motion()
+
+samplers={
+            # "grid_search_hmc": partial(grid_search_hmc, num_tuning_steps=5000, integrator_type="velocity_verlet", num_chains=batch_size),
+            "grid_search_malt": partial(grid_search_hmc, num_tuning_steps=5000, integrator_type="velocity_verlet", num_chains=batch_size, L_proposal_factor=1.25),
+            "grid_search_unadjusted_lmc": partial(grid_search_unadjusted_lmc, num_tuning_steps=20000, integrator_type="velocity_verlet", num_chains=batch_size),
+            # "grid_search_unadjusted_lmc": partial(grid_search_unadjusted_lmc, num_tuning_steps=20000, integrator_type="velocity_verlet", num_chains=batch_size, opt='max'),
+}
+        # samplers={"grid_search_hmc": partial(grid_search_hmc, num_tuning_steps=5000, integrator_type="velocity_verlet", num_chains=batch_size)},
 
 
 run_benchmarks(
         models={model.name: model},
-        samplers={"grid_search_hmc": partial(grid_search_hmc, num_tuning_steps=5000, integrator_type="velocity_verlet", num_chains=batch_size)},
+        samplers=samplers,
         batch_size=batch_size,
         num_steps=40000,
         save_dir=f"results/{model.name}",

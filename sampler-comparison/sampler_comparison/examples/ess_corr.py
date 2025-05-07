@@ -6,7 +6,6 @@ batch_size = 128
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 import jax
 num_cores = jax.local_device_count()
-import inference_gym.using_jax as gym
 
 
 import jax.numpy as jnp

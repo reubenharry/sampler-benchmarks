@@ -1,0 +1,3 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,underdamped_langevin,Cauchy_100D,inf,,True,entropy,103333.0,2.930106087935205,0.015665213185465224
+1,underdamped_langevin,Cauchy_100D,inf,,False,entropy,103333.0,2.930106087935205,0.015665213185465224

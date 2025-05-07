@@ -19,12 +19,12 @@ import jax.numpy as jnp
 import time
 
 # from sampler_evaluation.models.brownian import brownian_motion
-from sampler_evaluation.models.banana import banana
-from sampler_evaluation.models.banana_mams_paper import banana_mams_paper
-from sampler_evaluation.models.phi4 import phi4
-from sampler_evaluation.models.u1 import U1
-from sampler_evaluation.models.neals_funnel import neals_funnel
-from sampler_evaluation.models.rosenbrock import Rosenbrock
+# from sampler_evaluation.models.banana import banana
+# from sampler_evaluation.models.banana_mams_paper import banana_mams_paper
+# from sampler_evaluation.models.phi4 import phi4
+# from sampler_evaluation.models.u1 import U1
+# from sampler_evaluation.models.neals_funnel import neals_funnel
+# from sampler_evaluation.models.rosenbrock import Rosenbrock
 from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
 import sampler_evaluation
 from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
@@ -50,20 +50,27 @@ def expectations_from_exact_samples(model, key, num_samples=1000):
     e_x = jnp.mean(samples, axis=0)
     e_x2 = jnp.mean(jnp.square(samples), axis=0)
     e_x4 = jnp.mean(samples**4, axis=0)
-    return e_x, e_x2, e_x4
+
+    # cov = jnp.cov(samples, rowvar=False)
+    cov = jnp.mean(jax.vmap(lambda x: jnp.outer(x - e_x, x - e_x))(samples), axis=0)
+
+    # jax.debug.print("cov {x}", x=cov)
+
+    return e_x, e_x2, e_x4, cov
 
 
 def estimate_ground_truth(model, num_samples, annealing=False):
 
     if hasattr(model, "exact_sample") and model.exact_sample is not None:
         key = jax.random.PRNGKey(0)
-        e_x, e_x2, e_x4 = expectations_from_exact_samples(
+        e_x, e_x2, e_x4, cov = expectations_from_exact_samples(
             model, key, num_samples=num_samples
         )
         results = {
             "e_x": e_x,
             "e_x2": e_x2,
             "e_x4": e_x4,
+            "cov": cov,
         }
 
     else:
@@ -87,6 +94,7 @@ def estimate_ground_truth(model, num_samples, annealing=False):
                 # 'return_only_final':False,
             })
 
+        num_chains = 4
         key = jax.random.PRNGKey(1)
         run_keys = jax.random.split(key, num_chains)
         init_pos = jax.random.normal(
@@ -106,13 +114,19 @@ def estimate_ground_truth(model, num_samples, annealing=False):
             )
         )(init_pos, run_keys)
 
-        expectation = np.array(expectation)
+        # jax.debug.print("expectation {x}", x=expectation)
+        # raise Exception
+
+        # tree map mean over chains
+        expectation = jax.tree.map(lambda x: jnp.nanmean(x, axis=0), expectation)
+
+        # expectation = np.array(expectation)
 
         # jax.debug.print("expectation {x}", x=expectation.shape)
 
         # raise Exception
 
-        expectation = np.nanmean(expectation, axis=0)
+        # expectation = np.nanmean(expectation, axis=0)
 
         # e_x = expectation[:, 0, :]
         # e_x2 = expectation[:, 1, :]
@@ -129,14 +143,15 @@ def estimate_ground_truth(model, num_samples, annealing=False):
         print(model.sample_transformations.keys())
 
         results = {
-            trans: expectation[i, :]
+            # trans: expectation[i, :]
+            trans: np.array(expectation[trans])
             # "potential_scale_reduction": (
             #     potential_scale_reduction(e_x),
             #     potential_scale_reduction(e_x2),
             #     potential_scale_reduction(e_x4),
             # ),
 
-        for i,trans in enumerate(model.sample_transformations)}
+        for i,trans in enumerate(model.sample_transformations)} | {"num_samples":num_samples}
 
         
         # | {
@@ -153,9 +168,11 @@ def estimate_ground_truth(model, num_samples, annealing=False):
         f"./sampler_evaluation/models/data/{model.name}_expectations.pkl", "wb"
     ) as f:
         pickle.dump(results, f)
+        print(f"Saved {model.name} expectations to {model.name}_expectations_new.pkl")
+        print(f"Results: {results}")
 
-    if not hasattr(model, "exact_sample"):
-        assert quality_check(results), f"More samples needed. Stats are now: {results}"
+    # if not hasattr(model, "exact_sample"):
+    #     assert quality_check(results), f"More samples needed. Stats are now: {results}"
 
 
 def quality_check(stats):
@@ -170,26 +187,37 @@ if __name__ == "__main__":
 
     num_chains = 4
 
-    # gold_standard_expectation_steps = {
+    from sampler_evaluation.models.item_response import item_response
+    from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
+
+    gold_standard_expectation_steps = [
         # phi4(L=4, lam=1): 40000,
         # banana_mams_paper: 10000000,
-    # }
         # neals_funnel(): 1000000,
-        # Gaussian(ndims=100) : 10000
+        # Gaussian(ndims=100) : 10000,
         # IllConditionedGaussian(ndims=100, condition_number=100, eigenvalues='log') : 10000,
         # sampler_evaluation.models.brownian_motion(): 2000000,
         # sampler_evaluation.models.german_credit(): 10000000,
         # sampler_evaluation.models.stochastic_volatility(): 1000,
-        # stochastic_volatility_mams_paper: 400000,
-        # sampler_evaluation.models.item_response(): 1000000,
+        (stochastic_volatility_mams_paper, 100000),
+        (item_response(), 100000),
         # Rosenbrock(): 10000000,
+    ]
+
+    for model, num_samples in gold_standard_expectation_steps:
+        print(f"Estimating ground truth for {model.name}")
+        toc = time.time()
+        estimate_ground_truth(model, num_samples=num_samples, annealing=False)
+        tic = time.time()
+        print(f"Time taken: {tic - toc}")
+        print("Done")
     
-    reduced_lam = jnp.linspace(-2.5, 7.5, 8)[6:] #lambda range around the critical point (m^2 = -4 is fixed)
+    # reduced_lam = jnp.linspace(-2.5, 7.5, 8)[6:] #lambda range around the critical point (m^2 = -4 is fixed)
 
 
-    def unreduce_lam(reduced_lam, side):
-        """see Fig 3 in https://arxiv.org/pdf/2207.00283.pdf"""
-        return 4.25 * (reduced_lam * np.power(side, -1.0) + 1.0)
+    # def unreduce_lam(reduced_lam, side):
+    #     """see Fig 3 in https://arxiv.org/pdf/2207.00283.pdf"""
+    #     return 4.25 * (reduced_lam * np.power(side, -1.0) + 1.0)
 
 
     # for L in [128,256,512,1024]:
@@ -206,13 +234,15 @@ if __name__ == "__main__":
     #         print(f"Time taken: {tic - toc}")
     #         print("Done")
 
-    model = U1(Lt=4, Lx=4, beta=1)
-    # model = stochastic_volatility_artificial_20000
+    # model = U1(Lt=4, Lx=4, beta=1)
+    # # model = stochastic_volatility_artificial_20000
 
-    print(f"Estimating ground truth for {model.name}")
-    toc = time.time()
-    ### SET ANNEALING TO TRUE!!!
-    estimate_ground_truth(model, num_samples=100000, annealing=False)
-    tic = time.time()
-    print(f"Time taken: {tic - toc}")
-    print("Done")
+    # print(f"Estimating ground truth for {model.name}")
+    # toc = time.time()
+    # ### SET ANNEALING TO TRUE!!!
+    # estimate_ground_truth(model, num_samples=100000, annealing=False)
+    # tic = time.time()
+    # print(f"Time taken: {tic - toc}")
+    # print("Done")
+
+

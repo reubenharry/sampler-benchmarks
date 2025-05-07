@@ -2,7 +2,7 @@ import os
 import jax
 jax.config.update("jax_enable_x64", True)
 
-batch_size = 512
+batch_size = 128
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 num_cores = jax.local_device_count()
 
@@ -24,13 +24,31 @@ from sampler_comparison.samplers.grid_search.grid_search import grid_search_adju
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc, grid_search_hmc
 from sampler_comparison.samplers import samplers
 from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_langevin import unadjusted_lmc
+import numpy as np
+model = IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log')
 
-model = IllConditionedGaussian(ndims=100, condition_number=100, eigenvalues='log')
+# samplers_ulmc={
 
-samplers={
+#             # "adjusted_hmc": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet"),
+#             f"underdamped_langevin_{dev}": partial(unadjusted_lmc,desired_energy_var=dev, num_tuning_steps=20000, diagonal_preconditioning=True, stage3=False)
 
-            # "adjusted_hmc": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet"),
-            "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=1e-1, num_tuning_steps=20000, diagonal_preconditioning=True),
+#             for dev in np.logspace(-6, -1, 15)
+            
+#             # "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=20000),
+# }
+
+# samplers_mclmc = {
+#             f"unadjusted_microcanonical_{dev}": partial(unadjusted_mclmc,num_tuning_steps=20000)
+#             for dev in np.logspace(-6, -1, 15)
+# }
+
+# samplers = samplers_ulmc | samplers_mclmc
+
+samplers = {
+    # "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=1e-4, num_tuning_steps=20000, diagonal_preconditioning=True),
+    "adjusted_malt": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", L_proposal_factor=1.25),
+    "nuts": partial(nuts,num_tuning_steps=5000),
+    "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=20000),
 }
 
 run_benchmarks(
@@ -38,7 +56,7 @@ run_benchmarks(
         models={model.name: model},
         samplers=samplers,
         batch_size=batch_size,
-        num_steps=40000,
+        num_steps=50000,
         save_dir="results/Gaussian_MAMS_Paper",
         key=jax.random.key(19),
         map=jax.pmap,

@@ -14,18 +14,19 @@ from sampler_evaluation.models.model import SampleTransformation, make_model
         
 #         self.transform = lambda x: x        
 #         self.sample_init = lambda key: jax.random.normal(key, shape=(self.ndims,))
+logdensity_fn_1D=lambda x: -jnp.log(jnp.pi*(1. + jnp.square(x)))
 
 def cauchy(ndims):
     return make_model(
-    logdensity_fn=lambda x: -jnp.sum(jnp.log(1. + jnp.square(x))),
+    logdensity_fn=lambda x: jnp.sum(logdensity_fn_1D(x)),
     ndims=ndims,
     default_event_space_bijector=lambda x: x,
     sample_transformations = {
-        SampleTransformation(
-            fn=lambda x: x,
-            pretty_name='Identity',
-            ground_truth_mean=jnp.zeros(ndims),
-            ground_truth_standard_deviation=jnp.ones(ndims),
+        'entropy': SampleTransformation(
+            fn=lambda x: -logdensity_fn_1D(x),
+            # pretty_name='Entropy',
+            ground_truth_mean=jnp.log(4*jnp.pi),
+            ground_truth_standard_deviation=(jnp.pi**2)/3,
         ),
     },
     name='Cauchy',

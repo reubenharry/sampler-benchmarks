@@ -28,7 +28,11 @@ from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import (
 from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_langevin import unadjusted_lmc_no_tuning
 import blackjax.mcmc.metrics as metrics
 
-def grid_search_only_L(
+def grid_search_step_size(state, params, num_steps, da_key_per_iter):
+    return params
+
+
+def grid_search_L(
     model,
     num_steps,
     num_chains,
@@ -40,7 +44,9 @@ def grid_search_only_L(
     num_tuning_steps=10000,
     sampler_type='adjusted_mclmc',
     euclidean=False,
+    L_proposal_factor=jnp.inf,
 ):
+    
 
     logdensity_fn = make_log_density_fn(model)
 
@@ -103,9 +109,10 @@ def grid_search_only_L(
         )
 
     elif sampler_type=='adjusted_hmc':
-        kernel = lambda rng_key, state, avg_num_integration_steps, step_size, inverse_mass_matrix: blackjax.mcmc.dynamic_hmc.build_kernel(
+        kernel = lambda rng_key, state, avg_num_integration_steps, step_size, inverse_mass_matrix: blackjax.mcmc.dynamic_malt.build_kernel(
         integrator=map_integrator_type_to_integrator["hmc"][integrator_type],
         integration_steps_fn=integration_steps_fn(avg_num_integration_steps),
+        L_proposal_factor=L_proposal_factor,
         )(
             rng_key=rng_key,
             state=state,
@@ -255,8 +262,10 @@ def grid_search_only_L(
                     logdensity_fn=logdensity_fn,
                     rng_key=jax.random.key(0),
                     metric=metrics.default_metric(inverse_mass_matrix),
-                )   
+                )
 
+                
+                
                 (blackjax_state_after_tuning, params) = make_L_step_size_adaptation(
                             kernel=kernel,
                             dim=model.ndims,
@@ -265,7 +274,7 @@ def grid_search_only_L(
                             # target=0.9,
                             diagonal_preconditioning=False,
                             euclidean=True,
-                            desired_energy_var=1e-1,
+                            desired_energy_var=1e-4,
                         )(lmc_state, params, num_steps, da_key_per_iter)
                 
                 # (
@@ -289,6 +298,60 @@ def grid_search_only_L(
                 
                 # jax.debug.print("out {x}", x=blackjax_mclmc_sampler_params.step_size)
                 jax.debug.print("step size {x}", x=params.step_size)
+
+            if sampler_type=='unadjusted_lmc':
+                key_per_step_size = jax.random.fold_in(bench_key_per_iter, i)
+
+                # params = grid_search_step_size(lmc_state, params, num_steps, da_key_per_iter)  
+                step_sizes = jnp.linspace(params.step_size / 3, params.step_size * 3, 10)
+                jax.debug.print("step sizes {x}", x=step_sizes)
+                Num_Grads_AVG_step_size = jnp.zeros(len(step_sizes))
+                Num_Grads_MAX_step_size = jnp.zeros(len(step_sizes))
+                
+                do_grid_search_step_size = True
+                if do_grid_search_step_size:
+                    for j, step_size in enumerate(step_sizes):
+
+                        sampler = unadjusted_lmc_no_tuning(
+                            initial_state=blackjax_state_after_tuning,
+                            integrator_type=integrator_type,
+                            inverse_mass_matrix=inverse_mass_matrix,
+                            L=Lgrid[i],
+                            step_size=step_size,
+                        )
+
+                        (stats, sq_error) = sampler_grads_to_low_error(
+                            model=model,
+                            sampler=jax.pmap(
+                        lambda key, pos: sampler(
+                            model=model, num_steps=num_steps, initial_position=pos, key=key
+                            )
+                        ),
+                            key=key_per_step_size,
+                            # num_steps=num_steps,
+                            batch_size=num_chains,
+                            )
+
+                        Num_Grads_AVG_step_size = Num_Grads_AVG_step_size.at[j].set(
+                            stats["avg_over_parameters"]["square"]["grads_to_low_error"]
+                        )
+                        Num_Grads_MAX_step_size = Num_Grads_MAX_step_size.at[j].set(
+                            stats["max_over_parameters"]["square"]["grads_to_low_error"]
+                        )
+
+                        jax.debug.print("Num_Grads_AVG_step_size {x}", x=(Num_Grads_AVG_step_size[j], step_size, Lgrid[i]))
+                        jax.debug.print("Num_Grads_MAX_step_size {x}", x=(Num_Grads_MAX_step_size[j], step_size, Lgrid[i]))
+                
+                    if opt=="max":
+                        iopt_step_size = np.argmin(Num_Grads_MAX_step_size)
+                    elif opt=="avg":
+                        iopt_step_size = np.argmin(Num_Grads_AVG_step_size)
+                    else:
+                        raise Exception("opt not recognized")
+                
+                    step_size = step_sizes[iopt_step_size]
+                    params = params._replace(step_size=step_size)
+                
                 
                 sampler = unadjusted_lmc_no_tuning(
                         initial_state=blackjax_state_after_tuning,
@@ -297,6 +360,7 @@ def grid_search_only_L(
                         L=Lgrid[i],
                         step_size=params.step_size,
                     )
+            
 
             (stats, sq_error) = sampler_grads_to_low_error(
                 model=model,
@@ -371,7 +435,7 @@ def grid_search_adjusted_mclmc(
             edge,
             inverse_mass_matrix,
             blackjax_state_after_tuning,
-        ) = grid_search_only_L(
+        ) = grid_search_L(
             model=model,
             num_steps=num_steps,
             num_chains=num_chains,
@@ -400,7 +464,7 @@ def grid_search_adjusted_mclmc(
 
         return jax.pmap(
             lambda key, pos: sampler(
-                model=model, num_steps=num_steps, initial_position=pos, key=key
+                model=model, num_steps=num_steps*4, initial_position=pos, key=key
                 )
             )(key, initial_position)
         
@@ -415,6 +479,7 @@ def grid_search_hmc(
     grid_iterations=2,
     num_tuning_steps=10000,
     return_samples=False,
+    L_proposal_factor=jnp.inf,
 ):
     
     def s(model, num_steps, initial_position, key):
@@ -427,7 +492,7 @@ def grid_search_hmc(
             edge,
             inverse_mass_matrix,
             blackjax_state_after_tuning,
-        ) = grid_search_only_L(
+        ) = grid_search_L(
             model=model,
             num_steps=num_steps,
             num_chains=num_chains,
@@ -439,6 +504,7 @@ def grid_search_hmc(
             num_tuning_steps=num_tuning_steps,
             sampler_type='adjusted_hmc',
             euclidean=True,
+            L_proposal_factor=L_proposal_factor,
         )
 
         sampler=adjusted_hmc_no_tuning(
@@ -451,6 +517,7 @@ def grid_search_hmc(
                     random_trajectory_length=True,
                     # return_ess_corr=False,
                     return_samples=return_samples,
+                    L_proposal_factor=L_proposal_factor,
                 )
         
         print("shapes", initial_position.shape)
@@ -458,7 +525,7 @@ def grid_search_hmc(
 
         return jax.pmap(
             lambda key, pos: sampler(
-                model=model, num_steps=num_steps, initial_position=pos, key=key
+                model=model, num_steps=num_steps*4, initial_position=pos, key=key
                 )
             )(key, initial_position)
         
@@ -484,7 +551,7 @@ def grid_search_unadjusted_mclmc(
             edge,
             inverse_mass_matrix,
             blackjax_state_after_tuning,
-        ) = grid_search_only_L(
+        ) = grid_search_L(
             model=model,
             num_steps=num_steps,
             num_chains=num_chains,
@@ -512,7 +579,7 @@ def grid_search_unadjusted_mclmc(
 
         return jax.pmap(
             lambda key, pos: sampler(
-                model=model, num_steps=num_steps, initial_position=pos, key=key
+                model=model, num_steps=num_steps*4, initial_position=pos, key=key
                 )
             )(key, initial_position)
         
@@ -538,7 +605,7 @@ def grid_search_unadjusted_lmc(
             edge,
             inverse_mass_matrix,
             blackjax_state_after_tuning,
-        ) = grid_search_only_L(
+        ) = grid_search_L(
             model=model,
             num_steps=num_steps,
             num_chains=num_chains,
@@ -567,7 +634,7 @@ def grid_search_unadjusted_lmc(
 
         return jax.pmap(
             lambda key, pos: sampler(
-                model=model, num_steps=num_steps, initial_position=pos, key=key
+                model=model, num_steps=num_steps*4, initial_position=pos, key=key
                 )
             )(key, initial_position)
         

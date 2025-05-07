@@ -1,5 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
-0,underdamped_langevin_velocity_verlet,Gaussian_3163,inf,,True,identity,20001.0,1.0298730318597098,0.15573418470673459
-1,underdamped_langevin_velocity_verlet,Gaussian_3163,1235.0,,False,identity,20001.0,1.0298730318597098,0.15573418470673459
-2,underdamped_langevin_velocity_verlet,Gaussian_3163,inf,,True,square,20001.0,1.0298730318597098,0.15573418470673459
-3,underdamped_langevin_velocity_verlet,Gaussian_3163,1306.0,,False,square,20001.0,1.0298730318597098,0.15573418470673459
+0,underdamped_langevin_velocity_verlet,Gaussian_3163,inf,,True,covariance,93334.0,1.0031778046270614,0.3375689136332696
+1,underdamped_langevin_velocity_verlet,Gaussian_3163,inf,,False,covariance,93334.0,1.0031778046270614,0.3375689136332696
+2,underdamped_langevin_velocity_verlet,Gaussian_3163,8945.0,,True,identity,93334.0,1.0031778046270614,0.3375689136332696
+3,underdamped_langevin_velocity_verlet,Gaussian_3163,589.0,,False,identity,93334.0,1.0031778046270614,0.3375689136332696
+4,underdamped_langevin_velocity_verlet,Gaussian_3163,15197.0,,True,square,93334.0,1.0031778046270614,0.3375689136332696
+5,underdamped_langevin_velocity_verlet,Gaussian_3163,647.0,,False,square,93334.0,1.0031778046270614,0.3375689136332696

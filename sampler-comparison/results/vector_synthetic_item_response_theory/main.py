@@ -20,14 +20,24 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unad
 from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import adjusted_hmc
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_hmc
 from sampler_comparison.samplers import samplers
+from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_langevin import unadjusted_lmc
+from sampler_evaluation.models.item_response import item_response
 
-model = sampler_evaluation.models.item_response()
+model = item_response()
+
+samplers={
+
+            "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=1e-4, num_tuning_steps=20000, diagonal_preconditioning=True),
+            "adjusted_malt": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", L_proposal_factor=1.25),
+            "nuts": partial(nuts,num_tuning_steps=5000),
+
+        }
 
 run_benchmarks(
         models={model.name: model},
         samplers=samplers,
         batch_size=batch_size,
-        num_steps=40000,
+        num_steps=4000,
         save_dir=f"results/{model.name}",
         key=jax.random.key(20),
         map=jax.pmap,

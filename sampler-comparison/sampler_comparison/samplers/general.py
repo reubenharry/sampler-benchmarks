@@ -15,9 +15,31 @@ def frobenius(estimated_cov, true_cov):
 
     inv_cov = jnp.linalg.inv(true_cov)
     residual = jnp.eye(true_cov.shape[0]) - inv_cov @ estimated_cov
+    # jax.debug.print("residual {x}", x=jnp.average(jnp.diag(residual@residual)))
     return jnp.average(jnp.diag(residual@residual))
 
 # produce a kernel that only stores the average values of the bias for E[x_2] and Var[x_2]
+
+def bias(expectation, f, model):
+    if len(expectation.shape) == 1:
+        return {
+            'avg' : jnp.average(jnp.square(
+                        expectation - model.sample_transformations[f].ground_truth_mean
+                    ) / (
+                        model.sample_transformations[f].ground_truth_standard_deviation
+                        ** 2)),
+            'max' : jnp.max(jnp.square(
+                        expectation - model.sample_transformations[f].ground_truth_mean
+                    ) / (
+                        model.sample_transformations[f].ground_truth_standard_deviation
+                        ** 2)),
+        }
+    elif len(expectation.shape) == 2:
+        return {
+            'avg' : frobenius(expectation, model.sample_transformations[f].ground_truth_mean),
+            'max' : frobenius(expectation, model.sample_transformations[f].ground_truth_mean)
+        }
+
 def with_only_statistics(model, alg, incremental_value_transform=None):
 
     if incremental_value_transform is None:
@@ -60,28 +82,14 @@ def with_only_statistics(model, alg, incremental_value_transform=None):
         incremental_value_transform = lambda expectations: jax.tree.map_with_path(lambda path, expectation: 
                                                                                   
                                                                                   
-            {
-                
-            'max' : jnp.max(
-                    jnp.square(
-                        expectation - model.sample_transformations[path[0].key].ground_truth_mean
-                    )
-                    / (
-                        model.sample_transformations[path[0].key].ground_truth_standard_deviation
-                        ** 2)), 
+            bias(expectation=expectation, f=path[0].key, model=model),
+            expectations
 
-            'avg' : jnp.average(
-                    jnp.square(
-                        expectation - model.sample_transformations[path[0].key].ground_truth_mean
-                    )
-                    / (
-                        model.sample_transformations[path[0].key].ground_truth_standard_deviation
-                        ** 2)), 
+             
 
             # 'avg' : frobenius(expectation, model.sample_transformations[path[0].key].ground_truth_mean),
             # 'max' : frobenius(expectation, model.sample_transformations[path[0].key].ground_truth_mean)
 
-            }, expectations
                         
                         
                         )
@@ -239,6 +247,7 @@ def sampler_grads_to_low_error(
     # err_ = contract_fn(squared_errors['square']['avg'])
     # b2 = jnp.mean(err_[-1]*(model.sample_transformations['square'].ground_truth_standard_deviation**2)/(model.sample_transformations['square'].ground_truth_mean**2))
     # jax.debug.print("final error is {x}", x=b2)
+
 
     return (
         {

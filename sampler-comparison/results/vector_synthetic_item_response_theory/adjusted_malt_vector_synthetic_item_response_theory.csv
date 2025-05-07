@@ -1,0 +1,9 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_malt,vector_synthetic_item_response_theory,43450.19059568023,,True,identity,284474.296875,1.873156007306402,0.12158726741423057
+1,adjusted_malt,vector_synthetic_item_response_theory,5090.0116778752135,,False,identity,284474.296875,1.873156007306402,0.12158726741423057
+2,adjusted_malt,vector_synthetic_item_response_theory,57332.04062624899,,True,square,284474.296875,1.873156007306402,0.12158726741423057
+3,adjusted_malt,vector_synthetic_item_response_theory,4796.950399452095,,False,square,284474.296875,1.873156007306402,0.12158726741423057
+4,adjusted_malt,vector_synthetic_item_response_theory,inf,,True,quartic,284474.296875,1.873156007306402,0.12158726741423057
+5,adjusted_malt,vector_synthetic_item_response_theory,inf,,False,quartic,284474.296875,1.873156007306402,0.12158726741423057
+6,adjusted_malt,vector_synthetic_item_response_theory,inf,,True,covariance,284474.296875,1.873156007306402,0.12158726741423057
+7,adjusted_malt,vector_synthetic_item_response_theory,inf,,False,covariance,284474.296875,1.873156007306402,0.12158726741423057

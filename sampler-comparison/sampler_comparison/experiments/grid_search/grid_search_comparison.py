@@ -8,7 +8,7 @@ num_cores = jax.local_device_count()
 import sys
 
 sys.path.append("/global/homes/r/reubenh/blackjax-benchmarks/sampler-comparison")
-from sampler_comparison.samplers.grid_search.grid_search import grid_search_only_L
+from sampler_comparison.samplers.grid_search.grid_search import grid_search_L
 from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import (
     adjusted_mclmc_no_tuning,
 )
@@ -20,7 +20,7 @@ from sampler_evaluation.models.stochastic_volatility_mams_paper import stochasti
 def benchmark_grid_search(model):
 
     L, step_size, num_grads, num_grads_avg, edge, inverse_mass_matrix, initial_state = (
-        grid_search_only_L(
+        grid_search_L(
             model=model,
             num_steps=40000,
             num_chains=64,

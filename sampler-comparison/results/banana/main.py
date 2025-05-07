@@ -23,8 +23,10 @@ model = sampler_evaluation.models.banana()
 
 samplers={
 
-            # "adjusted_hmc": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet"),
-            "adjusted_hmc_stage_2": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", stage_3=False),
+            "adjusted_hmc": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet"),
+            # "adjusted_hmc_stage_2": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", stage_3=False),
+
+            "adjusted_malt": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", L_proposal_factor=1.25),
 
             
 
@@ -34,7 +36,7 @@ samplers={
 
             # "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
 
-            # "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=1e-1, num_tuning_steps=20000, diagonal_preconditioning=True),
+            "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=1e-4, num_tuning_steps=30000, diagonal_preconditioning=True),
 
             # "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=20000),
         }
@@ -43,7 +45,7 @@ run_benchmarks(
         models={model.name: model},
         samplers=samplers,
         batch_size=batch_size,
-        num_steps=40000,
+        num_steps=400000,
         save_dir=f"results/{model.name}",
         key=jax.random.key(20),
         map=jax.pmap,

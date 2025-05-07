@@ -24,6 +24,7 @@ import tensorflow.compat.v2 as tf
 
 # import tensorflow_probability as tfp
 import tensorflow_probability.substrates.jax as tfp
+
 from inference_gym.targets import model
 import jax.numpy as jnp
 
@@ -47,15 +48,14 @@ class Dirichlet(model.Model):
 
   def __init__(
       self,
-      alpha=tf.ones(100)+100,
-      dtype=tf.float32,
+      alpha=jnp.ones(100)+100,
+      dtype=jnp.float32,
       name='dirichlet',
       pretty_name='Dirichlet',
   ):
     """Construct the Dirichlet.
 
     Args:
-      ndims: Python `int`. Dimensionality of the Dirichlet.
       dtype: Dtype to use for floating point quantities.
       name: Python `str` name prefixed to Ops created by this class.
       pretty_name: A Python `str`. The pretty name of this model.
@@ -66,8 +66,11 @@ class Dirichlet(model.Model):
         validate_args=False,
         allow_nan_stats=True,
         force_probs_to_zero_outside_support=False,
+        # dtype=jnp.float64,
         name='Dirichlet'
     )
+
+    self.ndims = alpha.shape[0]-1
         
     sample_transformations = {
         'identity':

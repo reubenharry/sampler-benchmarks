@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_microcanonical,ICG,4262.965935189363,,True,identity,72981.03125,10.303746921651909,5.589175549768422
+1,adjusted_microcanonical,ICG,579.2173533749287,,False,identity,72981.03125,10.303746921651909,5.589175549768422
+2,adjusted_microcanonical,ICG,3211.5204211011173,,True,square,72981.03125,10.303746921651909,5.589175549768422
+3,adjusted_microcanonical,ICG,426.1121293936577,,False,square,72981.03125,10.303746921651909,5.589175549768422

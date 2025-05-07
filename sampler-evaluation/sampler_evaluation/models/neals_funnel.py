@@ -1,4 +1,6 @@
 import pickle
+import sys
+sys.path.append("../sampler-comparison/src/inference-gym/spinoffs/inference_gym")
 import inference_gym.using_jax as gym
 from inference_gym.targets import model
 import jax.numpy as jnp
