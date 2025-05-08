@@ -178,6 +178,7 @@ def plot_trace(info, model, settings_info, dir):
 
 
 
+
 def parallel_microcanonical(num_steps1, num_steps2, num_chains, mesh, 
                             diagonal_preconditioning=True,
                             ):
