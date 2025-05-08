@@ -77,7 +77,7 @@ def get_standardized_squared_error(samples, f, E_f, Var_f, contract_fn=jnp.max):
     contract_fn: function that takes in a vector and returns a number, like jnp.max or jnp.average
 
     returns:
-      (E_hat[f(x)] - E[f(x)])^2 / Var[f(x)], where E_hat[f(x)] is the empirical average of f(x) over the samples, with a median across chains, and taking the worst case across dimensions of f(x) is multidimensional
+      (E_hat[f(x)] - E[f(x)])^2 / Var[f(x)] for each chain, where E_hat[f(x)] is the empirical average of f(x) over the samples, and taking the worst case across dimensions of f(x) is multidimensional
     """
     exps = (
         jnp.cumsum(f(samples), axis=1)
@@ -86,6 +86,6 @@ def get_standardized_squared_error(samples, f, E_f, Var_f, contract_fn=jnp.max):
 
     error_function = lambda x: contract_fn(jnp.square(x - E_f) / Var_f)
 
-    errors = jnp.nanmedian(jax.vmap(jax.vmap(error_function))(exps), axis=0)
+    errors = jax.vmap(jax.vmap(error_function))(exps)
 
     return errors

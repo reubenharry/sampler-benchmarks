@@ -1,0 +1,7 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,underdamped_langevin,banana,10887.0,,True,identity,823333.0,3.0355124609740343,0.0514943062078049
+1,underdamped_langevin,banana,6826.0,,False,identity,823333.0,3.0355124609740343,0.0514943062078049
+2,underdamped_langevin,banana,8182.0,,True,square,823333.0,3.0355124609740343,0.0514943062078049
+3,underdamped_langevin,banana,5232.0,,False,square,823333.0,3.0355124609740343,0.0514943062078049
+4,underdamped_langevin,banana,130826.0,,True,covariance,823333.0,3.0355124609740343,0.0514943062078049
+5,underdamped_langevin,banana,130826.0,,False,covariance,823333.0,3.0355124609740343,0.0514943062078049

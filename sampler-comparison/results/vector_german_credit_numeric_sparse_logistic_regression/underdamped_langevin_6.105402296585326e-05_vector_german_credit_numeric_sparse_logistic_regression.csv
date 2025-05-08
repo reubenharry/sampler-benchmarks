@@ -1,0 +1,9 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,underdamped_langevin_6.105402296585326e-05,vector_german_credit_numeric_sparse_logistic_regression,inf,,True,identity,55556.0,1.1867668857674494,0.022672889411080956
+1,underdamped_langevin_6.105402296585326e-05,vector_german_credit_numeric_sparse_logistic_regression,6279.0,,False,identity,55556.0,1.1867668857674494,0.022672889411080956
+2,underdamped_langevin_6.105402296585326e-05,vector_german_credit_numeric_sparse_logistic_regression,inf,,True,square,55556.0,1.1867668857674494,0.022672889411080956
+3,underdamped_langevin_6.105402296585326e-05,vector_german_credit_numeric_sparse_logistic_regression,5266.0,,False,square,55556.0,1.1867668857674494,0.022672889411080956
+4,underdamped_langevin_6.105402296585326e-05,vector_german_credit_numeric_sparse_logistic_regression,inf,,True,quartic,55556.0,1.1867668857674494,0.022672889411080956
+5,underdamped_langevin_6.105402296585326e-05,vector_german_credit_numeric_sparse_logistic_regression,inf,,False,quartic,55556.0,1.1867668857674494,0.022672889411080956
+6,underdamped_langevin_6.105402296585326e-05,vector_german_credit_numeric_sparse_logistic_regression,inf,,True,covariance,55556.0,1.1867668857674494,0.022672889411080956
+7,underdamped_langevin_6.105402296585326e-05,vector_german_credit_numeric_sparse_logistic_regression,inf,,False,covariance,55556.0,1.1867668857674494,0.022672889411080956

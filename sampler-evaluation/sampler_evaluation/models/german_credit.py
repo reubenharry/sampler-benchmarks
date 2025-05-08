@@ -1,4 +1,6 @@
 import pickle
+import sys
+sys.path.append("../sampler-comparison/src/inference-gym/spinoffs/inference_gym")
 import inference_gym.using_jax as gym
 from inference_gym.targets import model
 import jax.numpy as jnp
@@ -20,8 +22,14 @@ def german_credit():
     ) as f:
         stats = pickle.load(f)
 
-    e_x2 = stats["e_x2"]
-    e_x4 = stats["e_x4"]
+    # e_x2 = stats["e_x2"]
+    # e_x4 = stats["e_x4"]
+    # var_x2 = e_x4 - e_x2**2
+
+    e_x = stats["identity"]
+    e_x2 = stats["square"]
+    e_x4 = stats["quartic"]
+    cov = stats["covariance"]
     var_x2 = e_x4 - e_x2**2
 
     
@@ -30,6 +38,25 @@ def german_credit():
         pretty_name="Square",
         ground_truth_mean=e_x2,
         ground_truth_standard_deviation=jnp.sqrt(var_x2),
+    )
+
+    german_credit.sample_transformations["quartic"] = model.Model.SampleTransformation(
+        fn=lambda params: german_credit.sample_transformations["identity"](params)
+        ** 4,
+        pretty_name="Quartic",
+        ground_truth_mean=e_x4,
+        ground_truth_standard_deviation=jnp.nan,
+    )
+
+
+
+    german_credit.sample_transformations["covariance"] = (
+        model.Model.SampleTransformation(
+            fn=lambda params: jnp.outer(german_credit.sample_transformations["identity"](params) - e_x, german_credit.sample_transformations["identity"](params) - e_x),
+            pretty_name="Covariance",
+            ground_truth_mean=cov,
+            ground_truth_standard_deviation=jnp.nan,
+        )
     )
 
     german_credit.ndims = 51

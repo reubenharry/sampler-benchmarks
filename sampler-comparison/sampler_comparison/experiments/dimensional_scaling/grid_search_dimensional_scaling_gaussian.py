@@ -31,8 +31,8 @@ dims = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,5, 5)).astype(int)
 
 # dims = [100, 1000, 10000]
 
-# integrator_types = ['velocity_verlet', 'mclachlan', 'omelyan']
-integrator_types = ['velocity_verlet']
+integrator_types = ['velocity_verlet', 'mclachlan', 'omelyan']
+# integrator_types = ['velocity_verlet']
 
 for dim, integrator_type in itertools.product(dims, integrator_types):
 

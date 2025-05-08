@@ -1,0 +1,9 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,nuts,vector_german_credit_numeric_sparse_logistic_regression,76840.33803468749,,True,identity,344401.75,3.983269498680277,0.05750726478283907
+1,nuts,vector_german_credit_numeric_sparse_logistic_regression,11469.757417265624,,False,identity,344401.75,3.983269498680277,0.05750726478283907
+2,nuts,vector_german_credit_numeric_sparse_logistic_regression,82962.23309789062,,True,square,344401.75,3.983269498680277,0.05750726478283907
+3,nuts,vector_german_credit_numeric_sparse_logistic_regression,10484.624878359375,,False,square,344401.75,3.983269498680277,0.05750726478283907
+4,nuts,vector_german_credit_numeric_sparse_logistic_regression,inf,,True,quartic,344401.75,3.983269498680277,0.05750726478283907
+5,nuts,vector_german_credit_numeric_sparse_logistic_regression,inf,,False,quartic,344401.75,3.983269498680277,0.05750726478283907
+6,nuts,vector_german_credit_numeric_sparse_logistic_regression,756792.8897097656,,True,covariance,344401.75,3.983269498680277,0.05750726478283907
+7,nuts,vector_german_credit_numeric_sparse_logistic_regression,756792.8897097656,,False,covariance,344401.75,3.983269498680277,0.05750726478283907

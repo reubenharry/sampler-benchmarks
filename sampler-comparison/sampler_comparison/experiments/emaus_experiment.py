@@ -22,21 +22,25 @@ sys.path.append(current_path + '/../sampler-evaluation/')
 from sampler_evaluation.models.banana_mams_paper import banana_mams_paper
 # from sampler_evaluation.models.stochastic_volatility import stochastic_volatility
 # from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
-from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.emaus import parallel_microcanonical, plot_trace
+from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.emaus import parallel_microcanonical
+from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.emaus import plot_trace
+# , plot_trace
 # from sampler_evaluation.models.gaussian_mams_paper import IllConditionedGaussian
 from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unadjusted_mclmc
 from sampler_comparison.samplers.general import initialize_model
 # from sampler_evaluation.models.banana import banana
 import time
 
-batch_size = 4096
+batch_size = 2048
 mesh = jax.sharding.Mesh(jax.devices()[:1], 'chains')
 
 print('Number of devices: ', len(jax.devices()))
 
 model = banana_mams_paper # IllConditionedGaussian(ndims=2, condition_number=1)
 
-samples, settings_info, info = parallel_microcanonical(num_steps1=800, num_steps2=1500, num_chains=batch_size, mesh=mesh)(
+samples, info, settings_info = parallel_microcanonical(num_steps1=800, num_steps2=1500, num_chains=batch_size, mesh=mesh)(
                 model=model)
+
+# print(info)
 
 plot_trace(info, model, settings_info, '../')

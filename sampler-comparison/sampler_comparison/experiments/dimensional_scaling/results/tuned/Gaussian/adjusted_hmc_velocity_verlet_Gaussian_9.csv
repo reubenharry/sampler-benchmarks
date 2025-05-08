@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_hmc_velocity_verlet,Gaussian_9,1824.4015933542444,,True,identity,48946.17391304348,0.9646658151637948,0.6359012452569195
+1,adjusted_hmc_velocity_verlet,Gaussian_9,502.39345041618543,,False,identity,48946.17391304348,0.9646658151637948,0.6359012452569195
+2,adjusted_hmc_velocity_verlet,Gaussian_9,1044.2498304723129,,True,square,48946.17391304348,0.9646658151637948,0.6359012452569195
+3,adjusted_hmc_velocity_verlet,Gaussian_9,326.3280720225978,,False,square,48946.17391304348,0.9646658151637948,0.6359012452569195

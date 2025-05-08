@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,nuts,vector_synthetic_item_response_theory,57443.0,,True,identity,151195.4765625,3.704950678583465,0.11951453801882145
+1,nuts,vector_synthetic_item_response_theory,5921.0,,False,identity,151195.4765625,3.704950678583465,0.11951453801882145
+2,nuts,vector_synthetic_item_response_theory,75578.0,,True,square,151195.4765625,3.704950678583465,0.11951453801882145
+3,nuts,vector_synthetic_item_response_theory,6479.0,,False,square,151195.4765625,3.704950678583465,0.11951453801882145

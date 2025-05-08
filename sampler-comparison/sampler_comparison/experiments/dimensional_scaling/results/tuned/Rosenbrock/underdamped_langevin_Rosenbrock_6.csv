@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,underdamped_langevin,Rosenbrock_6,43980.0,,True,identity,30000.0,4.613353343245409,0.05626968842637355
+1,underdamped_langevin,Rosenbrock_6,16632.0,,False,identity,30000.0,4.613353343245409,0.05626968842637355
+2,underdamped_langevin,Rosenbrock_6,49175.0,,True,square,30000.0,4.613353343245409,0.05626968842637355
+3,underdamped_langevin,Rosenbrock_6,18119.0,,False,square,30000.0,4.613353343245409,0.05626968842637355

@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,underdamped_langevin_velocity_verlet,Rosenbrock_12,inf,,True,identity,95556.0,1.4776071133788116,0.10657826437822776
+1,underdamped_langevin_velocity_verlet,Rosenbrock_12,6661.0,,False,identity,95556.0,1.4776071133788116,0.10657826437822776
+2,underdamped_langevin_velocity_verlet,Rosenbrock_12,inf,,True,square,95556.0,1.4776071133788116,0.10657826437822776
+3,underdamped_langevin_velocity_verlet,Rosenbrock_12,7835.0,,False,square,95556.0,1.4776071133788116,0.10657826437822776
