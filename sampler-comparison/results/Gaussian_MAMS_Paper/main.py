@@ -23,8 +23,15 @@ from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import adjusted_hmc
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_adjusted_mclmc
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc, grid_search_hmc
 from sampler_comparison.samplers import samplers
-from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_langevin import unadjusted_lmc
+from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_langevin import unadjusted_lmc, unadjusted_lmc_no_tuning
 import numpy as np
+from sampler_comparison.samplers.general import (
+    with_only_statistics,
+    make_log_density_fn,
+)
+import blackjax
+import jax.numpy as jnp
+
 model = IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log')
 
 # samplers_ulmc={
@@ -44,11 +51,38 @@ model = IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log')
 
 # samplers = samplers_ulmc | samplers_mclmc
 
+
+# init_key = jax.random.key(0)
+
+# model = brownian_motion()
+
+init_key = jax.random.key(0)
+logdensity_fn = make_log_density_fn(model)
+initial_position = jax.random.normal(jax.random.PRNGKey(0), (model.ndims,))
+
+initial_state = blackjax.langevin.init(
+        position=initial_position,
+        logdensity_fn=logdensity_fn,
+        rng_key=init_key,
+        metric=blackjax.mcmc.metrics.default_metric(jnp.ones(initial_position.shape[0]))
+    )
+
+inverse_mass_matrix = jnp.eye(model.ndims)
+# initial_state = blackjax.langevin.init(
+#         position=initial_position,
+#         logdensity_fn=logdensity_fn,
+#         rng_key=jax.random.key(0),
+#         metric=metrics.default_metric(inverse_mass_matrix)
+#     )
+
 samplers = {
-    "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=1e-4, num_tuning_steps=20000, diagonal_preconditioning=True),
+    # "underdamped_langevin": partial(unadjusted_lmc_no_tuning,desired_energy_var=1e-4,initial_state=initial_state, integrator_type="velocity_verlet", inverse_mass_matrix=inverse_mass_matrix, step_size=0.42, L=1.2),
+    # "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=1e-4, num_tuning_steps=20000, diagonal_preconditioning=True),
     # "adjusted_malt": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", L_proposal_factor=1.25),
-    "nuts": partial(nuts,num_tuning_steps=5000),
-    "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=20000),
+    # "nuts": partial(nuts,num_tuning_steps=5000),
+    # "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=20000),
+    "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=3e-4, num_tuning_steps=20000, diagonal_preconditioning=True),
+    "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
 }
 
 run_benchmarks(

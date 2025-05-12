@@ -46,7 +46,7 @@ samplers_ulmc={
             # "adjusted_hmc": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet"),
             f"underdamped_langevin_{dev}": partial(unadjusted_lmc,desired_energy_var=dev, num_tuning_steps=10000, diagonal_preconditioning=True, stage3=True)
 
-            for dev in np.logspace(-6, -1, 15)[13:]
+            for dev in np.logspace(-8, -6, 4)[:]
             
             # "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=20000),
 }

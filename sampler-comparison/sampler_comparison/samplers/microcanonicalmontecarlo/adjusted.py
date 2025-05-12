@@ -220,7 +220,7 @@ def adjusted_mclmc_tuning(
         if diagonal_preconditioning:
             inverse_mass_matrix = unadjusted_params['inverse_mass_matrix']
         else:
-            inverse_mass_matrix = jnp.eye(dim)
+            inverse_mass_matrix = jnp.ones((dim,))
         blackjax_mclmc_sampler_params = MCLMCAdaptationState(
             L=jnp.sqrt(dim),
             step_size=new_step_size,
@@ -236,9 +236,9 @@ def adjusted_mclmc_tuning(
 
 
     if diagonal_preconditioning:
-        frac_tune2 = 100
+        num_steps_stage_2 = 2000
     else:
-        frac_tune2 = 0.0
+        num_steps_stage_2 = 10
 
     (
         blackjax_state_after_tuning,
@@ -249,7 +249,7 @@ def adjusted_mclmc_tuning(
         kernel=kernel,
         dim=dim,
         frac_tune1=2000 / num_steps,
-        frac_tune2=frac_tune2,
+        frac_tune2=num_steps_stage_2 / num_steps,
         target=target_acc_rate,
         diagonal_preconditioning=True,
         max=max,
@@ -344,6 +344,7 @@ def adjusted_mclmc(
     return_only_final=False,
     warmup='nuts',
     progress_bar=False,
+    incremental_value_transform=None,
 ):
     """
     Args:
@@ -409,6 +410,7 @@ def adjusted_mclmc(
             return_samples=return_samples,
             return_only_final=return_only_final,
             progress_bar=progress_bar,
+            incremental_value_transform=incremental_value_transform,
         )(model, num_steps, initial_position, run_key)
 
         # jax.debug.print("intermediate {x}",x=expectations[0,:])

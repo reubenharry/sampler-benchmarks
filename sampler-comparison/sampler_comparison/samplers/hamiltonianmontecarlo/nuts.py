@@ -16,7 +16,7 @@ def nuts(
     incremental_value_transform=None,
     num_tuning_steps=5000,
     return_only_final=False,
-    target_acc_rate=0.8
+    target_acc_rate=0.8,
 ):
 
     def s(model, num_steps, initial_position, key):

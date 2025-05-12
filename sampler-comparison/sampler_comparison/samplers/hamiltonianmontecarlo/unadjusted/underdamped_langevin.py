@@ -223,6 +223,7 @@ def unadjusted_lmc(
     num_windows=1,
     params=None,
     stage3=True,
+    incremental_value_transform=None,
 ):
     def s(model, num_steps, initial_position, key):
 
@@ -249,7 +250,7 @@ def unadjusted_lmc(
             num_windows=num_windows,
             params=params,
             stage3=stage3,
-
+        
         )
         # jax.debug.print("params {x}", x=(blackjax_mclmc_sampler_params))
 
@@ -263,6 +264,7 @@ def unadjusted_lmc(
             return_only_final=return_only_final,
             desired_energy_var=desired_energy_var,
             desired_energy_var_max_ratio=desired_energy_var_max_ratio,
+            incremental_value_transform=incremental_value_transform,
         )(model, num_steps, initial_position, run_key)
 
         return expectations, metadata | {

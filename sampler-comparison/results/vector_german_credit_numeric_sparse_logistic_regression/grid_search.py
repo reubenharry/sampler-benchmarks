@@ -48,7 +48,7 @@ run_benchmarks(
         models={model.name: model},
         samplers=samplers,
         batch_size=batch_size,
-        num_steps=150000,
+        num_steps=200000,
         save_dir=f"results/{model.name}",
         key=jax.random.key(20),
         map=lambda x : x,

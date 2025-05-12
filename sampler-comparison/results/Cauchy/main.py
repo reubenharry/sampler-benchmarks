@@ -3,7 +3,7 @@ import os
 import jax
 jax.config.update("jax_enable_x64", True)
 
-batch_size = 128
+batch_size = 32
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 num_cores = jax.local_device_count()
 
@@ -31,17 +31,17 @@ samplers={
             
 
 
-            "adjusted_microcanonical": partial(adjusted_mclmc,num_tuning_steps=500, diagonal_preconditioning=False),
-            "nuts": partial(nuts,num_tuning_steps=500, diagonal_preconditioning=False),
+            # "adjusted_microcanonical": partial(adjusted_mclmc,num_tuning_steps=500, diagonal_preconditioning=False),
+            # "nuts": partial(nuts,num_tuning_steps=500, diagonal_preconditioning=False),
 
-            # "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
+            "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000, diagonal_preconditioning=False),
 
             # "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=1e-4, num_tuning_steps=30000, diagonal_preconditioning=True),
 
-            "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=20000),
+            # "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=20000),
         }
 
-ndims = 2
+ndims = 100
 
 run_benchmarks(
         models={
@@ -49,7 +49,7 @@ run_benchmarks(
         },
         samplers=samplers,
         batch_size=batch_size,
-        num_steps=40000,
+        num_steps=200000,
         save_dir="results/Cauchy",
         key=jax.random.key(19),
         map=jax.pmap

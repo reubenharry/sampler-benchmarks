@@ -25,10 +25,11 @@ run_benchmarks(
         models={model.name: model},
         samplers={
             # "grid_search_hmc": partial(grid_search_hmc, num_tuning_steps=5000, integrator_type="velocity_verlet", num_chains=batch_size),
-            "grid_search_unadjusted_lmc": partial(grid_search_unadjusted_lmc, num_tuning_steps=5000, integrator_type="velocity_verlet", num_chains=batch_size, opt='avg'),
+            "grid_search_malt": partial(grid_search_hmc, num_tuning_steps=5000, integrator_type="velocity_verlet", num_chains=batch_size, L_proposal_factor=1.25),
+            # "grid_search_unadjusted_lmc": partial(grid_search_unadjusted_lmc, num_tuning_steps=5000, integrator_type="velocity_verlet", num_chains=batch_size, opt='avg'),
             },
         batch_size=batch_size,
-        num_steps=5000,
+        num_steps=20000,
         save_dir=f"results/Gaussian_MAMS_Paper",
         key=jax.random.key(20),
         map=lambda x : x,

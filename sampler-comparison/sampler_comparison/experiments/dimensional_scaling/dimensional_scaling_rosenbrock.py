@@ -29,7 +29,23 @@ from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import adjusted_hmc
 from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_langevin import unadjusted_lmc, unadjusted_lmc_no_tuning
 import jax.numpy as jnp
 
-Ds = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,4, 5)).astype(int)])[12:13]
+Ds = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,4, 10)).astype(int)])[:]
+
+def bias(expectation, f, model):
+    return {
+            'avg' : jnp.average((jnp.square(
+                        expectation - model.sample_transformations[f].ground_truth_mean
+                    ) / (
+                        model.sample_transformations[f].ground_truth_mean
+                        ** 2))[::2] ),
+            'max' : jnp.max(jnp.square(
+                        expectation - model.sample_transformations[f].ground_truth_mean
+                    ) / (
+                        model.sample_transformations[f].ground_truth_standard_deviation
+                        ** 2)),
+        }
+
+
 
 # print(Ds)
 # raise Exception
@@ -50,35 +66,42 @@ for D, integrator_type in itertools.product(Ds, integrator_types):
 
     print(f"Running for dim={dim}, integrator_type={integrator_type}, batch_size={batch_size}")
 
+    model = Rosenbrock(D=dim)
+    incremental_value_transform = lambda expectations: jax.tree.map_with_path(lambda path, expectation: 
+
+    bias(expectation=expectation, f=path[0].key, model=model), expectations)
+
+
     run_benchmarks(
             models={
-                f"Rosenbrock_{dim}": Rosenbrock(D=D),
+                f"Rosenbrock_{dim}": model,
             },
             samplers={
 
-                # f"adjusted_microcanonical_{integrator_type}": partial(adjusted_mclmc,num_tuning_steps=5000, integrator_type=integrator_type),
-
-                # f"nuts_{integrator_type}": partial(nuts,num_tuning_steps=5000),
-
-                # f"adjusted_hmc_{integrator_type}": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type=integrator_type, diagonal_preconditioning=True),
+                f"unadjusted_microcanonical_{integrator_type}": partial(unadjusted_mclmc,num_tuning_steps=20000, integrator_type=integrator_type, incremental_value_transform=incremental_value_transform),
 
 
 
-                # f"underdamped_langevin_{integrator_type}": partial(unadjusted_lmc,desired_energy_var=5e-1, 
+
+                f"underdamped_langevin_{integrator_type}": partial(unadjusted_lmc,desired_energy_var=1e-4, incremental_value_transform=incremental_value_transform),
                 # desired_energy_var_max_ratio=(1/desired_energy_var)*1000000,
                 # desired_energy_var_max_ratio=1e4,
                     
                     # num_tuning_steps=20000, diagonal_preconditioning=True, num_windows=1),
+                f"adjusted_microcanonical_{integrator_type}": partial(adjusted_mclmc,num_tuning_steps=5000, integrator_type=integrator_type, incremental_value_transform=incremental_value_transform),
 
-                "adjusted_malt": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", L_proposal_factor=1.25),
+                # f"nuts_{integrator_type}": partial(nuts,num_tuning_steps=5000),
+
+                f"adjusted_hmc_{integrator_type}": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type=integrator_type, incremental_value_transform=incremental_value_transform),
+
+                "adjusted_malt": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", L_proposal_factor=1.25, incremental_value_transform=incremental_value_transform),
             
-                # f"unadjusted_microcanonical__{integrator_type}": lambda: unadjusted_mclmc(num_tuning_steps=20000, integrator_type=integrator_type),
 
             },
             
             
             batch_size=batch_size,
-            num_steps=2000,
+            num_steps=50000,
             save_dir=f"sampler_comparison/experiments/dimensional_scaling/results/tuned/Rosenbrock",
             key=jax.random.key(18),
             map=jax.pmap

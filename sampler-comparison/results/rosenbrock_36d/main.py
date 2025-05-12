@@ -3,7 +3,7 @@ import os
 import jax
 jax.config.update("jax_enable_x64", True)
 
-batch_size = 128
+batch_size = 512
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 num_cores = jax.local_device_count()
 
@@ -21,23 +21,31 @@ from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
 from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import adjusted_hmc
 # from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import adjusted_mclmc
 from sampler_evaluation.models.rosenbrock import Rosenbrock
+from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import adjusted_mclmc
+
+import jax.numpy as jnp
+
 model = Rosenbrock(D=18)
+
 
 samplers={
 
             # "adjusted_hmc": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet"),
 
-            # "adjusted_malt": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", L_proposal_factor=1.25),
+            # "adjusted_malt_avg_low": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", L_proposal_factor=1.25, incremental_value_transform=None),
 
-            # "adjusted_microcanonical": partial(adjusted_mclmc,num_tuning_steps=5000),
+            # "adjusted_microcanonical_avg_low": partial(adjusted_mclmc,num_tuning_steps=5000, incremental_value_transform=incremental_value_transform),
 
-            "nuts": partial(nuts,num_tuning_steps=5000),
+            # "nuts_avg_low": partial(nuts,num_tuning_steps=5000, incremental_value_transform=None),
 
             # "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
 
             # "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=1e-4, num_tuning_steps=20000),
 
             # "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=20000),
+
+            "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=3e-4, num_tuning_steps=20000, diagonal_preconditioning=True),
+            # "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
             
             }
 
@@ -45,7 +53,7 @@ run_benchmarks(
         models={model.name: model},
         samplers=samplers,
         batch_size=batch_size,
-        num_steps=50000,
+        num_steps=500000,
         save_dir=f"results/{model.name}",
         key=jax.random.key(20),
         map=jax.pmap,
