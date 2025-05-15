@@ -227,16 +227,7 @@ def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKe
 if __name__ == "__main__":
 
     """
-    Notes for Alan:
-    
-    0. To run the code this time, I'll need you to install two packages. First, do `git clone git@github.com:reubenharry/blackjax.git` to obtain my working version of blackjax. Then in the root directory of this repo, do first `git checkout emaus` and second: `pip install -e .`
-    1. Secondly, do `git clone git@github.com:reubenharry/sampler-benchmarks.git` and in the directory `sampler-evaluation`, do `pip install -e .`
-    2. If you encounter any issues with either of the above, just let me know - I'm more than happy to troubleshoot.
-    3. If this has worked, you should be able to run this file from the `sampler-comparison` directory of the repo cloned in step 1. Hopefully it should slot into your existing code in exactly the same way as the previous code I sent. 
-    4. If you are able to run this code within your setup, the first thing to establish is whether the code works to your satisfaction (i.e. the results are accurate enough). Because there are a few more knobs to turn this time than before, it's likely that to get satisfactory performance, a few things will need to be tweaked (number of burn in MD steps, number of chains, etc), and those are all things I can advise on once the code runs.
 
-    Below is the code, set up to run with the harmonic potential. See the comments
-    
     """
 
     beta_hbar_omega = 15.8

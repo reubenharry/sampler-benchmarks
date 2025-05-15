@@ -1,7 +1,0 @@
-,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
-0,grid_search_unadjusted_lmc,ICG_2D,4686.0,,True,covariance,0.0,1.7818930041152259,0.5598586110454421
-1,grid_search_unadjusted_lmc,ICG_2D,4686.0,,False,covariance,0.0,1.7818930041152259,0.5598586110454421
-2,grid_search_unadjusted_lmc,ICG_2D,253.0,,True,identity,0.0,1.7818930041152259,0.5598586110454421
-3,grid_search_unadjusted_lmc,ICG_2D,143.0,,False,identity,0.0,1.7818930041152259,0.5598586110454421
-4,grid_search_unadjusted_lmc,ICG_2D,1603.0,,True,square,0.0,1.7818930041152259,0.5598586110454421
-5,grid_search_unadjusted_lmc,ICG_2D,457.0,,False,square,0.0,1.7818930041152259,0.5598586110454421

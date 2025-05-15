@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,grid_search_mams,Neals_Funnel_MAMS_Paper,inf,,,True,identity,0.0,6.054867198332765,0.04540034697156063
+1,grid_search_mams,Neals_Funnel_MAMS_Paper,inf,,,False,identity,0.0,6.054867198332765,0.04540034697156063
+2,grid_search_mams,Neals_Funnel_MAMS_Paper,1013048.8929378921,2124.417285257301,,True,square,0.0,6.054867198332765,0.04540034697156063
+3,grid_search_mams,Neals_Funnel_MAMS_Paper,41743.58919030546,24.968331942682916,,False,square,0.0,6.054867198332765,0.04540034697156063

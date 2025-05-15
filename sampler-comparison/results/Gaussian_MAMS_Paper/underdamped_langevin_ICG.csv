@@ -1,7 +1,0 @@
-,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
-0,underdamped_langevin,ICG,64254.0,,True,covariance,215556.0,0.9720981712115485,0.3973548555759603
-1,underdamped_langevin,ICG,64254.0,,False,covariance,215556.0,0.9720981712115485,0.3973548555759603
-2,underdamped_langevin,ICG,3766.0,,True,identity,215556.0,0.9720981712115485,0.3973548555759603
-3,underdamped_langevin,ICG,500.0,,False,identity,215556.0,0.9720981712115485,0.3973548555759603
-4,underdamped_langevin,ICG,6885.0,,True,square,215556.0,0.9720981712115485,0.3973548555759603
-5,underdamped_langevin,ICG,563.0,,False,square,215556.0,0.9720981712115485,0.3973548555759603

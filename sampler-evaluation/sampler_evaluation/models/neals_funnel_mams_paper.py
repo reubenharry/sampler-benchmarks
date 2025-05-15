@@ -6,6 +6,7 @@ jax.config.update("jax_enable_x64", True)
 import jax.numpy as jnp 
 
 import os
+from sampler_evaluation.models.model import SampleTransformation, make_model
 
 
 def logdensity_fn_funnel(x):
@@ -26,15 +27,20 @@ def transform(x):
         xtilde = xtilde.at[:-1].set(x.T[:-1] * jnp.exp(-0.5*x.T[-1]))
         return xtilde.T
 
-# jax.config.update("jax_enable_x64", True)
-SampleTransformation = namedtuple("SampleTransformation", ["ground_truth_mean", "ground_truth_standard_deviation"])
-Model = namedtuple("Model", ["ndims", "log_density_fn", "default_event_space_bijector", "sample_transformations" ])
-neals_funnel_mams_paper = Model(
-    ndims = 20,
-    log_density_fn=logdensity_fn_funnel,
+
+
+neals_funnel_mams_paper = make_model(
+    logdensity_fn=logdensity_fn_funnel,
+    ndims=20,
     default_event_space_bijector=transform,
     sample_transformations={
-        "identity": SampleTransformation(ground_truth_mean=jnp.ones(20)+jnp.inf, ground_truth_standard_deviation=3.0+jnp.inf),
-        "square": SampleTransformation(ground_truth_mean=jnp.ones(20), ground_truth_standard_deviation=jnp.sqrt(2*jnp.ones(20))),
+        "identity": SampleTransformation(
+                fn=lambda x: x,
+                ground_truth_mean=jnp.ones(20)+jnp.inf, ground_truth_standard_deviation=3.0+jnp.inf),
+        "square": SampleTransformation(
+                fn=lambda x: x**2,
+                ground_truth_mean=jnp.ones(20), ground_truth_standard_deviation=jnp.sqrt(2*jnp.ones(20))),
     },
+    name='Neals_Funnel_MAMS_Paper',
+
 )

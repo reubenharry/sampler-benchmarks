@@ -1,7 +1,7 @@
-,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
-0,underdamped_langevin,vector_synthetic_item_response_theory,inf,,True,identity,23556.0,2.110889869048036,0.13568454200277208
-1,underdamped_langevin,vector_synthetic_item_response_theory,2007.0,,False,identity,23556.0,2.110889869048036,0.13568454200277208
-2,underdamped_langevin,vector_synthetic_item_response_theory,inf,,True,square,23556.0,2.110889869048036,0.13568454200277208
-3,underdamped_langevin,vector_synthetic_item_response_theory,2020.0,,False,square,23556.0,2.110889869048036,0.13568454200277208
-4,underdamped_langevin,vector_synthetic_item_response_theory,inf,,True,quartic,23556.0,2.110889869048036,0.13568454200277208
-5,underdamped_langevin,vector_synthetic_item_response_theory,inf,,False,quartic,23556.0,2.110889869048036,0.13568454200277208
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,underdamped_langevin,vector_synthetic_item_response_theory,18063.0,3656.9602913348676,,True,identity,95556.0,2.156899093572614,0.14183004003939698
+1,underdamped_langevin,vector_synthetic_item_response_theory,1883.0,254.50868354537533,,False,identity,95556.0,2.156899093572614,0.14183004003939698
+2,underdamped_langevin,vector_synthetic_item_response_theory,24837.0,2647.4441226209105,,True,square,95556.0,2.156899093572614,0.14183004003939698
+3,underdamped_langevin,vector_synthetic_item_response_theory,1892.0,152.84869773733763,,False,square,95556.0,2.156899093572614,0.14183004003939698
+4,underdamped_langevin,vector_synthetic_item_response_theory,inf,nan,,True,quartic,95556.0,2.156899093572614,0.14183004003939698
+5,underdamped_langevin,vector_synthetic_item_response_theory,inf,nan,,False,quartic,95556.0,2.156899093572614,0.14183004003939698

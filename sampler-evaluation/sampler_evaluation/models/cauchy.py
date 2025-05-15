@@ -29,6 +29,6 @@ def cauchy(ndims):
             ground_truth_standard_deviation=(jnp.pi**2)/3,
         ),
     },
-    name='Cauchy',
+    name=f'Cauchy_{ndims}D',
 
 )

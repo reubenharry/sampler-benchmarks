@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_hmc_velocity_verlet,Rosenbrock_4310,1417180.7120264773,,True,identity,3822977.75,2.0,0.010593929590638634
+1,adjusted_hmc_velocity_verlet,Rosenbrock_4310,70264.05769343591,,False,identity,3822977.75,2.0,0.010593929590638634
+2,adjusted_hmc_velocity_verlet,Rosenbrock_4310,1510677.240408872,,True,square,3822977.75,2.0,0.010593929590638634
+3,adjusted_hmc_velocity_verlet,Rosenbrock_4310,301833.23708094243,,False,square,3822977.75,2.0,0.010593929590638634

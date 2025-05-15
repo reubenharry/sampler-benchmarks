@@ -36,40 +36,30 @@ from sampler_evaluation.models.brownian import brownian_motion
 
 model = brownian_motion()
 
-# samplers_ulmc={
-
-#             # "adjusted_hmc": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet"),
-#             f"underdamped_langevin_{dev}": partial(unadjusted_lmc,desired_energy_var=dev, num_tuning_steps=20000, diagonal_preconditioning=True, stage3=False)
-
-#             for dev in np.logspace(-6, -1, 15)
-            
-#             # "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=20000),
-# }
-
-samplers={
-            # "adjusted_hmc": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet"),
-
-            # "adjusted_malt": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", L_proposal_factor=1.25),
-
-            # "adjusted_hmc": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet"),
-
-            # "nuts": partial(nuts,num_tuning_steps=5000),
-
-            # "adjusted_microcanonical": partial(adjusted_mclmc,num_tuning_steps=5000,),
-            # "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
-
-            # "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
-
-            "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=3e-4, num_tuning_steps=20000, num_windows=1),
-
-            # "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=20000),
-        }
+run_benchmarks(
+        models={model.name: model},
+        samplers={
+            "adjusted_malt": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", L_proposal_factor=1.25),
+            "nuts": partial(nuts,num_tuning_steps=500),
+            "adjusted_microcanonical": partial(adjusted_mclmc,num_tuning_steps=5000),
+            "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
+        },
+        batch_size=batch_size,
+        num_steps=10000,
+        save_dir=f"results/{model.name}",
+        key=jax.random.key(20),
+        map=jax.pmap,
+        calculate_ess_corr=False,
+    )
 
 run_benchmarks(
         models={model.name: model},
-        samplers=samplers,
+        samplers={
+            "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=3e-4, num_tuning_steps=20000, diagonal_preconditioning=True),
+            "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=20000),
+        },
         batch_size=batch_size,
-        num_steps=200000,
+        num_steps=150000,
         save_dir=f"results/{model.name}",
         key=jax.random.key(20),
         map=jax.pmap,

@@ -1,5 +1,7 @@
-,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
-0,nuts,vector_synthetic_item_response_theory,57443.0,,True,identity,151195.4765625,3.704950678583465,0.11951453801882145
-1,nuts,vector_synthetic_item_response_theory,5921.0,,False,identity,151195.4765625,3.704950678583465,0.11951453801882145
-2,nuts,vector_synthetic_item_response_theory,75578.0,,True,square,151195.4765625,3.704950678583465,0.11951453801882145
-3,nuts,vector_synthetic_item_response_theory,6479.0,,False,square,151195.4765625,3.704950678583465,0.11951453801882145
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,nuts,vector_synthetic_item_response_theory,59092.52085,140.38833142394705,,True,identity,22452.578125,4.207290686314792,0.13188946984714173
+1,nuts,vector_synthetic_item_response_theory,5137.07535,28.86607004772212,,False,identity,22452.578125,4.207290686314792,0.13188946984714173
+2,nuts,vector_synthetic_item_response_theory,71757.51165,121.64948992905806,,True,square,22452.578125,4.207290686314792,0.13188946984714173
+3,nuts,vector_synthetic_item_response_theory,5847.86565,25.508545626907075,,False,square,22452.578125,4.207290686314792,0.13188946984714173
+4,nuts,vector_synthetic_item_response_theory,inf,nan,,True,quartic,22452.578125,4.207290686314792,0.13188946984714173
+5,nuts,vector_synthetic_item_response_theory,inf,nan,,False,quartic,22452.578125,4.207290686314792,0.13188946984714173

@@ -54,6 +54,7 @@ def run_benchmarks(
                     "num_grads_to_low_error": stats["max_over_parameters"][trans][
                         "grads_to_low_error"
                     ],
+                    "grads_to_low_error_std": stats["max_over_parameters"][trans]["grads_to_low_error_std"],
                     "ess_corr": stats["max_over_parameters"][trans]["autocorrelation"],
                     "max": True,
                     "statistic": trans,
@@ -69,6 +70,7 @@ def run_benchmarks(
                     "num_grads_to_low_error": stats["avg_over_parameters"][trans][
                         "grads_to_low_error"
                     ],
+                    "grads_to_low_error_std": stats["avg_over_parameters"][trans]["grads_to_low_error_std"],
                     "ess_corr": stats["avg_over_parameters"][trans]["autocorrelation"],
                     "max": False,
                     "statistic": trans,

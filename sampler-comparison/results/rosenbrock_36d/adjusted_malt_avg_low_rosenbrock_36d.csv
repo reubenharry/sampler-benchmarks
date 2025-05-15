@@ -1,7 +1,0 @@
-,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
-0,adjusted_malt_avg_low,rosenbrock_36d,inf,,True,covariance,942679.443359375,2.0,0.037761611453006286
-1,adjusted_malt_avg_low,rosenbrock_36d,inf,,False,covariance,942679.443359375,2.0,0.037761611453006286
-2,adjusted_malt_avg_low,rosenbrock_36d,101363.72429599469,,True,identity,942679.443359375,2.0,0.037761611453006286
-3,adjusted_malt_avg_low,rosenbrock_36d,17220.70590496512,,False,identity,942679.443359375,2.0,0.037761611453006286
-4,adjusted_malt_avg_low,rosenbrock_36d,inf,,True,square,942679.443359375,2.0,0.037761611453006286
-5,adjusted_malt_avg_low,rosenbrock_36d,21724.582833955996,,False,square,942679.443359375,2.0,0.037761611453006286
