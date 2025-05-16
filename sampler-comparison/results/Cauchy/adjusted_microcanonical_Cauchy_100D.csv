@@ -1,3 +1,0 @@
-,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
-0,adjusted_microcanonical,Cauchy_100D,inf,,True,entropy,465488.28125,20.0,2.3482564515076163
-1,adjusted_microcanonical,Cauchy_100D,110404.84892187359,,False,entropy,465488.28125,20.0,2.3482564515076163

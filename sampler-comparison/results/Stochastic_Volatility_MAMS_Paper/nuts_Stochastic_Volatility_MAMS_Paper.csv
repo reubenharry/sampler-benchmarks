@@ -1,5 +1,7 @@
-,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
-0,nuts,Stochastic_Volatility_MAMS_Paper,843768.4626000001,True,x2,1217087.4140625,13.62327680438737,0.05390057662340146
-1,nuts,Stochastic_Volatility_MAMS_Paper,30234.401400000002,False,x2,1217087.4140625,13.62327680438737,0.05390057662340146
-2,nuts,Stochastic_Volatility_MAMS_Paper,inf,True,x,1217087.4140625,13.62327680438737,0.05390057662340146
-3,nuts,Stochastic_Volatility_MAMS_Paper,inf,False,x,1217087.4140625,13.62327680438737,0.05390057662340146
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,nuts,Stochastic_Volatility_MAMS_Paper,inf,,,True,identity,130240.0,14.149394101853183,0.055311078109491735
+1,nuts,Stochastic_Volatility_MAMS_Paper,inf,,,False,identity,130240.0,14.149394101853183,0.055311078109491735
+2,nuts,Stochastic_Volatility_MAMS_Paper,1628519.3792000005,1444.991017653743,,True,square,130240.0,14.149394101853183,0.055311078109491735
+3,nuts,Stochastic_Volatility_MAMS_Paper,29871.639466666675,5.246665607793201,,False,square,130240.0,14.149394101853183,0.055311078109491735
+4,nuts,Stochastic_Volatility_MAMS_Paper,inf,,,True,quartic,130240.0,14.149394101853183,0.055311078109491735
+5,nuts,Stochastic_Volatility_MAMS_Paper,inf,,,False,quartic,130240.0,14.149394101853183,0.055311078109491735

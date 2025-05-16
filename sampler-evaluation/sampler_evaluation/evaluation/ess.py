@@ -3,6 +3,7 @@
 import jax
 import jax.numpy as jnp
 import warnings
+import numpy as np
 
 
 def get_num_latents(target):
@@ -28,7 +29,9 @@ def samples_to_low_error(err_t, low_error=0.01):
     """Uses the error of the expectation values to compute the effective sample size n_eff
     b^2 = 1/n_eff"""
 
-    jax.debug.print("final error is {x}", x=err_t[-1])
+    err_t = np.array(err_t)
+
+    # jax.debug.print("final error is {x}", x=err_t[-1])
 
     cutoff_reached = err_t[-1] < low_error
     # if not cutoff_reached:
@@ -60,12 +63,12 @@ def find_crossing(array, cutoff):
     """the smallest M such that array[m] < cutoff for all m > M"""
 
     b = array > cutoff
-    indices = jnp.argwhere(b, size=array.shape[0])
+    indices = np.argwhere(b)
     if indices.shape[0] == 0:
         warnings.warn("Error always below threshold.")
         return 1
 
-    return jnp.max(indices) + 1
+    return np.max(indices) + 1
 
 
 def get_standardized_squared_error(samples, f, E_f, Var_f, contract_fn=jnp.max):

@@ -1,5 +1,7 @@
-,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
-0,adjusted_microcanonical,vector_synthetic_item_response_theory,38702.883215733826,,True,identity,263312.0546875,31.57345136698249,3.139207403895986
-1,adjusted_microcanonical,vector_synthetic_item_response_theory,3909.585703646114,,False,identity,263312.0546875,31.57345136698249,3.139207403895986
-2,adjusted_microcanonical,vector_synthetic_item_response_theory,46864.64718468576,,True,square,263312.0546875,31.57345136698249,3.139207403895986
-3,adjusted_microcanonical,vector_synthetic_item_response_theory,3929.7382072731557,,False,square,263312.0546875,31.57345136698249,3.139207403895986
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_microcanonical,vector_synthetic_item_response_theory,36408.565912939586,552.9680240303231,,True,identity,289702.453125,31.464084711812227,3.235051140839378
+1,adjusted_microcanonical,vector_synthetic_item_response_theory,4091.292117715523,44.97461950922987,,False,identity,289702.453125,31.464084711812227,3.235051140839378
+2,adjusted_microcanonical,vector_synthetic_item_response_theory,47413.748316121484,498.7937508630195,,True,square,289702.453125,31.464084711812227,3.235051140839378
+3,adjusted_microcanonical,vector_synthetic_item_response_theory,3806.0818498940084,34.338227968257186,,False,square,289702.453125,31.464084711812227,3.235051140839378
+4,adjusted_microcanonical,vector_synthetic_item_response_theory,inf,,,True,quartic,289702.453125,31.464084711812227,3.235051140839378
+5,adjusted_microcanonical,vector_synthetic_item_response_theory,inf,,,False,quartic,289702.453125,31.464084711812227,3.235051140839378

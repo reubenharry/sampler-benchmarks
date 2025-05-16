@@ -37,8 +37,10 @@ from sampler_comparison.samplers import samplers
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_adjusted_mclmc, grid_search_hmc
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_hmc, grid_search_unadjusted_lmc
 from sampler_evaluation.models.rosenbrock import Rosenbrock
+from sampler_evaluation.models.neals_funnel_mams_paper import neals_funnel_mams_paper
 
-model = Rosenbrock()
+model = neals_funnel_mams_paper
+
 
 
 samplers={
@@ -51,7 +53,7 @@ run_benchmarks(
         models={model.name: model},
         samplers=samplers,
         batch_size=batch_size,
-        num_steps=500000,
+        num_steps=50000,
         save_dir=f"results/{model.name}",
         key=jax.random.key(20),
         map=lambda x : x,

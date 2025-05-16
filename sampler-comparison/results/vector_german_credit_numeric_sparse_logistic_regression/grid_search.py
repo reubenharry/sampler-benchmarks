@@ -3,7 +3,7 @@ import os
 import jax
 jax.config.update("jax_enable_x64", True)
 
-batch_size = 128
+batch_size = 512
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 num_cores = jax.local_device_count()
 
@@ -48,9 +48,9 @@ run_benchmarks(
         models={model.name: model},
         samplers=samplers,
         batch_size=batch_size,
-        num_steps=200000,
+        num_steps=100000,
         save_dir=f"results/{model.name}",
-        key=jax.random.key(20),
+        key=jax.random.key(10),
         map=lambda x : x,
         calculate_ess_corr=False,
     )

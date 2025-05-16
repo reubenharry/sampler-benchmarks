@@ -25,52 +25,32 @@ from sampler_evaluation.models.item_response import item_response
 
 model = item_response()
 
-samplers={
-
-            # "adjusted_malt": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", L_proposal_factor=1.25),
-            # "nuts": partial(nuts,num_tuning_steps=5000),
-            "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=3e-4, num_tuning_steps=20000, diagonal_preconditioning=True),
-            "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
-
-        }
-
 run_benchmarks(
         models={model.name: model},
-        samplers=samplers,
+        samplers={
+            "adjusted_malt": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", L_proposal_factor=1.25),
+            "nuts": partial(nuts,num_tuning_steps=500),
+            "adjusted_microcanonical": partial(adjusted_mclmc,num_tuning_steps=5000),
+            "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
+        },
         batch_size=batch_size,
-        num_steps=4000,
+        num_steps=10000,
         save_dir=f"results/{model.name}",
         key=jax.random.key(20),
         map=jax.pmap,
         calculate_ess_corr=False,
     )
 
-
-
-# run_benchmarks(
-#         models={
-#             "Item_Response": sampler_evaluation.models.item_response(),
-#         },
-#         samplers={
-
-#             "adjusted_hmc": partial(adjusted_hmc,num_tuning_steps=10000, integrator_type="velocity_verlet"),
-
-#             # "adjusted_microcanonical": partial(adjusted_mclmc,num_tuning_steps=5000),
-
-#             # "nuts": partial(nuts,num_tuning_steps=5000),
-
-#             # "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
-
-#             # "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=5e-4, num_tuning_steps=500, diagonal_preconditioning=False),
-#             # "underdamped_langevin": partial(unadjusted_lmc_no_tuning, step_size=1e-5, L=0.1, initial_state=initial_state,integrator_type='velocity_verlet', inverse_mass_matrix=jnp.ones((32,))),
-
-#             # "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=20000),
-
-       
-#         },
-#         batch_size=batch_size,
-#         num_steps=40000,
-#         save_dir="results/Item_Response",
-#         key=jax.random.key(19),
-#         map=jax.pmap
-#     )
+run_benchmarks(
+        models={model.name: model},
+        samplers={
+            "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=3e-4, num_tuning_steps=20000, diagonal_preconditioning=True),
+            "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=20000),
+        },
+        batch_size=batch_size,
+        num_steps=40000,
+        save_dir=f"results/{model.name}",
+        key=jax.random.key(20),
+        map=jax.pmap,
+        calculate_ess_corr=False,
+    )
