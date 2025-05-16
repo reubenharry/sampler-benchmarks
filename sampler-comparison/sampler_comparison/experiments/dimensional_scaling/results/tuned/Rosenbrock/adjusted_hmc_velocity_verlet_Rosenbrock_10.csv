@@ -1,5 +1,5 @@
 ,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
-0,adjusted_hmc_velocity_verlet,Rosenbrock_10,33212.232206704735,,True,identity,541510.7403846154,2.0,0.060451593524402214
-1,adjusted_hmc_velocity_verlet,Rosenbrock_10,9072.932826158622,,False,identity,541510.7403846154,2.0,0.060451593524402214
-2,adjusted_hmc_velocity_verlet,Rosenbrock_10,41225.55244002731,,True,square,541510.7403846154,2.0,0.060451593524402214
-3,adjusted_hmc_velocity_verlet,Rosenbrock_10,11721.964308248731,,False,square,541510.7403846154,2.0,0.060451593524402214
+0,adjusted_hmc_velocity_verlet,Rosenbrock_10,51233.24156553459,,True,identity,734248.1730769231,2.0,0.049455961876902516
+1,adjusted_hmc_velocity_verlet,Rosenbrock_10,14568.69428403827,,False,identity,734248.1730769231,2.0,0.049455961876902516
+2,adjusted_hmc_velocity_verlet,Rosenbrock_10,61916.95070716266,,True,square,734248.1730769231,2.0,0.049455961876902516
+3,adjusted_hmc_velocity_verlet,Rosenbrock_10,64142.72344500184,,False,square,734248.1730769231,2.0,0.049455961876902516

@@ -166,6 +166,7 @@ def unadjusted_mclmc(
     return_samples=False,
     desired_energy_var=5e-4,
     return_only_final=False,
+    incremental_value_transform=None,
 ):
     def s(model, num_steps, initial_position, key):
 
@@ -198,6 +199,7 @@ def unadjusted_mclmc(
             inverse_mass_matrix=blackjax_mclmc_sampler_params.inverse_mass_matrix,
             return_samples=return_samples,
             return_only_final=return_only_final,
+            incremental_value_transform=incremental_value_transform,
         )(model, num_steps, initial_position, run_key)
 
         return expectations, metadata | {

@@ -1,5 +1,5 @@
-,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
-0,adjusted_microcanonical_velocity_verlet,Rosenbrock_200,288610.60728245135,True,x2,1338660.8888888888,28.284271247461902,0.41159180974997156
-1,adjusted_microcanonical_velocity_verlet,Rosenbrock_200,27156.071909616076,False,x2,1338660.8888888888,28.284271247461902,0.41159180974997156
-2,adjusted_microcanonical_velocity_verlet,Rosenbrock_200,203429.91590013664,True,x,1338660.8888888888,28.284271247461902,0.41159180974997156
-3,adjusted_microcanonical_velocity_verlet,Rosenbrock_200,21587.358429416323,False,x,1338660.8888888888,28.284271247461902,0.41159180974997156
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_microcanonical_velocity_verlet,Rosenbrock_200,273804.76860873814,,True,identity,1841052.5555555555,40.0,0.4951344405474074
+1,adjusted_microcanonical_velocity_verlet,Rosenbrock_200,28625.77911621185,,False,identity,1841052.5555555555,40.0,0.4951344405474074
+2,adjusted_microcanonical_velocity_verlet,Rosenbrock_200,336393.3365068963,,True,square,1841052.5555555555,40.0,0.4951344405474074
+3,adjusted_microcanonical_velocity_verlet,Rosenbrock_200,147172.0847217671,,False,square,1841052.5555555555,40.0,0.4951344405474074

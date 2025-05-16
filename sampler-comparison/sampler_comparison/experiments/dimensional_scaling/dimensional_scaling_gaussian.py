@@ -4,8 +4,8 @@ import os
 import jax
 # jax.config.update("jax_enable_x64", True)
 
-batch_size = 512
-# os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
+batch_size = 64
+os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 num_cores = jax.local_device_count()
 
 import sys
@@ -29,7 +29,7 @@ from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import adjusted_hmc
 from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_langevin import unadjusted_lmc, unadjusted_lmc_no_tuning
 import jax.numpy as jnp
 
-dims = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,5, 5)).astype(int)])[11:]
+dims = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,5, 10)).astype(int)])[:]
 
 
 # dims = [100000]
@@ -39,7 +39,7 @@ integrator_types = ['velocity_verlet']
 
 for dim, integrator_type in itertools.product(dims, integrator_types):
 
-    batch_size = min(4 + 1000 // dim, batch_size)
+    # batch_size = 32
 
     print(f"Running for dim={dim}, integrator_type={integrator_type}, batch_size={batch_size}")
 
@@ -51,23 +51,23 @@ for dim, integrator_type in itertools.product(dims, integrator_types):
             },
             samplers={
 
-                # f"adjusted_microcanonical_{integrator_type}": lambda: adjusted_mclmc(num_tuning_steps=5000, integrator_type=integrator_type),
+                f"adjusted_microcanonical_{integrator_type}": partial(adjusted_mclmc,num_tuning_steps=5000, integrator_type=integrator_type),
 
-                # f"adjusted_hmc_{integrator_type}": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type=integrator_type, diagonal_preconditioning=True),
+                # f"nuts_{integrator_type}": partial(nuts,num_tuning_steps=5000),
 
-                f"underdamped_langevin_{integrator_type}": partial(unadjusted_lmc,desired_energy_var=1e-4, 
+                f"adjusted_hmc_{integrator_type}": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type=integrator_type),
+
+
+
+                f"underdamped_langevin_{integrator_type}": partial(unadjusted_lmc,desired_energy_var=1e-4,),
                 # desired_energy_var_max_ratio=(1/desired_energy_var)*1000000,
-                # desired_energy_var_max_ratio=jnp.inf,
+                # desired_energy_var_max_ratio=1e4,
                     
-                    num_tuning_steps=20000, diagonal_preconditioning=True),
+                    # num_tuning_steps=20000, diagonal_preconditioning=True, num_windows=1),
 
-                # "adjusted_malt": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", L_proposal_factor=1.25),
-
-                # f"underdamped_langevin_{integrator_type}": partial(unadjusted_lmc,desired_energy_var=5e-2, num_tuning_steps=5000, diagonal_preconditioning=False, integrator_type=integrator_type),
+                "adjusted_malt": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", L_proposal_factor=1.25),
             
-                # f"unadjusted_microcanonical_{integrator_type}": lambda: unadjusted_mclmc(num_tuning_steps=10000, integrator_type=integrator_type),
-
-                # f"nuts_{integrator_type}": lambda: nuts(num_tuning_steps=5000),
+                f"unadjusted_microcanonical_{integrator_type}": partial(unadjusted_mclmc,num_tuning_steps=20000, integrator_type=integrator_type),
 
             },
             

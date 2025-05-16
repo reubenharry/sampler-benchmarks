@@ -328,6 +328,7 @@ def adjusted_hmc(
     stage_3=True,
     L_proposal_factor=jnp.inf,
     warmup='nuts',
+    incremental_value_transform=None,
 ):
     """
     Args:
@@ -396,6 +397,7 @@ def adjusted_hmc(
             return_samples=return_samples,
             return_only_final=return_only_final,
             L_proposal_factor=L_proposal_factor,
+            incremental_value_transform=incremental_value_transform,
         )(model, num_steps, initial_position, run_key)
 
         # jax.debug.print("intermediate {x}",x=expectations[0,:])

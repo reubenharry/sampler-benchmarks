@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,nuts_velocity_verlet,Gaussian_5995,16523.0,,True,identity,229187.0,5.4884185791015625,0.1770457625389099
+1,nuts_velocity_verlet,Gaussian_5995,930.0,,False,identity,229187.0,5.4884185791015625,0.1770457625389099
+2,nuts_velocity_verlet,Gaussian_5995,176979.0,,True,square,229187.0,5.4884185791015625,0.1770457625389099
+3,nuts_velocity_verlet,Gaussian_5995,9548.0,,False,square,229187.0,5.4884185791015625,0.1770457625389099

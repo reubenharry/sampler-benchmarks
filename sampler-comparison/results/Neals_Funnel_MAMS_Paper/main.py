@@ -30,7 +30,7 @@ run_benchmarks(
             "adjusted_microcanonical": lambda: adjusted_mclmc(num_tuning_steps=40000, warmup='unadjusted_mclmc', target_acc_rate=0.99, num_windows=3),
             "adjusted_microcanonical_langevin": lambda: adjusted_mclmc(L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=40000, warmup='unadjusted_mclmc', target_acc_rate=0.99, num_windows=3),
             "nuts": lambda: nuts(num_tuning_steps=5000, target_acc_rate=0.99),
-        "unadjusted_microcanonical": lambda: unadjusted_mclmc(num_tuning_steps=20000, desired_energy_var=1e-6),
+            "unadjusted_microcanonical": lambda: unadjusted_mclmc(num_tuning_steps=20000, desired_energy_var=1e-6),
         },
         batch_size=batch_size,
         num_steps=10000000,
