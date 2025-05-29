@@ -1,0 +1,7 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,unadjusted_hamiltonian_microcanonical,ICG,inf,,,True,covariance,2220.0,13.584814016088806,6.952573328071843
+1,unadjusted_hamiltonian_microcanonical,ICG,inf,,,False,covariance,2220.0,13.584814016088806,6.952573328071843
+2,unadjusted_hamiltonian_microcanonical,ICG,120.0,1.526400995806803,,True,identity,2220.0,13.584814016088806,6.952573328071843
+3,unadjusted_hamiltonian_microcanonical,ICG,42.0,0.5291502622129182,,False,identity,2220.0,13.584814016088806,6.952573328071843
+4,unadjusted_hamiltonian_microcanonical,ICG,inf,,,True,square,2220.0,13.584814016088806,6.952573328071843
+5,unadjusted_hamiltonian_microcanonical,ICG,inf,,,False,square,2220.0,13.584814016088806,6.952573328071843
