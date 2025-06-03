@@ -231,3 +231,6 @@ mainn(model, batch_size, mesh, num_steps, key, L= 100.)
 
 
 #shifter --image=reubenharry/cosmo:1.0 python3 -m sampler_comparison.experiments.greedy_ensemble
+
+
+# Use with "autodiff" branch on blackjax
