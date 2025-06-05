@@ -217,7 +217,7 @@ def unadjusted_lmc(
     integrator_type="velocity_verlet",
     num_tuning_steps=20000,
     return_samples=False,
-    desired_energy_var=1e-1,
+    desired_energy_var=3e-4,
     desired_energy_var_max_ratio=jnp.inf,
     return_only_final=False,
     num_windows=1,

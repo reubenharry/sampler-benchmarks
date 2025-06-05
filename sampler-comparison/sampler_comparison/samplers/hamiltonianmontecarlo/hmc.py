@@ -37,8 +37,6 @@ def adjusted_hmc_no_tuning(
     L_proposal_factor=jnp.inf,
 ):
     
-    # print("Begin")
-
     def s(model, num_steps, initial_position, key):
 
         logdensity_fn = make_log_density_fn(model)
@@ -46,15 +44,11 @@ def adjusted_hmc_no_tuning(
         num_steps_per_traj = L / step_size
         if random_trajectory_length:
 
-            # integration_steps_fn = lambda k: 10
-            # Halton sequence
             integration_steps_fn = lambda k: jnp.ceil(
                 jax.random.uniform(k) * rescale(num_steps_per_traj)
             ).astype('int32')
         else:
             integration_steps_fn = lambda _: num_steps_per_traj.astype(jnp.int32)
-
-        # print(integration_steps_fn(jax.random.key(0)))
 
         alg = blackjax.dynamic_malt(
             logdensity_fn=logdensity_fn,
@@ -92,7 +86,7 @@ def adjusted_hmc_no_tuning(
             inference_algorithm=alg,
             num_steps=num_steps,
             transform=(lambda a, b: None) if return_only_final else transform,
-            progress_bar=True,
+            progress_bar=False,
         )
 
         if return_only_final:

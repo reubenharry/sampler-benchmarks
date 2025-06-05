@@ -14,7 +14,7 @@ from blackjax.adaptation.mclmc_adaptation import MCLMCAdaptationState, make_L_st
 
 
 
-def unadjusted_lmc_no_tuning(
+def unadjusted_hmc_no_tuning(
     initial_state,
     integrator_type,
     step_size,
@@ -42,7 +42,7 @@ def unadjusted_lmc_no_tuning(
 
         logdensity_fn = make_log_density_fn(model)
 
-        alg = blackjax.langevin(
+        alg = blackjax.uhmc(
             logdensity_fn=logdensity_fn,
             L=L,
             step_size=step_size,
@@ -104,7 +104,7 @@ def unadjusted_lmc_no_tuning(
     return s
 
 
-def unadjusted_lmc_tuning(
+def unadjusted_hmc_tuning(
     initial_position,
     num_steps,
     rng_key,
@@ -137,14 +137,14 @@ def unadjusted_lmc_tuning(
     frac_tune2 = num_tuning_steps / (3 * num_steps)
     frac_tune3 = num_tuning_steps / (3 * num_steps) if stage3 else 0.0
 
-    initial_state = blackjax.langevin.init(
+    initial_state = blackjax.uhmc.init(
         position=initial_position,
         logdensity_fn=logdensity_fn,
         rng_key=init_key,
         metric=blackjax.mcmc.metrics.default_metric(jnp.ones(initial_position.shape[0]))
     )
 
-    kernel = lambda inverse_mass_matrix: blackjax.langevin.build_kernel(
+    kernel = lambda inverse_mass_matrix: blackjax.uhmc.build_kernel(
         logdensity_fn=logdensity_fn,
         integrator=map_integrator_type_to_integrator["hmc"][integrator_type],
         inverse_mass_matrix=inverse_mass_matrix,
@@ -212,7 +212,7 @@ def unadjusted_lmc_tuning(
     # return (blackjax_state_after_tuning, params, jnp.inf)
 
 
-def unadjusted_lmc(
+def unadjusted_hmc(
     diagonal_preconditioning=True,
     integrator_type="velocity_verlet",
     num_tuning_steps=20000,
@@ -237,7 +237,7 @@ def unadjusted_lmc(
             blackjax_state_after_tuning,
             blackjax_mclmc_sampler_params,
             num_tuning_integrator_steps,
-        ) = unadjusted_lmc_tuning(
+        ) = unadjusted_hmc_tuning(
             initial_position=initial_position,
             num_steps=num_steps,
             rng_key=tune_key,
@@ -254,7 +254,7 @@ def unadjusted_lmc(
         )
         # jax.debug.print("params {x}", x=(blackjax_mclmc_sampler_params))
 
-        expectations, metadata = unadjusted_lmc_no_tuning(
+        expectations, metadata = unadjusted_hmc_no_tuning(
             initial_state=blackjax_state_after_tuning,
             integrator_type=integrator_type,
             step_size=blackjax_mclmc_sampler_params.step_size,

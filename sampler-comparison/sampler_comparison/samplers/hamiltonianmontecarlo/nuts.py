@@ -17,6 +17,7 @@ def nuts(
     num_tuning_steps=5000,
     return_only_final=False,
     target_acc_rate=0.8,
+    progress_bar=False,
 ):
 
     def s(model, num_steps, initial_position, key):
@@ -79,14 +80,10 @@ def nuts(
             inference_algorithm=alg,
             num_steps=num_steps,
             transform=(lambda a, b: None) if return_only_final else transform,
-            progress_bar=False,
+            progress_bar=progress_bar,
         )
 
-
         if return_only_final:
-
-            # jax.debug.print("final output {x}", x=final_output.position.shape)
-            # jax.debug.print("final output transformed {x}", x=get_final_sample(final_output).shape)
 
             return get_final_sample(final_output, {})
 
