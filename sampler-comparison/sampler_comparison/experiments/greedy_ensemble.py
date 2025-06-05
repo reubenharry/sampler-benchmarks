@@ -42,7 +42,7 @@ def const_stepsize(kernel, propagator, state_to_loss, initial_state, keys, L):
         final_state = propagator(initial_state, jnp.full(len(keys), step_size), LL, keys)
         return state_to_loss(final_state)
 
-    stepsize = jnp.logspace(-1, 1, 100)
+    stepsize = jnp.logspace(0, 1.5, 100)
     bsq = jax.vmap(loss_const_stepsize)(stepsize)
 
     # plt.plot(stepsize, bsq, '.-')
@@ -56,7 +56,7 @@ def const_stepsize(kernel, propagator, state_to_loss, initial_state, keys, L):
     stepsize = stepsize[np.argmin(bsq)]
     loss_history = get_loss_history(kernel, state_to_loss, initial_state, jnp.full(len(keys), stepsize), LL, keys)
     
-    return loss_history, stepsize, LL
+    return loss_history, stepsize
 
 
 def grid_search(loss, x, y):
@@ -82,7 +82,7 @@ def const_hyp(kernel, propagator, state_to_loss, initial_state, keys):
         final_state = propagator(initial_state, jnp.full(len(keys), eps), jnp.full(len(keys), L), keys)
         return state_to_loss(final_state)
 
-    eps_arr = jnp.logspace(0, 1, 100)
+    eps_arr = jnp.logspace(0, 1.5, 100)
     L_arr = jnp.logspace(0, 2, 100)
 
     _, eps, L = grid_search(loss_const_stepsize, eps_arr, L_arr)
@@ -168,35 +168,36 @@ def full_opt_reparam(kernel, propagator, state_to_loss, initial_state, stepsize_
 
     stepsize = x_to_eps(opt.x)
 
-    loss_history = get_loss_history(kernel, state_to_loss, initial_state, stepsize, keys, L)
+    loss_history = get_loss_history(kernel, state_to_loss, initial_state, stepsize, L, keys)
 
     return loss_history, stepsize
 
 
-def full_opt(kernel, propagator, state_to_loss, initial_state, stepsize_guess, keys, L):
+def full_opt(kernel, propagator, state_to_loss, initial_state, keys, L):
 
-    fix= 9
+    LL = jnp.full(len(keys), L)
 
-    x_to_eps = lambda x: jnp.concatenate((jnp.ones(fix), x)) * stepsize_guess
-    init = jnp.ones(len(stepsize_guess) - fix)
+    t = jnp.arange(len(keys))
+
+    x_to_eps = lambda x: x[0] * jnp.power(t + 1, - x[2]) + x[1]
 
 
     def loss(x):
-        final_state = propagator(initial_state, x_to_eps(x), keys)
+        final_state = propagator(initial_state, x_to_eps(x), LL, keys)
         return jnp.log(state_to_loss(final_state))
 
 
     opt = minimize(jax.value_and_grad(loss), jac= True, 
-                   x0= init, 
+                   x0= (8, 0.1, 2), 
                    method='L-BFGS-B', 
                    #bounds= jnp.array([stepsize_guess * 0.5, stepsize_guess * 2.]).T,
-                   options={'maxiter': 20}
+                   options={'maxiter': 100}
                    )
     print(opt)
 
     stepsize = x_to_eps(opt.x)
 
-    loss_history = get_loss_history(kernel, state_to_loss, initial_state, stepsize, keys, L)
+    loss_history = get_loss_history(kernel, state_to_loss, initial_state, stepsize, LL, keys)
 
     return loss_history, stepsize
 
@@ -207,7 +208,8 @@ def mainn(
     num_chains,
     mesh,
     num_steps,
-    rng_key
+    rng_key,
+    beta = 1
 ):
 
     logdensity_fn = make_log_density_fn(model)
@@ -217,7 +219,7 @@ def mainn(
 
     # initialize the chains
     initial_state = umclmc.initialize(
-        key_init, logdensity_fn, model.sample_init, num_chains, mesh
+        key_init, logdensity_fn, lambda k: model.sample_init(k, beta), num_chains, mesh
     )
 
     # burn-in with the unadjusted method
@@ -245,37 +247,37 @@ def mainn(
 
     
     # constant step size
-    loss_const, eps_const, L_const = const_hyp(kernel, propagator, state_to_loss, initial_state, keys_kernel)
+    loss_const, eps_const = const_stepsize(kernel, propagator, state_to_loss, initial_state, keys_kernel, 100)
     
     # greedy optimization
-    loss_greedy, eps_greedy, L_greedy = greedy_opt(kernel, state_to_loss, initial_state, eps_const * 10, L_const * 5, keys_kernel)
+    #loss_greedy, eps_greedy = greedy_opt1(kernel, state_to_loss, initial_state, eps_const * 10, keys_kernel, 100)
 
     # proper optimization
-    #loss_full, eps_full = full_opt(kernel, propagator, state_to_loss, initial_state, eps_greedy, keys_kernel, L)
+    loss_full, eps_full = full_opt(kernel, propagator, state_to_loss, initial_state, keys_kernel, 100)
 
     plt.rcParams.update({'font.size': 23})
-    plt.figure(figsize=(10, 15))
+    plt.figure(figsize=(10, 10))
     
-    plt.subplot(3, 1, 1)
+    plt.subplot(2, 1, 1)
     plt.plot(loss_const, 'o-', color= 'black', label='Constant')
-    plt.plot(loss_greedy, 'o-', color= 'tab:purple', label='Greedy optimization')
+    plt.plot(loss_full, 'o-', color= 'tab:purple', label='Greedy optimization')
     plt.legend()
     plt.yscale('log')
     plt.ylabel('Max squared bias')
 
-    plt.subplot(3, 1, 2)
+    plt.subplot(2, 1, 2)
     plt.plot(np.ones(num_steps) * eps_const, 'o-', color = 'black')
-    plt.plot(eps_greedy, 'o-', color = 'tab:purple')
+    plt.plot(eps_full, 'o-', color = 'tab:purple')
     plt.ylabel('Stepsize')
 
-    plt.subplot(3, 1, 3)
-    plt.plot(np.ones(num_steps) * L_const, 'o-', color = 'black')
-    plt.plot(L_greedy, 'o-', color = 'tab:purple')
+    # plt.subplot(3, 1, 3)
+    # plt.plot(np.ones(num_steps) * L_const, 'o-', color = 'black')
+    # plt.plot(L_greedy, 'o-', color = 'tab:purple')
 
-    plt.ylabel('Steps to decoherence')
+    #plt.ylabel('Steps to decoherence')
     plt.xlabel('Iteration')
     plt.tight_layout()
-    plt.savefig(img_path + model.name + '.png')
+    plt.savefig(img_path + model.name + '_parameteric.png')
     plt.close()
 
 
@@ -288,9 +290,9 @@ mesh = jax.sharding.Mesh(jax.devices()[:1], 'chains')
 key = jax.random.key(0)
 
 model = banana_mams_paper # IllConditionedGaussian(ndims=2, condition_number=1)
-num_steps = 15
+num_steps = 100
 
-mainn(model, batch_size, mesh, num_steps, key)
+mainn(model, batch_size, mesh, num_steps, key, beta = 5)
 
 
 #shifter --image=reubenharry/cosmo:1.0 python3 -m sampler_comparison.experiments.greedy_ensemble
