@@ -192,16 +192,17 @@ def parallel_microcanonical(num_steps1, num_steps2, num_chains, mesh,
             bsq = jnp.square(e_x - model.sample_transformations["square"].ground_truth_mean) / (model.sample_transformations["square"].ground_truth_standard_deviation**2)
             return jnp.array([jnp.max(bsq), jnp.average(bsq)])
         
-        observables_for_bias = lambda position: jnp.square(
-            model.default_event_space_bijector(jax.flatten_util.ravel_pytree(position)[0])
-        )
+        observables_for_bias = lambda position: model.sample_transformations["square"].fn(position)
+        # jnp.square(
+        #     model.default_event_space_bijector(jax.flatten_util.ravel_pytree(position)[0])
+        # )
 
         toc = time.time()
         info, grads_per_step, _acc_prob, final_state = emaus(
     
             logdensity_fn=logdensity_fn, 
             # sample_init=model.exact_sample, 
-            sample_init=lambda k: jax.random.normal(k, (model.ndims,)), 
+            sample_init=lambda k: model.sample_init(k), 
             ndims=model.ndims, 
             num_steps1=num_steps1, 
             num_steps2=num_steps2, 

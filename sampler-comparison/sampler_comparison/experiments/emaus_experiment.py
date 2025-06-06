@@ -1,6 +1,6 @@
 import os
 import jax
-#jax.config.update("jax_enable_x64", True)
+jax.config.update("jax_enable_x64", True)
 
 #from jax.lib import xla_bridge
 #print(xla_bridge.get_backend().platform)
@@ -42,5 +42,9 @@ samples, info, settings_info = parallel_microcanonical(num_steps1=800, num_steps
                 model=model)
 
 # print(info)
+print('Done.')
 
 plot_trace(info, model, settings_info, '../')
+
+
+#shifter --image=reubenharry/cosmo:1.0 python3 -m sampler_comparison.experiments.emaus_experiment
