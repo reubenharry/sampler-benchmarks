@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size
-0,underdamped_langevin,Stochastic_Volatility_MAMS_Paper,inf,,,True,identity,423333.0,6.101217884332808,0.039754042782022776
-1,underdamped_langevin,Stochastic_Volatility_MAMS_Paper,inf,,,False,identity,423333.0,6.101217884332808,0.039754042782022776
-2,underdamped_langevin,Stochastic_Volatility_MAMS_Paper,inf,,,True,square,423333.0,6.101217884332808,0.039754042782022776
-3,underdamped_langevin,Stochastic_Volatility_MAMS_Paper,17089.0,1518.308170168362,,False,square,423333.0,6.101217884332808,0.039754042782022776
-4,underdamped_langevin,Stochastic_Volatility_MAMS_Paper,inf,,,True,quartic,423333.0,6.101217884332808,0.039754042782022776
-5,underdamped_langevin,Stochastic_Volatility_MAMS_Paper,inf,,,False,quartic,423333.0,6.101217884332808,0.039754042782022776
+0,underdamped_langevin,Stochastic_Volatility_MAMS_Paper,inf,,,True,identity,115556.0,4.223404798138576,0.024150147028287692
+1,underdamped_langevin,Stochastic_Volatility_MAMS_Paper,inf,,,False,identity,115556.0,4.223404798138576,0.024150147028287692
+2,underdamped_langevin,Stochastic_Volatility_MAMS_Paper,inf,,,True,square,115556.0,4.223404798138576,0.024150147028287692
+3,underdamped_langevin,Stochastic_Volatility_MAMS_Paper,22158.0,932.6857929656695,,False,square,115556.0,4.223404798138576,0.024150147028287692
+4,underdamped_langevin,Stochastic_Volatility_MAMS_Paper,inf,,,True,quartic,115556.0,4.223404798138576,0.024150147028287692
+5,underdamped_langevin,Stochastic_Volatility_MAMS_Paper,inf,,,False,quartic,115556.0,4.223404798138576,0.024150147028287692

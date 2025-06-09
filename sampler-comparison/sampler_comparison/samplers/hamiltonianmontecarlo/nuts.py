@@ -82,14 +82,10 @@ def nuts(
             inference_algorithm=alg,
             num_steps=num_steps,
             transform=(lambda a, b: None) if return_only_final else transform,
-            progress_bar=False,
+            progress_bar=progress_bar,
         )
 
-
         if return_only_final:
-
-            # jax.debug.print("final output {x}", x=final_output.position.shape)
-            # jax.debug.print("final output transformed {x}", x=get_final_sample(final_output).shape)
 
             return get_final_sample(final_output, {})
 

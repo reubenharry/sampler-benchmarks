@@ -10,11 +10,11 @@ from sampler_comparison.util import (
     calls_per_integrator_step,
     map_integrator_type_to_integrator,
 )
-from blackjax.adaptation.mclmc_adaptation import MCLMCAdaptationState, make_L_step_size_adaptation
+from blackjax.adaptation.mclmc_adaptation import MCLMCAdaptationState
 
 
 
-def unadjusted_lmc_no_tuning(
+def unadjusted_mchmc_no_tuning(
     initial_state,
     integrator_type,
     step_size,
@@ -23,8 +23,6 @@ def unadjusted_lmc_no_tuning(
     return_samples=False,
     incremental_value_transform=None,
     return_only_final=False,
-    desired_energy_var=5e-4,
-    desired_energy_var_max_ratio=jnp.inf,
 ):
     """
     Args:
@@ -42,14 +40,12 @@ def unadjusted_lmc_no_tuning(
 
         logdensity_fn = make_log_density_fn(model)
 
-        alg = blackjax.langevin(
+        alg = blackjax.mchmc(
             logdensity_fn=logdensity_fn,
             L=L,
             step_size=step_size,
             inverse_mass_matrix=inverse_mass_matrix,
-            integrator=map_integrator_type_to_integrator["hmc"][integrator_type],
-            desired_energy_var=desired_energy_var,
-            desired_energy_var_max_ratio=desired_energy_var_max_ratio,
+            integrator=map_integrator_type_to_integrator["mclmc"][integrator_type],
         )
 
         if return_samples:
@@ -88,8 +84,6 @@ def unadjusted_lmc_no_tuning(
 
         (expectations, info) = history
 
-        # jax.debug.print("EEVPD {x}", x=jnp.var(info.energy_change)/model.ndims)
-
         return (
             expectations,
             {
@@ -104,7 +98,7 @@ def unadjusted_lmc_no_tuning(
     return s
 
 
-def unadjusted_lmc_tuning(
+def unadjusted_mchmc_tuning(
     initial_position,
     num_steps,
     rng_key,
@@ -113,10 +107,7 @@ def unadjusted_lmc_tuning(
     diagonal_preconditioning,
     num_tuning_steps=500,
     stage3=True,
-    desired_energy_var=5e-4,
-    desired_energy_var_max_ratio=jnp.inf,
-    num_windows=2,
-    params=None,
+    desired_energy_var=5e-4
 ):
     """
     Args:
@@ -131,98 +122,50 @@ def unadjusted_lmc_tuning(
         A tuple of the form (state, params) where state is the state of the chain after tuning and params are the hyperparameters of the chain (L, stepsize and inverse mass matrix)
     """
 
-    tune_key, init_key, nuts_key = jax.random.split(rng_key, 3)
+    tune_key, init_key = jax.random.split(rng_key, 2)
 
     frac_tune1 = num_tuning_steps / (3 * num_steps)
     frac_tune2 = num_tuning_steps / (3 * num_steps)
     frac_tune3 = num_tuning_steps / (3 * num_steps) if stage3 else 0.0
 
-    initial_state = blackjax.langevin.init(
+    initial_state = blackjax.mcmc.mchmc.init(
         position=initial_position,
         logdensity_fn=logdensity_fn,
         rng_key=init_key,
-        metric=blackjax.mcmc.metrics.default_metric(jnp.ones(initial_position.shape[0]))
     )
 
-    kernel = lambda inverse_mass_matrix: blackjax.langevin.build_kernel(
+    kernel = lambda inverse_mass_matrix: blackjax.mcmc.mchmc.build_kernel(
         logdensity_fn=logdensity_fn,
-        integrator=map_integrator_type_to_integrator["hmc"][integrator_type],
+        integrator=map_integrator_type_to_integrator["mclmc"][integrator_type],
         inverse_mass_matrix=inverse_mass_matrix,
-        desired_energy_var=desired_energy_var,
-        desired_energy_var_max_ratio=desired_energy_var_max_ratio,
-        # (1/desired_energy_var)*10000,
     )
 
-    do_nuts_warmup=True
-    if do_nuts_warmup:
+    dim = initial_position.shape[0]
+    params = MCLMCAdaptationState(
+        4 * jnp.sqrt(dim), jnp.sqrt(dim) , inverse_mass_matrix=jnp.ones((dim,))
+    )
 
-        
-
-        warmup = blackjax.window_adaptation(
-                    blackjax.nuts, logdensity_fn, 
-                    target_acceptance_rate = 0.8, 
-                    integrator=map_integrator_type_to_integrator["hmc"]['velocity_verlet'], 
-                )
-        
-        (_, nuts_params), inf = warmup.run(nuts_key, initial_position, num_tuning_steps)
-
-        inverse_mass_matrix = nuts_params['inverse_mass_matrix']
-    
-    else:
-        inverse_mass_matrix = jnp.ones((initial_position.shape[0],))
-
-    if params is None:
-
-        params = MCLMCAdaptationState(
-            1., 0.25 , inverse_mass_matrix=inverse_mass_matrix
-        )
-        # jax.debug.print("params {x}", x=params)
-
-    # jax.debug.print("frac_tune1 {x}", x=frac_tune1)
     return blackjax.mclmc_find_L_and_step_size(
         mclmc_kernel=kernel,
         num_steps=num_steps,
         state=initial_state,
         rng_key=tune_key,
         diagonal_preconditioning=diagonal_preconditioning,
-        frac_tune1=2.0,
-        frac_tune2=frac_tune2,
         frac_tune3=frac_tune3,
-        # frac_tune2=0.0,
-        # frac_tune3=0.0,
+        frac_tune2=frac_tune2,
+        frac_tune1=frac_tune1,
         params=params,
-        desired_energy_var=desired_energy_var,
-        num_windows=num_windows,
-        euclidean=True,
+        desired_energy_var=desired_energy_var
     )
 
-    # jax.debug.print("frac_tune1 {x}", x=frac_tune1)
 
-    # (blackjax_state_after_tuning, params) = make_L_step_size_adaptation(
-    #                         kernel=kernel,
-    #                         dim=initial_position.shape[0],
-    #                         frac_tune1=1.0,
-    #                         frac_tune2=0.0,
-    #                         # target=0.9,
-    #                         diagonal_preconditioning=False,
-    #                         euclidean=True,
-    #                         desired_energy_var=1e-1,
-    #                     )(initial_state, params, num_steps, tune_key)
-    
-    # return (blackjax_state_after_tuning, params, jnp.inf)
-
-
-def unadjusted_lmc(
+def unadjusted_mchmc(
     diagonal_preconditioning=True,
-    integrator_type="velocity_verlet",
+    integrator_type="mclachlan",
     num_tuning_steps=20000,
     return_samples=False,
-    desired_energy_var=3e-4,
-    desired_energy_var_max_ratio=jnp.inf,
+    desired_energy_var=5e-4,
     return_only_final=False,
-    num_windows=1,
-    params=None,
-    stage3=True,
     incremental_value_transform=None,
 ):
     def s(model, num_steps, initial_position, key):
@@ -235,9 +178,9 @@ def unadjusted_lmc(
 
         (
             blackjax_state_after_tuning,
-            blackjax_mclmc_sampler_params,
+            blackjax_mchmc_sampler_params,
             num_tuning_integrator_steps,
-        ) = unadjusted_lmc_tuning(
+        ) = unadjusted_mchmc_tuning(
             initial_position=initial_position,
             num_steps=num_steps,
             rng_key=tune_key,
@@ -246,24 +189,16 @@ def unadjusted_lmc(
             diagonal_preconditioning=diagonal_preconditioning,
             num_tuning_steps=num_tuning_steps,
             desired_energy_var=desired_energy_var,
-            desired_energy_var_max_ratio=desired_energy_var_max_ratio,
-            num_windows=num_windows,
-            params=params,
-            stage3=stage3,
-        
         )
-        # jax.debug.print("params {x}", x=(blackjax_mclmc_sampler_params))
 
-        expectations, metadata = unadjusted_lmc_no_tuning(
+        expectations, metadata = unadjusted_mchmc_no_tuning(
             initial_state=blackjax_state_after_tuning,
             integrator_type=integrator_type,
-            step_size=blackjax_mclmc_sampler_params.step_size,
-            L=blackjax_mclmc_sampler_params.L,
-            inverse_mass_matrix=blackjax_mclmc_sampler_params.inverse_mass_matrix,
+            step_size=blackjax_mchmc_sampler_params.step_size,
+            L=blackjax_mchmc_sampler_params.L,
+            inverse_mass_matrix=blackjax_mchmc_sampler_params.inverse_mass_matrix,
             return_samples=return_samples,
             return_only_final=return_only_final,
-            desired_energy_var=desired_energy_var,
-            desired_energy_var_max_ratio=desired_energy_var_max_ratio,
             incremental_value_transform=incremental_value_transform,
         )(model, num_steps, initial_position, run_key)
 
