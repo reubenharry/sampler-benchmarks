@@ -3,12 +3,14 @@ import os
 import jax
 jax.config.update("jax_enable_x64", True)
 
-batch_size = 512
+batch_size = 128
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 num_cores = jax.local_device_count()
 
 import sys
 sys.path.append(".")
+sys.path.append("../sampler-evaluation/")
+sys.path.append("../../blackjax/")
 
 from results.run_benchmarks import run_benchmarks
 import sampler_evaluation
@@ -41,7 +43,7 @@ samplers={
         # "adjusted_malt": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", L_proposal_factor=1.25),
 
 
-        "adjusted_microcanonical": partial(adjusted_mclmc,num_tuning_steps=5000),
+       # "adjusted_microcanonical": partial(adjusted_mclmc,num_tuning_steps=5000),
 
         # "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
 
@@ -85,3 +87,6 @@ run_benchmarks(
 #                 )
         
 # (blackjax_state_after_tuning, nuts_params), inf = warmup.run(tune_key_unadjusted, initial_position, 5000)
+
+
+#shifter --image=reubenharry/cosmo:1.0 python3 results/banana/main.py
