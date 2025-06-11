@@ -1,7 +1,0 @@
-,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
-0,adjusted_hmc,banana,45890.1545963409,,True,identity,122495.5703125,2.0,0.19085129050324573
-1,adjusted_hmc,banana,10585.976324776891,,False,identity,122495.5703125,2.0,0.19085129050324573
-2,adjusted_hmc,banana,125765.19829116792,,True,square,122495.5703125,2.0,0.19085129050324573
-3,adjusted_hmc,banana,50206.868770651716,,False,square,122495.5703125,2.0,0.19085129050324573
-4,adjusted_hmc,banana,inf,,True,covariance,122495.5703125,2.0,0.19085129050324573
-5,adjusted_hmc,banana,inf,,False,covariance,122495.5703125,2.0,0.19085129050324573

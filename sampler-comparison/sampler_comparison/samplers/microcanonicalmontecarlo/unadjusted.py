@@ -107,7 +107,8 @@ def unadjusted_mclmc_tuning(
     diagonal_preconditioning,
     num_tuning_steps=500,
     stage3=True,
-    desired_energy_var=5e-4
+    desired_energy_var=5e-4,
+    num_windows=1,
 ):
     """
     Args:
@@ -155,7 +156,8 @@ def unadjusted_mclmc_tuning(
         frac_tune2=frac_tune2,
         frac_tune1=frac_tune1,
         params=params,
-        desired_energy_var=desired_energy_var
+        desired_energy_var=desired_energy_var,
+        num_windows=num_windows,
     )
 
 
@@ -167,10 +169,9 @@ def unadjusted_mclmc(
     desired_energy_var=5e-4,
     return_only_final=False,
     incremental_value_transform=None,
+    num_windows=1,
 ):
     def s(model, num_steps, initial_position, key):
-
-        # logdensity_fn = lambda x : model.unnormalized_log_prob(make_transform(model)(x))
 
         logdensity_fn = make_log_density_fn(model)
 
@@ -189,6 +190,7 @@ def unadjusted_mclmc(
             diagonal_preconditioning=diagonal_preconditioning,
             num_tuning_steps=num_tuning_steps,
             desired_energy_var=desired_energy_var,
+            num_windows=num_windows,
         )
 
         expectations, metadata = unadjusted_mclmc_no_tuning(

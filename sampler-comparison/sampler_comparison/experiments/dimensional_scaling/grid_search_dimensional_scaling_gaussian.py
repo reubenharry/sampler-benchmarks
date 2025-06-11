@@ -11,7 +11,7 @@ num_cores = jax.local_device_count()
 import sys
 sys.path.append(".")
 sys.path.append("../../blackjax")
-sys.path.append("../../blackjax-benchmarks/sampler-evaluation")
+sys.path.append("../../sampler-benchmarks/sampler-evaluation")
 
 
 from results.run_benchmarks import run_benchmarks

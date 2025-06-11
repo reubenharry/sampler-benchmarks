@@ -1,9 +1,21 @@
+import sys
+sys.path.append(".")  
+sys.path.append("../../blackjax")
+sys.path.append("../../sampler-benchmarks/sampler-comparison")
+sys.path.append("../../sampler-benchmarks/sampler-evaluation")
+sys.path.append("../../src/inference-gym/spinoffs/inference_gym")
+# print(os.listdir("../../src/inference-gym/spinoffs/inference_gym"))
+
+
 import jax
+
 import jax.numpy as jnp
 from sampler_evaluation.models.model import make_model
 import pickle
 import os
 from sampler_evaluation.models.model import SampleTransformation, make_model
+import h5py
+
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -17,23 +29,42 @@ def U1(Lt, Lx, beta= 1.):
     
     name = 'U1'
 
-    try:
-        with open(
-            f"{module_dir}/data/U1_Lt{Lt}_Lx{Lx}_beta{beta}"+"_expectations.pkl",
-            "rb",
-        ) as f:
-            stats = pickle.load(f)
+    # load hd5f with h5py
+    # get polyakov or top charge, average across samples/chains
+    # put into polyakov sample transformation
 
-        e_x = stats["polyakov"]
-        e_x2 = stats["polyakov^2"]
-        e_x4 = jnp.nan # stats["e_x4"]
-        # var_x2 = e_x4 - e_x2**2
+    Lxy = Lx
+    assert Lx == Lt
 
-    except:
-        e_x = 0
-        e_x2 = 0
-        e_x4 = 0
-        var_x2 = 0
+    print(os.listdir("/global/cfs/cdirs/m4031/rkarur/new_schwinger"))
+
+    file = f"/global/cfs/cdirs/m3058/rkarur/new_schwinger/u1_GT_nutsLxy{Lxy}beta{beta}_N_1000000.h5"
+    h5py.File(file)
+
+    e_x = stats["polyakov"]
+    e_x2 = stats["polyakov^2"]
+    e_x4 = jnp.nan # stats["e_x4"]
+    # var_x2 = e_x4 - e_x2**2
+
+    # except:
+    #     e_x = 0
+    #     e_x2 = 0
+    #     e_x4 = 0
+    #     var_x2 = 0
+
+    # try:
+    #     with open(
+    #         f"{module_dir}/data/U1_Lt{Lt}_Lx{Lx}_beta{beta}"+"_expectations.pkl",
+    #         "rb",
+    #     ) as f:
+    #         stats = pickle.load(f)
+
+    #     e_x = stats["polyakov"]
+    #     e_x2 = stats["polyakov^2"]
+    #     e_x4 = jnp.nan # stats["e_x4"]
+    #     # var_x2 = e_x4 - e_x2**2
+
+
 
     jax.debug.print("e_x {x}", x=e_x)
     jax.debug.print("e_x^2 {x}", x=e_x2)
@@ -107,3 +138,8 @@ def U1(Lt, Lx, beta= 1.):
         sample_init=sample_init,
         name=f'U1_Lt{Lt}_Lx{Lx}_beta{beta}',
     )
+
+
+if __name__ == "__main__":
+    model = U1(Lt=16, Lx=16, beta=6)
+    print(model.E_x)

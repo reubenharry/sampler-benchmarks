@@ -21,6 +21,7 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import (
     unadjusted_mclmc_tuning,
 )
 from blackjax.adaptation.mclmc_adaptation import MCLMCAdaptationState
+from sampler_comparison.samplers.hamiltonianmontecarlo.nuts_tuning import da_adaptation
 
 
 
@@ -167,6 +168,8 @@ def adjusted_hmc_tuning(
     warmup_key, re_init_key, tune_key, tune_key_2, stage3_key = (
             jax.random.split(tune_key, 5)
         )
+    
+    dim = initial_position.shape[0]
 
     if warmup=='unadjusted_mclmc':
 
@@ -189,29 +192,23 @@ def adjusted_hmc_tuning(
             )
             total_tuning_integrator_steps += num_tuning_integrator_steps
 
-        dim = initial_state.position.shape[0]
+        
         new_step_size = jnp.clip(sampler_params.step_size, max=sampler_params.L-0.01)
         sampler_params = sampler_params._replace(
             L=jnp.sqrt(dim),
             step_size=new_step_size,
         )
 
-    ### TODO: get L correct (euclidean etc)
-
     elif warmup=='nuts':
 
     
         if not diagonal_preconditioning:
-            raise Exception("NUTS warmup not implemented for non-diagonal preconditioning")
-            state, nuts_params, inf = da_adaptation(
-                rng_key=warmup_key,
-                initial_position=initial_position,
-                algorithm=blackjax.nuts,
-                integrator=integrator,
-                logdensity_fn=logdensity_fn,
-                num_steps=num_tuning_steps,
-                target_acceptance_rate=target_acc_rate,
+            sampler_params = MCLMCAdaptationState(
+                L=1.,
+                step_size=0.2,
+                inverse_mass_matrix=jnp.ones(dim),
             )
+            blackjax_state_after_tuning = initial_state
         else:
 
             warmup = blackjax.window_adaptation(
@@ -220,17 +217,15 @@ def adjusted_hmc_tuning(
                         integrator=map_integrator_type_to_integrator["hmc"]['velocity_verlet'], 
                     )
             
-            (blackjax_state_after_tuning, nuts_params), inf = warmup.run(warmup_key, initial_position, num_tuning_steps)
-        total_tuning_integrator_steps += inf.info.num_integration_steps.sum()
+            (blackjax_state_after_tuning, nuts_params), adaptation_info = warmup.run(warmup_key, initial_position, num_tuning_steps)
+            adaptation_info = adaptation_info.info
+            total_tuning_integrator_steps += adaptation_info.num_integration_steps.sum()
 
-        dim = initial_state.position.shape[0]
-        # new_step_size = jnp.clip(nuts_params["step_size"], max=1.0-0.01)
-        sampler_params = MCLMCAdaptationState(
-            L=1.,
-            step_size=nuts_params["step_size"],
-            inverse_mass_matrix=nuts_params['inverse_mass_matrix'],
-        )
-
+            sampler_params = MCLMCAdaptationState(
+                L=1.,
+                step_size=nuts_params["step_size"],
+                inverse_mass_matrix=nuts_params['inverse_mass_matrix'],
+            )
 
     state = blackjax.mcmc.adjusted_mclmc_dynamic.init(
         position=blackjax_state_after_tuning.position,
@@ -238,8 +233,7 @@ def adjusted_hmc_tuning(
         random_generator_arg=re_init_key,
     )
 
-    # jax.debug.print("completed nuts stage {x}",x=state)
-
+    num_steps_stage_2 = 2000# if not diagonal_preconditioning else 0
 
     (
         blackjax_state_after_tuning,
@@ -250,17 +244,16 @@ def adjusted_hmc_tuning(
         kernel=kernel,
         dim=dim,
         frac_tune1=2000 / num_steps,
-        frac_tune2=0.0,
+        frac_tune2=num_steps_stage_2 / num_steps,
         target=target_acc_rate,
         diagonal_preconditioning=diagonal_preconditioning,
         max=max,
         tuning_factor=tuning_factor,
         fix_L_first_da=True,
-        # euclidean=True,
+        euclidean=True,
     )(
         state, sampler_params, num_steps, tune_key
     )
-    # jax.debug.print("step size after tuning {x}",x=sampler_params.step_size)
     total_tuning_integrator_steps += num_tuning_integrator_steps
 
 
@@ -272,7 +265,7 @@ def adjusted_hmc_tuning(
             num_tuning_integrator_steps,
         ) = adjusted_mclmc_make_adaptation_L(
             kernel,
-            frac=10000 / num_steps,
+            frac=2000 / num_steps,
             Lfactor=L_factor_stage_3,
             max="avg",
             eigenvector=None,
@@ -296,10 +289,11 @@ def adjusted_hmc_tuning(
             frac_tune1=2000 / num_steps,
             frac_tune2=0.0,
             target=target_acc_rate,
-            diagonal_preconditioning=diagonal_preconditioning,
+            diagonal_preconditioning=False,
             max=max,
             tuning_factor=tuning_factor,
             fix_L_first_da=True,
+            euclidean=True,
         )(
             state, sampler_params, num_steps, tune_key_2
         )
