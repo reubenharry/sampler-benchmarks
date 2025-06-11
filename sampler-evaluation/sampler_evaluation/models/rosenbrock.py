@@ -3,6 +3,8 @@ import tensorflow.compat.v2 as tf
 
 # import tensorflow_probability as tfp
 import tensorflow_probability.substrates.jax as tfp
+import sys
+sys.path.append("../sampler-comparison/src/inference-gym/spinoffs/inference_gym")
 from inference_gym.targets import model
 import jax.numpy as jnp
 
@@ -12,6 +14,9 @@ from inference_gym.targets import model
 import jax.numpy as jnp
 import jax
 import pickle
+
+import os
+module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 class Rosenbrock(model.Model):
@@ -65,6 +70,15 @@ class Rosenbrock(model.Model):
             * D
         )
 
+        # load cov from pickle
+        # try:
+        
+        # except:
+        #     pass
+
+        # jax.debug.print("cov {x}", x=jnp.any(jnp.isnan(cov)))
+        # raise Exception
+
         
         sample_transformations = {
             "identity": model.Model.SampleTransformation(
@@ -79,7 +93,24 @@ class Rosenbrock(model.Model):
                 ground_truth_mean=e_x2,
                 ground_truth_standard_deviation=jnp.sqrt(var_x2),
             ),
+            
         }
+
+        try:
+            with open(f"{module_dir}/data/rosenbrock_{ndims}d_expectations.pkl", "rb") as f:
+                results = pickle.load(f)
+            cov = results["cov"]
+            sample_transformations["covariance"] = model.Model.SampleTransformation(
+                fn=lambda params: jnp.outer(params - e_x, params - e_x),
+                pretty_name="Covariance",
+                ground_truth_mean=cov,
+                ground_truth_standard_deviation=jnp.nan,
+            )
+        except:
+            pass
+
+
+
 
         super(Rosenbrock, self).__init__(
             default_event_space_bijector=tfb.Identity(),
@@ -98,8 +129,9 @@ class Rosenbrock(model.Model):
         )
 
     def exact_sample(self, key):
-        x = jax.random.normal(key=key, shape=(self.ndims // 2,)) + 1.0
-        y = jax.random.normal(key=key, shape=(self.ndims // 2,)) * jnp.sqrt(
+        key1, key2 = jax.random.split(key)
+        x = jax.random.normal(key=key1, shape=(self.ndims // 2,)) + 1.0
+        y = jax.random.normal(key=key2, shape=(self.ndims // 2,)) * jnp.sqrt(
             self.Q
         ) + jnp.square(x)
         return jnp.array([x, y]).reshape((self.ndims,))

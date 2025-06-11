@@ -1,0 +1,3 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_microcanonical,dirichlet,inf,,,True,identity,78583.90625,10.248603201776719,5.446737835781622
+1,adjusted_microcanonical,dirichlet,inf,,,False,identity,78583.90625,10.248603201776719,5.446737835781622

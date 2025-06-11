@@ -1,3 +1,0 @@
-,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
-0,adjusted_hmc,ICG,72082.54173668756,,True,covariance,87688.259765625,0.992108139459886,0.3541507318919207
-1,adjusted_hmc,ICG,72082.54173668756,,False,covariance,87688.259765625,0.992108139459886,0.3541507318919207

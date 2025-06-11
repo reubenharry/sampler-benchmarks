@@ -10,14 +10,36 @@ from sampler_evaluation.evaluation.ess import get_standardized_squared_error
 # make_transform = lambda model : lambda pos : jax.tree.map(lambda z, b: b(z), pos, model.default_event_space_bijector)
 from blackjax.diagnostics import effective_sample_size
 import itertools
-
+import numpy as np
 def frobenius(estimated_cov, true_cov):
 
     inv_cov = jnp.linalg.inv(true_cov)
     residual = jnp.eye(true_cov.shape[0]) - inv_cov @ estimated_cov
+    # jax.debug.print("residual {x}", x=jnp.average(jnp.diag(residual@residual)))
     return jnp.average(jnp.diag(residual@residual))
 
 # produce a kernel that only stores the average values of the bias for E[x_2] and Var[x_2]
+
+def bias(expectation, f, model):
+    if len(expectation.shape) == 1:
+        return {
+            'avg' : jnp.average(jnp.square(
+                        expectation - model.sample_transformations[f].ground_truth_mean
+                    ) / (
+                        model.sample_transformations[f].ground_truth_standard_deviation
+                        ** 2)),
+            'max' : jnp.max(jnp.square(
+                        expectation - model.sample_transformations[f].ground_truth_mean
+                    ) / (
+                        model.sample_transformations[f].ground_truth_standard_deviation
+                        ** 2)),
+        }
+    elif len(expectation.shape) == 2:
+        return {
+            'avg' : frobenius(expectation, model.sample_transformations[f].ground_truth_mean),
+            'max' : frobenius(expectation, model.sample_transformations[f].ground_truth_mean)
+        }
+
 def with_only_statistics(model, alg, incremental_value_transform=None):
 
     if incremental_value_transform is None:
@@ -60,28 +82,14 @@ def with_only_statistics(model, alg, incremental_value_transform=None):
         incremental_value_transform = lambda expectations: jax.tree.map_with_path(lambda path, expectation: 
                                                                                   
                                                                                   
-            {
-                
-            'max' : jnp.max(
-                    jnp.square(
-                        expectation - model.sample_transformations[path[0].key].ground_truth_mean
-                    )
-                    / (
-                        model.sample_transformations[path[0].key].ground_truth_standard_deviation
-                        ** 2)), 
+            bias(expectation=expectation, f=path[0].key, model=model),
+            expectations
 
-            'avg' : jnp.average(
-                    jnp.square(
-                        expectation - model.sample_transformations[path[0].key].ground_truth_mean
-                    )
-                    / (
-                        model.sample_transformations[path[0].key].ground_truth_standard_deviation
-                        ** 2)), 
+             
 
             # 'avg' : frobenius(expectation, model.sample_transformations[path[0].key].ground_truth_mean),
             # 'max' : frobenius(expectation, model.sample_transformations[path[0].key].ground_truth_mean)
 
-            }, expectations
                         
                         
                         )
@@ -234,23 +242,41 @@ def sampler_grads_to_low_error(
         ess_correlation = {'max': jnp.nan,
              'avg': jnp.nan}
 
-    contract_fn = lambda x : jnp.nanmedian(x, axis=0)
+    contract_fn = lambda x : np.nanmedian(x, axis=0)
 
     # err_ = contract_fn(squared_errors['square']['avg'])
     # b2 = jnp.mean(err_[-1]*(model.sample_transformations['square'].ground_truth_standard_deviation**2)/(model.sample_transformations['square'].ground_truth_mean**2))
     # jax.debug.print("final error is {x}", x=b2)
 
+    def estimate_std(errs):
+
+        resampled_errs = jax.random.choice(jax.random.key(10), errs, shape=(100, errs.shape[0]))
+
+        grads_to_low_error_resampled = [samples_to_low_error(np.nanmedian(x, axis=0)) for x in resampled_errs]
+
+        return np.nanstd(grads_to_low_error_resampled)
+
+
+    # print(new_samples.shape, "new samples shape")
+    
+    # jax.debug.print("new samples {x}", x=errs)
+    # # std of errs   
+    # jax.debug.print("std {x}", x=jnp.std(errs))
+
+
+
     return (
         {
             f"{max}_over_parameters": {
                 expectation: {
-                    "error": contract_fn(squared_errors[expectation][max]),
+                    # "error": contract_fn(np.array(squared_errors[expectation][max])),
                     "grads_to_low_error": (
                         samples_to_low_error(
-                            contract_fn(squared_errors[expectation][max]),
+                            contract_fn(np.array(squared_errors[expectation][max])),
                         )
                         * grad_evals_per_step
                     ).item(),
+                    "grads_to_low_error_std": estimate_std(np.array(squared_errors[expectation][max])),
                     "autocorrelation": ess_correlation[max]
                 }
                             

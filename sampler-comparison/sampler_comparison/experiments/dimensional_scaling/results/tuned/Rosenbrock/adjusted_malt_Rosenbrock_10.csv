@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_malt,Rosenbrock_10,64397.23102525059,,True,identity,769543.8942307692,2.0,0.04431345517816628
+1,adjusted_malt,Rosenbrock_10,19915.272708369925,,False,identity,769543.8942307692,2.0,0.04431345517816628
+2,adjusted_malt,Rosenbrock_10,81873.89891218746,,True,square,769543.8942307692,2.0,0.04431345517816628
+3,adjusted_malt,Rosenbrock_10,73067.82594590144,,False,square,769543.8942307692,2.0,0.04431345517816628

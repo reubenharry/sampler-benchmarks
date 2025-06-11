@@ -3,12 +3,14 @@ import os
 import jax
 jax.config.update("jax_enable_x64", True)
 
-batch_size = 2048
+batch_size = 128
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 num_cores = jax.local_device_count()
 
 import sys
 sys.path.append(".")
+sys.path.append("../sampler-evaluation/")
+sys.path.append("../../blackjax/")
 
 from results.run_benchmarks import run_benchmarks
 import sampler_evaluation
@@ -18,34 +20,73 @@ from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_la
 from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import adjusted_hmc
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_hmc
 from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unadjusted_mclmc
+from sampler_evaluation.models.banana import banana
+from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
+import blackjax
+import jax.numpy as jnp
+from sampler_comparison.samplers.general import (
+    make_log_density_fn,
+)
+from sampler_comparison.util import (
+    calls_per_integrator_step,
+    map_integrator_type_to_integrator,
+)
+from blackjax.adaptation.mclmc_adaptation import MCLMCAdaptationState
+from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import adjusted_mclmc
 
-model = sampler_evaluation.models.banana()
+model = banana()
 
 samplers={
 
-            # "adjusted_hmc": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet"),
-            "adjusted_hmc_stage_2": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", stage_3=False),
+        "nuts": partial(nuts,num_tuning_steps=5000),
 
-            
+        # "adjusted_malt": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", L_proposal_factor=1.25),
 
-            # "nuts": partial(nuts,num_tuning_steps=5000),
 
-            # "adjusted_microcanonical": partial(adjusted_mclmc,num_tuning_steps=5000),
+       # "adjusted_microcanonical": partial(adjusted_mclmc,num_tuning_steps=5000),
 
-            # "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
+        # "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
 
-            # "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=1e-1, num_tuning_steps=20000, diagonal_preconditioning=True),
+        # "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=1e-4, num_tuning_steps=30000, diagonal_preconditioning=True),
 
-            # "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=20000),
+        # "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=20000),
+
+        # "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=3e-4, num_tuning_steps=20000, diagonal_preconditioning=True),
+        # "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
         }
 
 run_benchmarks(
         models={model.name: model},
         samplers=samplers,
         batch_size=batch_size,
-        num_steps=40000,
+        num_steps=200000,
         save_dir=f"results/{model.name}",
         key=jax.random.key(20),
         map=jax.pmap,
         calculate_ess_corr=False,
     )
+
+
+# init_key, tune_key_unadjusted = jax.random.split(jax.random.key(0))
+# logdensity_fn = make_log_density_fn(model)
+# initial_position = jax.random.normal(jax.random.PRNGKey(0), (model.ndims,))
+
+# initial_state = blackjax.langevin.init(
+#         position=initial_position,
+#         logdensity_fn=logdensity_fn,
+#         rng_key=init_key,
+#         metric=blackjax.mcmc.metrics.default_metric(jnp.ones(initial_position.shape[0]))
+#     )
+
+# inverse_mass_matrix = jnp.eye(model.ndims)
+
+# warmup = blackjax.window_adaptation(
+#                     blackjax.nuts, logdensity_fn, 
+#                     target_acceptance_rate = 0.8, 
+#                     integrator=map_integrator_type_to_integrator["hmc"]['velocity_verlet'], 
+#                 )
+        
+# (blackjax_state_after_tuning, nuts_params), inf = warmup.run(tune_key_unadjusted, initial_position, 5000)
+
+
+#shifter --image=reubenharry/cosmo:1.0 python3 results/banana/main.py

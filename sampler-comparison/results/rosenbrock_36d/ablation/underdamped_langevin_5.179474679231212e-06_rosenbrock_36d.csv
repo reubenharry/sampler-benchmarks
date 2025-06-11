@@ -1,0 +1,7 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,underdamped_langevin_5.179474679231212e-06,rosenbrock_36d,inf,,True,covariance,115556.0,2.331960562736708,0.01684663891714091
+1,underdamped_langevin_5.179474679231212e-06,rosenbrock_36d,inf,,False,covariance,115556.0,2.331960562736708,0.01684663891714091
+2,underdamped_langevin_5.179474679231212e-06,rosenbrock_36d,inf,,True,identity,115556.0,2.331960562736708,0.01684663891714091
+3,underdamped_langevin_5.179474679231212e-06,rosenbrock_36d,27298.0,,False,identity,115556.0,2.331960562736708,0.01684663891714091
+4,underdamped_langevin_5.179474679231212e-06,rosenbrock_36d,inf,,True,square,115556.0,2.331960562736708,0.01684663891714091
+5,underdamped_langevin_5.179474679231212e-06,rosenbrock_36d,35860.0,,False,square,115556.0,2.331960562736708,0.01684663891714091

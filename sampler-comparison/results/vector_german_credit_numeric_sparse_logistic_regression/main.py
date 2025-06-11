@@ -3,7 +3,7 @@ import os
 import jax
 jax.config.update("jax_enable_x64", True)
 
-batch_size = 512
+batch_size = 128
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 num_cores = jax.local_device_count()
 
@@ -14,48 +14,53 @@ from results.run_benchmarks import run_benchmarks
 import sampler_evaluation
 from sampler_comparison.samplers import samplers
 from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import adjusted_hmc
-model = sampler_evaluation.models.german_credit()
+from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_langevin import unadjusted_lmc, unadjusted_lmc_no_tuning
+from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unadjusted_mclmc
+from sampler_evaluation.models.banana import banana
+from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
+import blackjax
+import jax.numpy as jnp
+from sampler_comparison.samplers.general import (
+    make_log_density_fn,
+)
+from sampler_comparison.util import (
+    calls_per_integrator_step,
+    map_integrator_type_to_integrator,
+)
+from blackjax.adaptation.mclmc_adaptation import MCLMCAdaptationState
+from sampler_evaluation.models.german_credit import german_credit
+from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import adjusted_mclmc
 
-samplers={
+model = german_credit()
 
-            "adjusted_hmc_stage_2": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", stage_3=False),
-}
+
 
 run_benchmarks(
         models={model.name: model},
-        samplers=samplers,
+        samplers={
+            "adjusted_malt": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet", L_proposal_factor=1.25),
+            "nuts": partial(nuts,num_tuning_steps=500),
+            "adjusted_microcanonical": partial(adjusted_mclmc,num_tuning_steps=5000),
+            "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
+        },
         batch_size=batch_size,
-        num_steps=400000,
+        num_steps=20000,
         save_dir=f"results/{model.name}",
         key=jax.random.key(20),
         map=jax.pmap,
         calculate_ess_corr=False,
     )
 
-
-
-# run_benchmarks(
-#         models={
-#             "German_Credit": sampler_evaluation.models.german_credit(),
-#         },
-#         samplers={
-
-#             "adjusted_hmc": partial(adjusted_hmc,num_tuning_steps=5000, integrator_type="velocity_verlet"),
-
-#             # "adjusted_microcanonical": partial(adjusted_mclmc,num_tuning_steps=5000),
-
-#             # "nuts": partial(nuts,num_tuning_steps=5000),
-
-#             # "adjusted_microcanonical_langevin": partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000),
-
-#             # "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=5e-4, num_tuning_steps=500, diagonal_preconditioning=False),
-#             # "underdamped_langevin": partial(unadjusted_lmc_no_tuning, step_size=1e-5, L=0.1, initial_state=initial_state,integrator_type='velocity_verlet', inverse_mass_matrix=jnp.ones((32,))),
-
-#             # "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=20000),
-#         },
-#         batch_size=batch_size,
-#         num_steps=40000,
-#         save_dir="results/German_Credit",
-#         key=jax.random.key(19),
-#         map=jax.pmap
-#     )
+run_benchmarks(
+        models={model.name: model},
+        samplers={
+            "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=3e-4, num_tuning_steps=20000, diagonal_preconditioning=True),
+            "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=20000),
+        },
+        batch_size=batch_size,
+        num_steps=700000,
+        save_dir=f"results/{model.name}",
+        key=jax.random.key(20),
+        map=jax.pmap,
+        calculate_ess_corr=False,
+    )

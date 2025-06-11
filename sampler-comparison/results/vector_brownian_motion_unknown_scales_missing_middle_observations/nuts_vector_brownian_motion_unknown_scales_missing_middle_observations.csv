@@ -1,5 +1,9 @@
-,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
-0,nuts,vector_brownian_motion_unknown_scales_missing_middle_observations,33238.939120312505,,True,identity,103634.474609375,4.407041653332886,0.19028063502422932
-1,nuts,vector_brownian_motion_unknown_scales_missing_middle_observations,6390.234640820313,,False,identity,103634.474609375,4.407041653332886,0.19028063502422932
-2,nuts,vector_brownian_motion_unknown_scales_missing_middle_observations,31052.166809765626,,True,square,103634.474609375,4.407041653332886,0.19028063502422932
-3,nuts,vector_brownian_motion_unknown_scales_missing_middle_observations,5709.905477539063,,False,square,103634.474609375,4.407041653332886,0.19028063502422932
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,nuts,vector_brownian_motion_unknown_scales_missing_middle_observations,35443.7885578125,71.94364113665641,,True,identity,13306.890625,4.525353813861544,0.1960420288924397
+1,nuts,vector_brownian_motion_unknown_scales_missing_middle_observations,6415.713092773437,8.17539601487292,,False,identity,13306.890625,4.525353813861544,0.1960420288924397
+2,nuts,vector_brownian_motion_unknown_scales_missing_middle_observations,28858.603798437496,64.23084228001375,,True,square,13306.890625,4.525353813861544,0.1960420288924397
+3,nuts,vector_brownian_motion_unknown_scales_missing_middle_observations,5907.298092968749,9.726967667264038,,False,square,13306.890625,4.525353813861544,0.1960420288924397
+4,nuts,vector_brownian_motion_unknown_scales_missing_middle_observations,inf,,,True,quartic,13306.890625,4.525353813861544,0.1960420288924397
+5,nuts,vector_brownian_motion_unknown_scales_missing_middle_observations,inf,,,False,quartic,13306.890625,4.525353813861544,0.1960420288924397
+6,nuts,vector_brownian_motion_unknown_scales_missing_middle_observations,150418.20922792968,51.53151559967938,,True,covariance,13306.890625,4.525353813861544,0.1960420288924397
+7,nuts,vector_brownian_motion_unknown_scales_missing_middle_observations,150418.20922792968,51.53151559967938,,False,covariance,13306.890625,4.525353813861544,0.1960420288924397

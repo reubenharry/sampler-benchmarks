@@ -1,5 +1,5 @@
-,Sampler,Model,num_grads_to_low_error,max,statistic,num_tuning_grads,L,step_size
-0,adjusted_microcanonical,Neals_Funnel,2346899.4815863827,True,x2,1636450.9166666665,8.881806118944219,0.059158726333873694
-1,adjusted_microcanonical,Neals_Funnel,72367.02697480745,False,x2,1636450.9166666665,8.881806118944219,0.059158726333873694
-2,adjusted_microcanonical,Neals_Funnel,inf,True,x,1636450.9166666665,8.881806118944219,0.059158726333873694
-3,adjusted_microcanonical,Neals_Funnel,inf,False,x,1636450.9166666665,8.881806118944219,0.059158726333873694
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_microcanonical,Neals_Funnel_MAMS_Paper,inf,,,True,identity,2755424.421875,8.806918246866918,0.043969813185114254
+1,adjusted_microcanonical,Neals_Funnel_MAMS_Paper,inf,,,False,identity,2755424.421875,8.806918246866918,0.043969813185114254
+2,adjusted_microcanonical,Neals_Funnel_MAMS_Paper,1432043.2190151925,1180.0665616820097,,True,square,2755424.421875,8.806918246866918,0.043969813185114254
+3,adjusted_microcanonical,Neals_Funnel_MAMS_Paper,96920.52182838514,15.538661461013943,,False,square,2755424.421875,8.806918246866918,0.043969813185114254

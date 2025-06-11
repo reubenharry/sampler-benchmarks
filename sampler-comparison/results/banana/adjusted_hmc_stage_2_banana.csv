@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,adjusted_hmc_stage_2,banana,89922.61483732598,,True,identity,50290.087890625,1.0,0.21005138503050352
+1,adjusted_hmc_stage_2,banana,21641.36636527217,,False,identity,50290.087890625,1.0,0.21005138503050352
+2,adjusted_hmc_stage_2,banana,184244.58422205303,,True,square,50290.087890625,1.0,0.21005138503050352
+3,adjusted_hmc_stage_2,banana,99124.75819193349,,False,square,50290.087890625,1.0,0.21005138503050352

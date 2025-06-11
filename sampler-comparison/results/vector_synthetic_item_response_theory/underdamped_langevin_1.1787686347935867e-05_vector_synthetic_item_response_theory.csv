@@ -1,0 +1,7 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,underdamped_langevin_1.1787686347935867e-05,vector_synthetic_item_response_theory,inf,,True,identity,15777.0,1.5623866720649524,0.09244143217252701
+1,underdamped_langevin_1.1787686347935867e-05,vector_synthetic_item_response_theory,inf,,False,identity,15777.0,1.5623866720649524,0.09244143217252701
+2,underdamped_langevin_1.1787686347935867e-05,vector_synthetic_item_response_theory,inf,,True,square,15777.0,1.5623866720649524,0.09244143217252701
+3,underdamped_langevin_1.1787686347935867e-05,vector_synthetic_item_response_theory,inf,,False,square,15777.0,1.5623866720649524,0.09244143217252701
+4,underdamped_langevin_1.1787686347935867e-05,vector_synthetic_item_response_theory,inf,,True,quartic,15777.0,1.5623866720649524,0.09244143217252701
+5,underdamped_langevin_1.1787686347935867e-05,vector_synthetic_item_response_theory,inf,,False,quartic,15777.0,1.5623866720649524,0.09244143217252701

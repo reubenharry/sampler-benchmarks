@@ -1,5 +1,9 @@
-,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
-0,underdamped_langevin,vector_german_credit_numeric_sparse_logistic_regression,137333.0,,True,identity,120000.0,0.8954728482473426,0.028921861371266372
-1,underdamped_langevin,vector_german_credit_numeric_sparse_logistic_regression,16080.0,,False,identity,120000.0,0.8954728482473426,0.028921861371266372
-2,underdamped_langevin,vector_german_credit_numeric_sparse_logistic_regression,119557.0,,True,square,120000.0,0.8954728482473426,0.028921861371266372
-3,underdamped_langevin,vector_german_credit_numeric_sparse_logistic_regression,13007.0,,False,square,120000.0,0.8954728482473426,0.028921861371266372
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,underdamped_langevin,vector_german_credit_numeric_sparse_logistic_regression,51390.0,11388.80460162084,,True,identity,1415556.0,0.9751645304514467,0.02316229476005815
+1,underdamped_langevin,vector_german_credit_numeric_sparse_logistic_regression,5712.0,288.54115408378055,,False,identity,1415556.0,0.9751645304514467,0.02316229476005815
+2,underdamped_langevin,vector_german_credit_numeric_sparse_logistic_regression,52774.0,12898.698169889083,,True,square,1415556.0,0.9751645304514467,0.02316229476005815
+3,underdamped_langevin,vector_german_credit_numeric_sparse_logistic_regression,4608.0,345.3307336452984,,False,square,1415556.0,0.9751645304514467,0.02316229476005815
+4,underdamped_langevin,vector_german_credit_numeric_sparse_logistic_regression,inf,,,True,quartic,1415556.0,0.9751645304514467,0.02316229476005815
+5,underdamped_langevin,vector_german_credit_numeric_sparse_logistic_regression,inf,,,False,quartic,1415556.0,0.9751645304514467,0.02316229476005815
+6,underdamped_langevin,vector_german_credit_numeric_sparse_logistic_regression,486615.0,56333.08656639631,,True,covariance,1415556.0,0.9751645304514467,0.02316229476005815
+7,underdamped_langevin,vector_german_credit_numeric_sparse_logistic_regression,486615.0,56333.08656639631,,False,covariance,1415556.0,0.9751645304514467,0.02316229476005815

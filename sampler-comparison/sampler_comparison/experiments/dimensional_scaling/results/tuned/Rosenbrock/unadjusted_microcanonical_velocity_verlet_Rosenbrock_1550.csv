@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,ess_corr,max,statistic,num_tuning_grads,L,step_size
+0,unadjusted_microcanonical_velocity_verlet,Rosenbrock_1550,inf,,True,identity,22223.0,142.50815017458356,1.947922351599522
+1,unadjusted_microcanonical_velocity_verlet,Rosenbrock_1550,16532.0,,False,identity,22223.0,142.50815017458356,1.947922351599522
+2,unadjusted_microcanonical_velocity_verlet,Rosenbrock_1550,inf,,True,square,22223.0,142.50815017458356,1.947922351599522
+3,unadjusted_microcanonical_velocity_verlet,Rosenbrock_1550,inf,,False,square,22223.0,142.50815017458356,1.947922351599522

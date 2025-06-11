@@ -3,7 +3,7 @@ import os
 import jax
 jax.config.update("jax_enable_x64", True)
 
-batch_size = 2048
+batch_size = 512
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 num_cores = jax.local_device_count()
 
@@ -17,17 +17,19 @@ from sampler_comparison.samplers import samplers
 from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_langevin import unadjusted_lmc, unadjusted_lmc_no_tuning
 from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import adjusted_hmc
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_hmc, grid_search_unadjusted_lmc
+from sampler_evaluation.models.banana import banana
 
-model = sampler_evaluation.models.banana()
+model = banana()
 
 run_benchmarks(
         models={model.name: model},
         samplers={
             # "grid_search_hmc": partial(grid_search_hmc, num_tuning_steps=5000, integrator_type="velocity_verlet", num_chains=batch_size),
             "grid_search_unadjusted_lmc": partial(grid_search_unadjusted_lmc, num_tuning_steps=20000, integrator_type="velocity_verlet", num_chains=batch_size),
+            # "grid_search_malt": partial(grid_search_hmc, num_tuning_steps=5000, integrator_type="velocity_verlet", num_chains=batch_size, L_proposal_factor=1.25),
             },
         batch_size=batch_size,
-        num_steps=40000,
+        num_steps=200000,
         save_dir=f"results/{model.name}",
         key=jax.random.key(20),
         map=lambda x : x,

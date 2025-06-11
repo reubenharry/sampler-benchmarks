@@ -25,15 +25,15 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unad
 import numpy as np
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_adjusted_mclmc
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc
-from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc, grid_search_hmc
+from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc, grid_search_hmc, grid_search_unadjusted_lmc
 
 
-Ds = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,5, 5)).astype(int)])
+Ds = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,4, 5)).astype(int)])[9:]
 
 # print(Ds)
 # raise Exception
 
-integrator_types = ['velocity_verlet', 'mclachlan', 'omelyan']
+integrator_types = ['velocity_verlet'] # , 'mclachlan', 'omelyan']
 
 for D, integrator_type in itertools.product(Ds, integrator_types):
 
@@ -52,7 +52,9 @@ for D, integrator_type in itertools.product(Ds, integrator_types):
 
                 # f"grid_search_adjusted_microcanonical_{integrator_type}": lambda: grid_search_adjusted_mclmc(num_chains=batch_size, num_tuning_steps=5000, integrator_type=integrator_type),
 
-                f"grid_search_hmc_{integrator_type}": partial(grid_search_hmc,num_chains=batch_size, num_tuning_steps=5000, opt='avg',integrator_type=integrator_type),
+                # f"grid_search_hmc_{integrator_type}": partial(grid_search_hmc,num_chains=batch_size, num_tuning_steps=5000, opt='avg',integrator_type=integrator_type),
+
+                "grid_search_unadjusted_lmc": partial(grid_search_unadjusted_lmc, num_tuning_steps=20000, integrator_type="velocity_verlet", num_chains=batch_size, opt='avg')
 
                 # f"grid_search_unadjusted_microcanonical_{integrator_type}": lambda: grid_search_unadjusted_mclmc(num_chains=batch_size, num_tuning_steps=10000, integrator_type=integrator_type),
 
@@ -65,34 +67,34 @@ for D, integrator_type in itertools.product(Ds, integrator_types):
             
             
             batch_size=batch_size,
-            num_steps=10000,
+            num_steps=40000,
             save_dir=f"sampler_comparison/experiments/dimensional_scaling/results/grid_search/Rosenbrock",
             key=jax.random.key(19),
             map=lambda f:f
         )
     
     
-    run_benchmarks(
-            models={
-                f"Rosenbrock_{dim}": Rosenbrock(D=D),
-            },
-            samplers={
+    # run_benchmarks(
+    #         models={
+    #             f"Rosenbrock_{dim}": Rosenbrock(D=D),
+    #         },
+    #         samplers={
 
-                # f"grid_search_adjusted_microcanonical_{integrator_type}": lambda: grid_search_adjusted_mclmc(num_chains=batch_size, num_tuning_steps=500, integrator_type=integrator_type),
+    #             # f"grid_search_adjusted_microcanonical_{integrator_type}": lambda: grid_search_adjusted_mclmc(num_chains=batch_size, num_tuning_steps=500, integrator_type=integrator_type),
 
-                f"grid_search_unadjusted_microcanonical_{integrator_type}": lambda: grid_search_unadjusted_mclmc(num_chains=batch_size, num_tuning_steps=50000, integrator_type=integrator_type),
+    #             f"grid_search_unadjusted_microcanonical_{integrator_type}": lambda: grid_search_unadjusted_mclmc(num_chains=batch_size, num_tuning_steps=50000, integrator_type=integrator_type),
 
 
-                # f"adjusted_microcanonical_{integrator_type}": lambda: adjusted_mclmc(num_tuning_steps=5000, integrator_type=integrator_type),
+    #             # f"adjusted_microcanonical_{integrator_type}": lambda: adjusted_mclmc(num_tuning_steps=5000, integrator_type=integrator_type),
             
-                # f"unadjusted_microcanonical__{integrator_type}": lambda: unadjusted_mclmc(num_tuning_steps=20000, integrator_type=integrator_type),
+    #             # f"unadjusted_microcanonical__{integrator_type}": lambda: unadjusted_mclmc(num_tuning_steps=20000, integrator_type=integrator_type),
 
-            },
+    #         },
             
             
-            batch_size=batch_size,
-            num_steps=200000,
-            save_dir=f"sampler_comparison/experiments/dimensional_scaling/results/grid_search/Rosenbrock",
-            key=jax.random.key(19),
-            map=lambda f:f
-        )
+    #         batch_size=batch_size,
+    #         num_steps=200000,
+    #         save_dir=f"sampler_comparison/experiments/dimensional_scaling/results/grid_search/Rosenbrock",
+    #         key=jax.random.key(19),
+    #         map=lambda f:f
+    #     )

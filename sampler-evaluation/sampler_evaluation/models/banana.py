@@ -1,4 +1,6 @@
 import pickle
+import sys
+sys.path.append("../sampler-comparison/src/inference-gym/spinoffs/inference_gym")
 import inference_gym.using_jax as gym
 from inference_gym.targets import model
 import jax.numpy as jnp
@@ -10,7 +12,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 
 def banana():
 
-    banana = gym.targets.Banana(dtype=jax.numpy.float64)
+    banana = gym.targets.Banana()#dtype=jax.numpy.float64)
 
     try:
         with open(
@@ -23,8 +25,12 @@ def banana():
             "Expectations not found: run estimate_expectations.py to generate them"
         )
 
+    e_x = stats["e_x"]
     e_x2 = stats["e_x2"]
     e_x4 = stats["e_x4"]
+
+    cov = stats["cov"]
+
     var_x2 = e_x4 - e_x2**2
 
     banana.sample_transformations["square"] = model.Model.SampleTransformation(
@@ -33,6 +39,14 @@ def banana():
         ground_truth_mean=e_x2,
         ground_truth_standard_deviation=jnp.sqrt(var_x2),
     )
+
+    banana.sample_transformations["covariance"] = model.Model.SampleTransformation(
+        fn=lambda params: jnp.outer(params - e_x, params - e_x),
+        pretty_name="Covariance",
+        ground_truth_mean=cov,
+        ground_truth_standard_deviation=jnp.nan,
+    )
+
     banana.ndims = 2
 
     def exact_sample(key):

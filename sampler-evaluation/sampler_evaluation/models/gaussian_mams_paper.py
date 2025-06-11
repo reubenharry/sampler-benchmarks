@@ -3,6 +3,8 @@ import tensorflow.compat.v2 as tf
 
 # import tensorflow_probability as tfp
 import tensorflow_probability.substrates.jax as tfp
+import sys
+sys.path.append("../sampler-comparison/src/inference-gym/spinoffs/inference_gym")
 from inference_gym.targets import model
 import jax.numpy as jnp
 
@@ -24,6 +26,7 @@ class IllConditionedGaussian(model.Model):
         key=None,
         name="ICG",
         pretty_name="Ill_Conditioned_Gaussian",
+        do_covariance=True,
     ):
         self.ndims = ndims
         self.condition_number = condition_number
@@ -54,7 +57,9 @@ class IllConditionedGaussian(model.Model):
             self.e_x2 = eigs
             # self.R = jnp.eye(ndims)
             self.inv_cov = 1.0 / eigs
-            self.cov = jnp.diag(eigs)
+            if do_covariance:
+                self.cov = jnp.diag(eigs)
+
             self._unnormalized_log_prob = lambda x: -0.5 * jnp.sum(
                 jnp.square(x) * self.inv_cov
             )
@@ -74,9 +79,9 @@ class IllConditionedGaussian(model.Model):
         self.e_x = jnp.zeros(ndims)
         self.var_x2 = 2 * jnp.square(self.e_x2)
 
-        self.exact_sample = lambda key: self.R @ (
-            jax.random.normal(key, shape=(ndims,)) * jnp.sqrt(eigs)
-        )
+        # self.exact_sample = lambda key: self.R @ (
+        #     jax.random.normal(key, shape=(ndims,)) * jnp.sqrt(eigs)
+        # )
 
         sample_transformations = {
             "identity": model.Model.SampleTransformation(
@@ -91,14 +96,15 @@ class IllConditionedGaussian(model.Model):
                 ground_truth_mean=self.e_x2,
                 ground_truth_standard_deviation=jnp.sqrt(self.var_x2),
             ),
-            # "covariance": model.Model.SampleTransformation(
-            #     fn=lambda params: jnp.outer(params - self.e_x, params - self.e_x),
-            #     pretty_name="Covariance",
-            #     ground_truth_mean=self.cov,
-            #     ground_truth_standard_deviation=jnp.nan,
-            # ),
         }
+        if do_covariance:
 
+            sample_transformations["covariance"] = model.Model.SampleTransformation(
+                fn=lambda params: jnp.outer(params - self.e_x, params - self.e_x),
+                pretty_name="Covariance",
+                ground_truth_mean=self.cov,
+                ground_truth_standard_deviation=jnp.nan,
+            )
         super(IllConditionedGaussian, self).__init__(
             default_event_space_bijector=tfb.Identity(),
             event_shape=tf.TensorShape([ndims]),
