@@ -4,6 +4,7 @@ from sampler_evaluation.models.model import make_model
 import pickle
 import os
 from sampler_evaluation.models.model import SampleTransformation, make_model
+import h5py 
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -16,28 +17,32 @@ def U1(Lt, Lx, beta= 1.):
     """
     
     name = 'U1'
+    assert(Lt == Lx)
+    Lxy = Lx
+    # try:
+        # with open(
+        #     f"{module_dir}/data/U1_Lt{Lt}_Lx{Lx}_beta{beta}"+"_expectations.pkl",
+        #     "rb",
+        # ) as f:
+        #     stats = pickle.load(f)
+    file = f"/global/cfs/cdirs/m3058/rkarur/new_schwinger/u1_GT_nuts_Lxy_{Lxy}_beta_{beta}_N_1000000.h5"
+    stats = h5py.File(file)
 
-    try:
-        with open(
-            f"{module_dir}/data/U1_Lt{Lt}_Lx{Lx}_beta{beta}"+"_expectations.pkl",
-            "rb",
-        ) as f:
-            stats = pickle.load(f)
+    e_x_top_charge = jnp.mean(jnp.asarray(stats["top_charge"][()]),axis=(0,1))
+    e_x2_top_charge = jnp.mean(jnp.asarray(stats["top_charge"][()])**2,axis=(0,1))
+    e_std_top_charge = jnp.sqrt(e_x2_top_charge - e_x_top_charge**2)
+    print("successfully h5pied")
+    # var_x2 = e_x4 - e_x2**2
 
-        e_x = stats["polyakov"]
-        e_x2 = stats["polyakov^2"]
-        e_x4 = jnp.nan # stats["e_x4"]
-        # var_x2 = e_x4 - e_x2**2
+    # except:
+    #     e_x = 0
+    #     e_x2 = 0
+    #     e_x4 = 0
+    #     var_x2 = 0
 
-    except:
-        e_x = 0
-        e_x2 = 0
-        e_x4 = 0
-        var_x2 = 0
-
-    jax.debug.print("e_x {x}", x=e_x)
-    jax.debug.print("e_x^2 {x}", x=e_x2)
-    jax.debug.print("std {x}", x=jnp.sqrt(e_x2 - e_x**2))
+    # jax.debug.print("e_x {x}", x=e_x)
+    # jax.debug.print("e_x^2 {x}", x=e_x2)
+    # jax.debug.print("std {x}", x=jnp.sqrt(e_x2 - e_x**2))
     # raise Exception
 
 
@@ -91,15 +96,15 @@ def U1(Lt, Lx, beta= 1.):
         ndims=ndims,
         default_event_space_bijector=lambda x:x,
         sample_transformations = {
-        'polyakov':SampleTransformation(
-            fn=polyakov_autocorr,
-            ground_truth_mean=jnp.nan,
-            ground_truth_standard_deviation=jnp.nan,
-        ),
+        # 'polyakov':SampleTransformation(
+        #     fn=polyakov_autocorr,
+        #     ground_truth_mean=jnp.nan,
+        #     ground_truth_standard_deviation=jnp.nan,
+        # ),
         'top_charge':SampleTransformation(
             fn=top_charge,
-            ground_truth_mean=jnp.nan,
-            ground_truth_standard_deviation=jnp.nan,
+            ground_truth_mean=e_x_top_charge,
+            ground_truth_standard_deviation=e_std_top_charge,
         ),
             
         },
@@ -107,3 +112,8 @@ def U1(Lt, Lx, beta= 1.):
         sample_init=sample_init,
         name=f'U1_Lt{Lt}_Lx{Lx}_beta{beta}',
     )
+
+
+if __name__ == "__main__":
+    model = U1(Lt=16, Lx=16, beta=6)
+    print(model.sample_transformations['top_charge'].ground_truth_mean)
