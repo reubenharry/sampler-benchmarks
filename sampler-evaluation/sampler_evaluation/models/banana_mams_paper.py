@@ -29,7 +29,7 @@ banana_mams_paper = make_model(
             ground_truth_mean=jnp.array([100.0, 19.0]),
             ground_truth_standard_deviation=jnp.sqrt(jnp.array([20000.0, 4600.898])),
         )},
-        sample_init= lambda key: jax.random.normal(key, shape=(2,)) * jnp.array([20.0, 10.0]),
+        sample_init= lambda key, beta=1: jax.random.normal(key, shape=(2,)) * jnp.array([20.0, 10.0]) * beta,
         exact_sample=exact_sample,
         name="Banana_MAMS_Paper",
 )
