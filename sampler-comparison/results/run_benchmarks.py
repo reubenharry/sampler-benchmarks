@@ -132,7 +132,7 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
 
         (False, False, False, 'alba'): (f'unadjusted_microcanonical_nolangevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(unadjusted_mchmc,num_tuning_steps=2000, desired_energy_var=5e-4, diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
 
-        (True, True, False, 'nuts'): (f'adjusted_canonical_nolangevin_nuts_{integrator_name}_precond:{diagonal_preconditioning}', partial(nuts,num_tuning_steps=500, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning)),
+        (True, True, False, 'nuts'): (f'adjusted_canonical_nolangevin_nuts_{integrator_name}_precond:{diagonal_preconditioning}', partial(nuts,num_tuning_steps=5, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning)),
                     }
     
     
