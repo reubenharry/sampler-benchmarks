@@ -1,4 +1,14 @@
+import sys
+sys.path.append(".")  
+sys.path.append("../../blackjax")
+sys.path.append("../../sampler-benchmarks/sampler-comparison")
+sys.path.append("../../sampler-benchmarks/sampler-evaluation")
+sys.path.append("../../src/inference-gym/spinoffs/inference_gym")
+# print(os.listdir("../../src/inference-gym/spinoffs/inference_gym"))
+
+
 import jax
+
 import jax.numpy as jnp
 from sampler_evaluation.models.model import make_model
 import pickle

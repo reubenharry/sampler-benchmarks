@@ -115,7 +115,7 @@ def unadjusted_lmc_tuning(
     stage3=True,
     desired_energy_var=5e-4,
     desired_energy_var_max_ratio=jnp.inf,
-    num_windows=2,
+    num_windows=1,
     params=None,
 ):
     """

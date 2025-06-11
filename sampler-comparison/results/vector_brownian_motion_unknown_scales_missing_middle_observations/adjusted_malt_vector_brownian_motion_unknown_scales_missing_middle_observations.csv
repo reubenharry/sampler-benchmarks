@@ -1,9 +1,0 @@
-,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size
-0,adjusted_malt,vector_brownian_motion_unknown_scales_missing_middle_observations,22831.29316103119,54.58962813575487,,True,identity,201815.482421875,2.0,0.15952704307633228
-1,adjusted_malt,vector_brownian_motion_unknown_scales_missing_middle_observations,4704.630105909458,14.010624539969658,,False,identity,201815.482421875,2.0,0.15952704307633228
-2,adjusted_malt,vector_brownian_motion_unknown_scales_missing_middle_observations,20139.33903625947,42.78365458910681,,True,square,201815.482421875,2.0,0.15952704307633228
-3,adjusted_malt,vector_brownian_motion_unknown_scales_missing_middle_observations,4000.19351251125,14.774640435557137,,False,square,201815.482421875,2.0,0.15952704307633228
-4,adjusted_malt,vector_brownian_motion_unknown_scales_missing_middle_observations,inf,,,True,quartic,201815.482421875,2.0,0.15952704307633228
-5,adjusted_malt,vector_brownian_motion_unknown_scales_missing_middle_observations,inf,,,False,quartic,201815.482421875,2.0,0.15952704307633228
-6,adjusted_malt,vector_brownian_motion_unknown_scales_missing_middle_observations,92331.51063469362,49.9811004280618,,True,covariance,201815.482421875,2.0,0.15952704307633228
-7,adjusted_malt,vector_brownian_motion_unknown_scales_missing_middle_observations,92331.51063469362,49.9811004280618,,False,covariance,201815.482421875,2.0,0.15952704307633228

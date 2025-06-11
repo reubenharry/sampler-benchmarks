@@ -1,0 +1,9 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
+0,adjusted_canonical_langevin_alba_velocity verlet_precond:True,vector_german_credit_numeric_sparse_logistic_regression,56652.64298992372,51.35318880069669,,True,identity,304512.1171875,2.0,0.04784275619223375,128
+1,adjusted_canonical_langevin_alba_velocity verlet_precond:True,vector_german_credit_numeric_sparse_logistic_regression,8625.605658480627,8.099604928636952,,False,identity,304512.1171875,2.0,0.04784275619223375,128
+2,adjusted_canonical_langevin_alba_velocity verlet_precond:True,vector_german_credit_numeric_sparse_logistic_regression,61258.54892406386,99.50775648159293,,True,square,304512.1171875,2.0,0.04784275619223375,128
+3,adjusted_canonical_langevin_alba_velocity verlet_precond:True,vector_german_credit_numeric_sparse_logistic_regression,7913.783832295331,6.416385275215322,,False,square,304512.1171875,2.0,0.04784275619223375,128
+4,adjusted_canonical_langevin_alba_velocity verlet_precond:True,vector_german_credit_numeric_sparse_logistic_regression,inf,,,True,quartic,304512.1171875,2.0,0.04784275619223375,128
+5,adjusted_canonical_langevin_alba_velocity verlet_precond:True,vector_german_credit_numeric_sparse_logistic_regression,inf,,,False,quartic,304512.1171875,2.0,0.04784275619223375,128
+6,adjusted_canonical_langevin_alba_velocity verlet_precond:True,vector_german_credit_numeric_sparse_logistic_regression,548354.037395448,153.04037506488282,,True,covariance,304512.1171875,2.0,0.04784275619223375,128
+7,adjusted_canonical_langevin_alba_velocity verlet_precond:True,vector_german_credit_numeric_sparse_logistic_regression,548354.037395448,153.04037506488282,,False,covariance,304512.1171875,2.0,0.04784275619223375,128

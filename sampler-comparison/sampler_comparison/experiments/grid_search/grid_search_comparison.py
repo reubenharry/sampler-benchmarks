@@ -7,7 +7,7 @@ jax.config.update("jax_enable_x64", True)
 num_cores = jax.local_device_count()
 import sys
 
-sys.path.append("/global/homes/r/reubenh/blackjax-benchmarks/sampler-comparison")
+sys.path.append("/global/homes/r/reubenh/sampler-benchmarks/sampler-comparison")
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_L
 from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import (
     adjusted_mclmc_no_tuning,

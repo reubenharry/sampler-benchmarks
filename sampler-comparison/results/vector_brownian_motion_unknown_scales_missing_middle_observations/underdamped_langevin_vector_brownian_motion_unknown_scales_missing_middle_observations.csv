@@ -1,9 +1,0 @@
-,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size
-0,underdamped_langevin,vector_brownian_motion_unknown_scales_missing_middle_observations,33324.0,12965.038109080127,,True,identity,315556.0,2.5965237969110357,0.13416946874169763
-1,underdamped_langevin,vector_brownian_motion_unknown_scales_missing_middle_observations,2377.0,125.47563070174225,,False,identity,315556.0,2.5965237969110357,0.13416946874169763
-2,underdamped_langevin,vector_brownian_motion_unknown_scales_missing_middle_observations,16650.0,1623.8930167655749,,True,square,315556.0,2.5965237969110357,0.13416946874169763
-3,underdamped_langevin,vector_brownian_motion_unknown_scales_missing_middle_observations,2114.0,129.8821816108738,,False,square,315556.0,2.5965237969110357,0.13416946874169763
-4,underdamped_langevin,vector_brownian_motion_unknown_scales_missing_middle_observations,inf,,,True,quartic,315556.0,2.5965237969110357,0.13416946874169763
-5,underdamped_langevin,vector_brownian_motion_unknown_scales_missing_middle_observations,inf,,,False,quartic,315556.0,2.5965237969110357,0.13416946874169763
-6,underdamped_langevin,vector_brownian_motion_unknown_scales_missing_middle_observations,110140.0,5465.629488393812,,True,covariance,315556.0,2.5965237969110357,0.13416946874169763
-7,underdamped_langevin,vector_brownian_motion_unknown_scales_missing_middle_observations,110140.0,5465.629488393812,,False,covariance,315556.0,2.5965237969110357,0.13416946874169763

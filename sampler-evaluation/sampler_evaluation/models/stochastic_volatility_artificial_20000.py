@@ -5,8 +5,9 @@ from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
 import sampler_evaluation
 import jax.numpy as jnp
 import pickle
-
 import os
+from sampler_evaluation.models.model import SampleTransformation, make_model
+
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -71,16 +72,17 @@ def transform(x):
 
         return z
 
-SampleTransformation = namedtuple("SampleTransformation", ["ground_truth_mean", "ground_truth_standard_deviation"])
-Model = namedtuple("Model", ["ndims", "log_density_fn", "default_event_space_bijector", "sample_transformations", "name" ])
+# SampleTransformation = namedtuple("SampleTransformation", ["ground_truth_mean", "ground_truth_standard_deviation"])
+# Model = namedtuple("Model", ["ndims", "log_density_fn", "default_event_space_bijector", "sample_transformations", "name" ])
 
-stochastic_volatility_artificial_20000 = Model(
+stochastic_volatility_artificial_20000 = make_model(
     ndims = ndims,
-    log_density_fn=logdensity_fn,
+    logdensity_fn=logdensity_fn,
     default_event_space_bijector=transform,
     sample_transformations={
-        "identity": SampleTransformation(ground_truth_mean=e_x, ground_truth_standard_deviation=jnp.sqrt(e_x2-e_x**2)),
-        "square": SampleTransformation(ground_truth_mean=e_x2, ground_truth_standard_deviation=jnp.sqrt(var_x2)),
+          
+        "identity": SampleTransformation(fn=lambda x: x, ground_truth_mean=e_x, ground_truth_standard_deviation=jnp.sqrt(e_x2-e_x**2)),
+        "square": SampleTransformation(fn=lambda x: x**2, ground_truth_mean=e_x2, ground_truth_standard_deviation=jnp.sqrt(var_x2)),
     },
     name="StochasticVolatility_Artificial_20000"
 )
