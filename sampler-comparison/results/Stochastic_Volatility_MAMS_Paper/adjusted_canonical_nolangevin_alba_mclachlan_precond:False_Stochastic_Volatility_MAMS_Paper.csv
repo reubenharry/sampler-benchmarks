@@ -1,0 +1,7 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
+0,adjusted_canonical_nolangevin_alba_mclachlan_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,True,identity,1585550.1875,0.7470617640298711,0.018175523089544645,512
+1,adjusted_canonical_nolangevin_alba_mclachlan_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,False,identity,1585550.1875,0.7470617640298711,0.018175523089544645,512
+2,adjusted_canonical_nolangevin_alba_mclachlan_precond:False,Stochastic_Volatility_MAMS_Paper,466621.324928017,404.4765598894453,,True,square,1585550.1875,0.7470617640298711,0.018175523089544645,512
+3,adjusted_canonical_nolangevin_alba_mclachlan_precond:False,Stochastic_Volatility_MAMS_Paper,21415.983138796895,3.5014282800023193,,False,square,1585550.1875,0.7470617640298711,0.018175523089544645,512
+4,adjusted_canonical_nolangevin_alba_mclachlan_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,True,quartic,1585550.1875,0.7470617640298711,0.018175523089544645,512
+5,adjusted_canonical_nolangevin_alba_mclachlan_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,False,quartic,1585550.1875,0.7470617640298711,0.018175523089544645,512

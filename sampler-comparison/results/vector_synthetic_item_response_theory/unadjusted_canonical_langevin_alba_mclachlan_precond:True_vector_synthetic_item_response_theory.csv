@@ -1,0 +1,7 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
+0,unadjusted_canonical_langevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,27756.0,4183.441168834576,,True,identity,191112.0,2.293921246219985,0.3041882241434746,128
+1,unadjusted_canonical_langevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,2568.0,164.54596044874515,,False,identity,191112.0,2.293921246219985,0.3041882241434746,128
+2,unadjusted_canonical_langevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,32630.0,,,True,square,191112.0,2.293921246219985,0.3041882241434746,128
+3,unadjusted_canonical_langevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,2502.0,187.34603705443038,,False,square,191112.0,2.293921246219985,0.3041882241434746,128
+4,unadjusted_canonical_langevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,inf,,,True,quartic,191112.0,2.293921246219985,0.3041882241434746,128
+5,unadjusted_canonical_langevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,inf,,,False,quartic,191112.0,2.293921246219985,0.3041882241434746,128

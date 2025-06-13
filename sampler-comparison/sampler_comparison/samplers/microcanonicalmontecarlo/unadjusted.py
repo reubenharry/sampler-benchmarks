@@ -36,6 +36,7 @@ def unadjusted_mclmc_no_tuning(
         A tuple of the form (expectations, stats) where expectations are the expectations of the chain and stats are the hyperparameters of the chain (L, stepsize and inverse mass matrix) and other metadata
     """
 
+
     def s(model, num_steps, initial_position, key):
 
         logdensity_fn = make_log_density_fn(model)
@@ -77,6 +78,7 @@ def unadjusted_mclmc_no_tuning(
             transform=(lambda a, b: None) if return_only_final else transform,
             progress_bar=False,
         )
+
 
         if return_only_final:
 

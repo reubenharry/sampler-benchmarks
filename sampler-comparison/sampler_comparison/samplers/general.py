@@ -11,6 +11,7 @@ from sampler_evaluation.evaluation.ess import get_standardized_squared_error
 from blackjax.diagnostics import effective_sample_size
 import itertools
 import numpy as np
+
 def frobenius(estimated_cov, true_cov):
 
     inv_cov = jnp.linalg.inv(true_cov)
@@ -21,18 +22,23 @@ def frobenius(estimated_cov, true_cov):
 # produce a kernel that only stores the average values of the bias for E[x_2] and Var[x_2]
 
 def bias(expectation, f, model):
+    # print(expectation.shape, "shape")
     if len(expectation.shape) == 1:
+        avg_bias = jnp.average(jnp.square(
+                        expectation - model.sample_transformations[f].ground_truth_mean
+                    ) / (
+                        model.sample_transformations[f].ground_truth_standard_deviation
+                        ** 2))
+        max_bias = jnp.max(jnp.square(
+                        expectation - model.sample_transformations[f].ground_truth_mean
+                    ) / (
+                        model.sample_transformations[f].ground_truth_standard_deviation
+                        ** 2))
+        # jax.debug.print("avg bias {x}", x=avg_bias)
+        # jax.debug.print("max bias {x}", x=max_bias)
         return {
-            'avg' : jnp.average(jnp.square(
-                        expectation - model.sample_transformations[f].ground_truth_mean
-                    ) / (
-                        model.sample_transformations[f].ground_truth_standard_deviation
-                        ** 2)),
-            'max' : jnp.max(jnp.square(
-                        expectation - model.sample_transformations[f].ground_truth_mean
-                    ) / (
-                        model.sample_transformations[f].ground_truth_standard_deviation
-                        ** 2)),
+            'avg' : avg_bias,
+            'max' : max_bias,
         }
     elif len(expectation.shape) == 2:
         return {
@@ -44,71 +50,21 @@ def with_only_statistics(model, alg, incremental_value_transform=None):
 
     if incremental_value_transform is None:
         
-        # incremental_value_transform = lambda expectations: {
-            
-
-        #     trans : 
-                                                            
-        #             {
-        #             'avg' : jnp.average(
-        #             jnp.square(
-        #                 expectation - model.sample_transformations[trans].ground_truth_mean
-        #             )
-        #             / (
-        #                 model.sample_transformations[
-        #                     trans
-        #                 ].ground_truth_standard_deviation
-        #                 ** 2
-        #             )),
-        #             'max' : jnp.max(
-        #             jnp.square(
-        #                 expectation - model.sample_transformations[trans].ground_truth_mean
-        #             )
-        #             / (
-        #                 model.sample_transformations[
-        #                     trans
-        #                 ].ground_truth_standard_deviation
-        #                 ** 2
-        #             )),
-        #             }
- 
-            
-        #             for trans, expectation in itertools.zip_longest(
-        #                 model.sample_transformations,
-        #                 expectations
-        #             )                 
-        #             }
-
         incremental_value_transform = lambda expectations: jax.tree.map_with_path(lambda path, expectation: 
-                                                                                  
-                                                                                  
             bias(expectation=expectation, f=path[0].key, model=model),
-            expectations
-
-             
-
-            # 'avg' : frobenius(expectation, model.sample_transformations[path[0].key].ground_truth_mean),
-            # 'max' : frobenius(expectation, model.sample_transformations[path[0].key].ground_truth_mean)
-
-                        
-                        
-                        )
-                    
+            expectations)
+        
+        
+    print([model.sample_transformations[trans].ground_truth_mean for trans in model.sample_transformations]
+        )       
 
     memory_efficient_sampling_alg, transform = store_only_expectation_values(
         sampling_algorithm=alg,
-        
-
-        # state_transform=lambda state: jnp.array(
-        #     [
-        #         model.sample_transformations[trans].fn(model.default_event_space_bijector(state.position)) for trans in model.sample_transformations
-                
-        #     ]
-        # ),
         state_transform=lambda state: {trans: model.sample_transformations[trans].fn(model.default_event_space_bijector(state.position)) for trans in model.sample_transformations
         },
         incremental_value_transform=incremental_value_transform,
     )
+    
 
     return memory_efficient_sampling_alg, memory_efficient_sampling_alg.init, transform
 
@@ -195,13 +151,7 @@ def sampler_grads_to_low_error(
 
         mean_runs = jnp.mean(good_runs)
 
-        # jax.debug.print("\nfoo\n {x}", x=runs)
-        # jax.debug.print("\nbar\n {x}", x=jnp.argwhere(jnp.isinf(runs)))
         jax.debug.print("\npercent failures\n {x}", x=percent_failures)
-
-        ## squared_errors = postprocess_samples(jnp.expand_dims(samples,0).shape)
-        
-        # jax.debug.print("\ngrads\n {x}", x=mean_runs * grad_evals_per_step)
 
         std = jnp.std(good_runs* grad_evals_per_step)
 
