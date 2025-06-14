@@ -23,6 +23,8 @@ def frobenius(estimated_cov, true_cov):
 
 def bias(expectation, f, model):
     # print(expectation.shape, "shape")
+    # assert expectation.shape
+    # jax.debug.print("expectation {x}", x=expectation.shape)
     if len(expectation.shape) == 1:
         avg_bias = jnp.average(jnp.square(
                         expectation - model.sample_transformations[f].ground_truth_mean
@@ -185,10 +187,13 @@ def sampler_grads_to_low_error(
 
             for trans in model.sample_transformations
         }
+        
 
     else:
 
         squared_errors = samples
+        # jax.debug.print("\n\n\nsquared errors {x}\n\n\n", x=squared_errors)
+        # raise Exception("stop")
         ess_correlation = {'max': jnp.nan,
              'avg': jnp.nan}
 
