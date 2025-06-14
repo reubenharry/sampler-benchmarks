@@ -38,7 +38,7 @@ def U1(Lt, Lx, beta= 1.):
 
     print(os.listdir("/global/cfs/cdirs/m4031/rkarur/new_schwinger"))
 
-    file = f"/global/cfs/cdirs/m3058/rkarur/new_schwinger/u1_GT_nutsLxy{Lxy}beta{beta}_N_1000000.h5"
+    file = f"/global/cfs/cdirs/m4031/reubenh/new_schwinger/u1_GT_nutsLxy{Lxy}beta{beta}_N_1000000.h5"
     h5py.File(file)
 
     e_x = stats["polyakov"]
