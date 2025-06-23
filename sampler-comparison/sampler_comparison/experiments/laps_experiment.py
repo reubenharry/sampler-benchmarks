@@ -17,12 +17,12 @@ sys.path.append(current_path + '/../../blackjax/')
 sys.path.append(current_path + '/../sampler-evaluation/')
 # sys.path.append(current_path + '/src/inference-gym/')
 
-from sampler_evaluation.models.german_credit import german_credit
-from sampler_evaluation.models.banana_mams_paper import banana_mams_paper
+#from sampler_evaluation.models.german_credit import german_credit
+#from sampler_evaluation.models.banana_mams_paper import banana_mams_paper
 # from sampler_evaluation.models.stochastic_volatility import stochastic_volatility
 from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
-from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.emaus import parallel_microcanonical
-from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.emaus import plot_trace
+from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.laps import parallel_microcanonical
+from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.laps import plot_trace
 # from sampler_evaluation.models.gaussian_mams_paper import IllConditionedGaussian
 from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unadjusted_mclmc
 from sampler_comparison.samplers.general import initialize_model
@@ -43,4 +43,4 @@ samples, info, settings_info = parallel_microcanonical(num_steps1=800,
 plot_trace(info, model, settings_info, 'sampler_comparison/img/laps/trace/')
 
 
-#shifter --image=reubenharry/cosmo:1.0 python3 -m sampler_comparison.experiments.emaus_experiment
+#shifter --image=reubenharry/cosmo:1.0 python3 -m sampler_comparison.experiments.laps_experiment

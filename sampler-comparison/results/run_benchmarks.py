@@ -1,5 +1,8 @@
 import os
 import jax
+
+batch_size = 128
+os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 # from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
 import os
 import jax
@@ -117,8 +120,8 @@ def run_benchmarks(
         df = pd.DataFrame(results)
 
         if save_dir is not None:
-            print(f"Saving results to", os.path.join(save_dir, f"{sampler}_{model}.csv"))
-            df.to_csv(os.path.join(save_dir, f"{sampler}_{model}.csv"))
+            print(f"Saving results to", save_dir)
+            df.to_csv(save_dir)
 
 
 
@@ -131,7 +134,15 @@ def run_benchmarks(
 
 
 
-def lookup_results(model, batch_size, mh : bool, canonical : bool, langevin : bool, tuning : str, integrator_type : str, diagonal_preconditioning : bool, redo : bool):
+def lookup_results(model, batch_size, 
+                   mh : bool, 
+                   canonical : bool, 
+                   langevin : bool, 
+                   tuning : str, 
+                   integrator_type : str, 
+                   diagonal_preconditioning : bool, 
+                   cos_angle_termination: float = 0.,
+                   ):
     
     integrator_name = integrator_type.replace('_', ' ')
 
@@ -161,59 +172,39 @@ def lookup_results(model, batch_size, mh : bool, canonical : bool, langevin : bo
 
         
         
-        (True, True, False, 'nuts'): (f'adjusted_canonical_nolangevin_nuts_{integrator_name}_precond:{diagonal_preconditioning}', partial(nuts,num_tuning_steps=500, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning)),
+        (True, True, False, 'nuts'): (f'adjusted_canonical_nolangevin_nuts_{integrator_name}_precond:{diagonal_preconditioning}', partial(nuts,num_tuning_steps=500, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, cos_angle_termination= cos_angle_termination)),
                     }
     
     
     results_dir = f'results/{model.name}'
     
     # load results
-    try:
-        sampler_name, sampler = sampler_dict[(mh, canonical, langevin, tuning)]
-    except KeyError:
-        print(f"Sampler not found for {model.name} with mh={mh}, canonical={canonical}, langevin={langevin}, tuning={tuning}")
-        return pd.DataFrame()
-        # raise ValueError(f"Sampler {sampler} not found")
-
-    if redo:
-        # remove the file
-        if os.path.exists(os.path.join(results_dir, f'{sampler_name}_{model.name}.csv')):
-            os.remove(os.path.join(results_dir, f'{sampler_name}_{model.name}.csv'))
-
-    try:
-        results = pd.read_csv(os.path.join(results_dir, f'{sampler_name}_{model.name}.csv'))
-        # display(results)
-    except FileNotFoundError:
-        print(f"File not found for {model.name} with mh={mh}, canonical={canonical}, langevin={langevin}, tuning={tuning}, integrator_type={integrator_type}, diagonal_preconditioning={diagonal_preconditioning}")
-        # ask user if they want to run the sampler
-        # run_sampler = input(f"Run sampler {sampler_name} for {model.name}? (y/n)")
-        # if run_sampler == 'y':
-
-        # return pd.DataFrame()
-
-        print(f"Creating file")
+    sampler_name, sampler = sampler_dict[(mh, canonical, langevin, tuning)]
+    
         
-        # if results_dir does not exist, create it
-        if not os.path.exists(results_dir):
-            os.makedirs(results_dir)
+    file = os.path.join(results_dir, f'{sampler_name}_{model.name}_cosangle={cos_angle_termination}.csv')
 
-        # run sampler
-        run_benchmarks(
+    if os.path.exists(file):
+        os.remove(file)
 
-            models={model.name: model},
-            samplers={sampler_name: sampler},
-            batch_size=batch_size,
-            num_steps=2000,
-            save_dir=f"results/{model.name}",
-            key=jax.random.key(19),
-            map=jax.pmap,
-            calculate_ess_corr=False,
-        )
-        print(f"Results saved to {results_dir}")
+    # if results_dir does not exist, create it
+    if not os.path.exists(results_dir):
+        os.makedirs(results_dir)
 
-        results = pd.read_csv(os.path.join(results_dir, f'{sampler_name}_{model.name}.csv'))
+    # run sampler
+    run_benchmarks(
 
-    return results
+        models={model.name: model},
+        samplers={sampler_name: sampler},
+        batch_size=batch_size,
+        num_steps=10000,
+        save_dir=file,
+        key=jax.random.key(19),
+        map=jax.pmap,
+        calculate_ess_corr=False,
+    )
+
+
 
 if __name__ == "__main__":
     run_benchmarks(models=models, samplers=samplers, batch_size=128, num_steps=10000)

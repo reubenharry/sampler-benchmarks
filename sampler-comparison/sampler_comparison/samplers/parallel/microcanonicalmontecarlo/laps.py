@@ -3,10 +3,9 @@ import jax
 import jax.numpy as jnp
 import jax.scipy.stats as stats
 jax.config.update("jax_enable_x64", True)
-from blackjax.adaptation.ensemble_mclmc import emaus
 
 import blackjax.mcmc.random_walk
-from blackjax.adaptation.ensemble_mclmc import emaus
+from blackjax.adaptation.ensemble_mclmc import laps
 from sampler_comparison.samplers.general import make_log_density_fn
 from sampler_evaluation.evaluation.ess import samples_to_low_error
 
@@ -168,7 +167,7 @@ def parallel_microcanonical(num_steps1, num_steps2, num_chains, mesh,
         #model.sample_transformations["square"].fn(position)
         observables_for_bias = lambda position:jnp.square(model.default_event_space_bijector(jax.flatten_util.ravel_pytree(position)[0]))
 
-        info, grads_per_step, _acc_prob, final_state = emaus(
+        info, grads_per_step, _acc_prob, final_state = laps(
     
             logdensity_fn=logdensity_fn, 
             sample_init= model.sample_init,

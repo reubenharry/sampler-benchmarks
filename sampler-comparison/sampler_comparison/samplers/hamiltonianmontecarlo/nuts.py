@@ -82,7 +82,7 @@ def nuts(
             inference_algorithm=alg,
             num_steps=num_steps,
             transform=(lambda a, b: None) if return_only_final else transform,
-            progress_bar=progress_bar,
+            #progress_bar=progress_bar,
         )
 
         if return_only_final:
