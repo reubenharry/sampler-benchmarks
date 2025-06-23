@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,652850.7733096768,152.77975618517002,,True,covariance,399938.4140625,2.0,0.03780843871791353,128
-1,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,652850.7733096768,152.77975618517002,,False,covariance,399938.4140625,2.0,0.03780843871791353,128
-2,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,104890.29861528546,99.92475368996413,,True,identity,399938.4140625,2.0,0.03780843871791353,128
-3,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,17896.476997459104,15.972034936100034,,False,identity,399938.4140625,2.0,0.03780843871791353,128
-4,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,121886.65694719189,159.2877697753346,,True,square,399938.4140625,2.0,0.03780843871791353,128
-5,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,22767.707422803003,22.80702523346699,,False,square,399938.4140625,2.0,0.03780843871791353,128
+0,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,True,covariance,760725.8359375,2.0,0.051190171774083165,128
+1,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,False,covariance,760725.8359375,2.0,0.051190171774083165,128
+2,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,91167.58920638144,151.2848078955716,,True,identity,760725.8359375,2.0,0.051190171774083165,128
+3,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,15370.5974080257,13.875388282855367,,False,identity,760725.8359375,2.0,0.051190171774083165,128
+4,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,113147.934609207,199.8833887545436,,True,square,760725.8359375,2.0,0.051190171774083165,128
+5,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,20689.684551769962,43.41508839101908,,False,square,760725.8359375,2.0,0.051190171774083165,128

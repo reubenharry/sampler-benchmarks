@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,1230947.0697758533,453.64661345589246,,True,covariance,725022.796875,21.89425251980581,0.5330106978630065,128
-1,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,1230947.0697758533,453.64661345589246,,False,covariance,725022.796875,21.89425251980581,0.5330106978630065,128
-2,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,191508.06449618988,142.6799253574237,,True,identity,725022.796875,21.89425251980581,0.5330106978630065,128
-3,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,32562.126895874277,15.029500989720184,,False,identity,725022.796875,21.89425251980581,0.5330106978630065,128
-4,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,229661.66772771932,140.44291509364223,,True,square,725022.796875,21.89425251980581,0.5330106978630065,128
-5,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,38071.375638358055,23.828545906118567,,False,square,725022.796875,21.89425251980581,0.5330106978630065,128
+0,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,covariance,1332702.453125,12.0,0.5741359998829629,128
+1,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,False,covariance,1332702.453125,12.0,0.5741359998829629,128
+2,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,identity,1332702.453125,12.0,0.5741359998829629,128
+3,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,46976.47966599081,41.15552332312153,,False,identity,1332702.453125,12.0,0.5741359998829629,128
+4,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,square,1332702.453125,12.0,0.5741359998829629,128
+5,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,53794.97137174015,100.06858597981686,,False,square,1332702.453125,12.0,0.5741359998829629,128

@@ -1,7 +1,7 @@
-,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size
-0,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,1437.0,72.46020908057055,,True,covariance,5334.0,0.9965565099565176,0.4120363466595952
-1,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,1437.0,72.46020908057055,,False,covariance,5334.0,0.9965565099565176,0.4120363466595952
-2,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,619.0,29.835824104589435,,True,identity,5334.0,0.9965565099565176,0.4120363466595952
-3,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,359.0,22.661003949516445,,False,identity,5334.0,0.9965565099565176,0.4120363466595952
-4,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,662.0,45.96898519654311,,True,square,5334.0,0.9965565099565176,0.4120363466595952
-5,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,355.0,20.525311203487266,,False,square,5334.0,0.9965565099565176,0.4120363466595952
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
+0,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,inf,,,True,covariance,14334.0,0.9943947908962836,0.40990951739594916,128
+1,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,inf,,,False,covariance,14334.0,0.9943947908962836,0.40990951739594916,128
+2,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,489.0,,,True,identity,14334.0,0.9943947908962836,0.40990951739594916,128
+3,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,270.0,41.752292152647136,,False,identity,14334.0,0.9943947908962836,0.40990951739594916,128
+4,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,inf,,,True,square,14334.0,0.9943947908962836,0.40990951739594916,128
+5,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,332.0,,,False,square,14334.0,0.9943947908962836,0.40990951739594916,128

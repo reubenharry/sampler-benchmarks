@@ -1,7 +1,7 @@
-,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size
-0,adjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,1009.8000000049627,30.906562409947828,,True,covariance,34954.85546875,1.0797560017305068,0.9815963652033249
-1,adjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,1009.8000000049627,30.906562409947828,,False,covariance,34954.85546875,1.0797560017305068,0.9815963652033249
-2,adjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,750.2000000036869,21.215774791414052,,True,identity,34954.85546875,1.0797560017305068,0.9815963652033249
-3,adjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,457.60000000224886,11.976209751002193,,False,identity,34954.85546875,1.0797560017305068,0.9815963652033249
-4,adjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,442.2000000021732,10.061033744104034,,True,square,34954.85546875,1.0797560017305068,0.9815963652033249
-5,adjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,261.8000000012866,10.608953765569911,,False,square,34954.85546875,1.0797560017305068,0.9815963652033249
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
+0,adjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,inf,,,True,covariance,21987.359375,1.023482352465438,0.9304385022395318,128
+1,adjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,inf,,,False,covariance,21987.359375,1.023482352465438,0.9304385022395318,128
+2,adjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,957.0000000013958,34.04711294662148,,True,identity,21987.359375,1.023482352465438,0.9304385022395318,128
+3,adjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,521.4000000007604,26.722041463930108,,False,identity,21987.359375,1.023482352465438,0.9304385022395318,128
+4,adjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,523.6000000007637,31.595765539071845,,True,square,21987.359375,1.023482352465438,0.9304385022395318,128
+5,adjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,352.0000000005134,23.324448546535887,,False,square,21987.359375,1.023482352465438,0.9304385022395318,128

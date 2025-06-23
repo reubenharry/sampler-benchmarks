@@ -1,0 +1,3 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
+0,adjusted_canonical_langevin_alba_velocity verlet_precond:False,U1_Lt16_Lx16_beta2,inf,,,True,top_charge,214903.0,4.0,0.0898378722858816,1
+1,adjusted_canonical_langevin_alba_velocity verlet_precond:False,U1_Lt16_Lx16_beta2,inf,,,False,top_charge,214903.0,4.0,0.0898378722858816,1

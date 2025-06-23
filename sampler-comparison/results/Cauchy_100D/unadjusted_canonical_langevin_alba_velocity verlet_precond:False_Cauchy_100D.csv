@@ -1,0 +1,3 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
+0,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,Cauchy_100D,inf,,,True,entropy,1413334.0,0.3213729303474758,0.006825745799382015,32
+1,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,Cauchy_100D,inf,,,False,entropy,1413334.0,0.3213729303474758,0.006825745799382015,32

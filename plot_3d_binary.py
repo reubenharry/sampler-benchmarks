@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import pandas as pd
+import numpy.ma as ma
 
 # Generate synthetic data
 # We'll create 16 configurations (2^4) with random values
@@ -135,4 +136,149 @@ for canonical in canonical_order:
 ax.legend(handles=legend_elements, title='canonical, integrator, langevin')
 
 plt.tight_layout()
-plt.show() 
+plt.show()
+
+def preprocess_values(values, cap_value=None):
+    """
+    Preprocess values to handle infinities and NaNs.
+    If cap_value is provided, values above it will be capped.
+    Returns processed values and a mask indicating which values were infinite.
+    """
+    inf_mask = np.isinf(values)
+    nan_mask = np.isnan(values)
+    
+    # Create a masked array
+    processed_values = ma.array(values, mask=inf_mask | nan_mask)
+    
+    if cap_value is not None:
+        # Cap finite values at cap_value
+        finite_mask = ~(inf_mask | nan_mask)
+        processed_values[finite_mask] = np.minimum(processed_values[finite_mask], cap_value)
+        
+        # Set infinite values to cap_value
+        processed_values[inf_mask] = cap_value
+    
+    return processed_values, inf_mask
+
+def plot_results(df, model_name, output_file=None):
+    """Plot the results with proper handling of infinite values"""
+    # Define visual encoding maps
+    color_map = {'canonical': 'tab:blue', 'microcanonical': 'tab:orange'}
+    hatch_map = {'Leapfrog': '/', '2nd Order Minimal Norm': '\\'}
+    alpha_map = {'langevin': 1.0, 'nolangevin': 0.5}
+    
+    # Get unique values for each category
+    mh_order = sorted(df['mh'].unique())
+    canonical_order = sorted(df['canonical'].unique())
+    integrator_order = sorted(df['integrator'].unique())
+    langevin_order = sorted(df['langevin'].unique())
+    
+    # Setup plot
+    fig, ax = plt.subplots(figsize=(12, 6))
+    
+    # Bar positioning parameters
+    bar_width = 0.35
+    n_hue = len(canonical_order)
+    n_hatch = len(integrator_order)
+    
+    # Find a reasonable cap value for infinite results
+    finite_values = df['value'][~np.isinf(df['value'])]
+    if len(finite_values) > 0:
+        cap_value = np.percentile(finite_values, 95) * 1.2  # 20% above 95th percentile
+    else:
+        cap_value = 100  # fallback if all values are infinite
+    
+    # Plot bars
+    for i, mh in enumerate(mh_order):
+        for j, canonical in enumerate(canonical_order):
+            for k, integrator in enumerate(integrator_order):
+                for l, langevin in enumerate(langevin_order):
+                    row = df[
+                        (df['mh'] == mh) &
+                        (df['canonical'] == canonical) &
+                        (df['integrator'] == integrator) &
+                        (df['langevin'] == langevin)
+                    ]
+                    if not row.empty:
+                        value = row['value'].values[0]
+                        processed_value, is_inf = preprocess_values([value], cap_value)
+                        processed_value = processed_value[0]
+                        
+                        x = i + (j - n_hue/2) * bar_width + (k - n_hatch/2) * (bar_width / n_hatch)
+                        bar = ax.bar(
+                            x, processed_value, 
+                            width=bar_width / n_hatch,
+                            color=color_map[canonical],
+                            hatch=hatch_map[integrator],
+                            edgecolor='black',
+                            alpha=alpha_map[langevin],
+                            label=f"{canonical}, {integrator}, {langevin}" if i == 0 else ""
+                        )
+                        
+                        # Add infinity marker for capped values
+                        if is_inf[0]:
+                            ax.text(x, processed_value, '∞', 
+                                  ha='center', va='bottom',
+                                  fontweight='bold', fontsize=12)
+    
+    # Customize plot
+    ax.set_xticks(np.arange(len(mh_order)))
+    ax.set_xticklabels(mh_order)
+    ax.set_xlabel('MH Adjustment', fontsize=12, fontweight='bold')
+    ax.set_ylabel('Value', fontsize=12, fontweight='bold')
+    ax.set_title(f'Model: {model_name}', fontsize=14, fontweight='bold', pad=20)
+    
+    # Create separate legends for each attribute
+    legend_elements = []
+    
+    # Canonical vs Microcanonical legend
+    for canonical in canonical_order:
+        legend_elements.append(
+            Patch(facecolor=color_map[canonical], 
+                  label=canonical,
+                  edgecolor='black')
+        )
+    first_legend = ax.legend(handles=legend_elements, 
+                           title='canonical (color)',
+                           bbox_to_anchor=(1.01, 1), 
+                           loc='upper left')
+    ax.add_artist(first_legend)
+    
+    # Integrator legend
+    legend_elements = []
+    for integrator in integrator_order:
+        legend_elements.append(
+            Patch(facecolor='white',
+                  hatch=hatch_map[integrator],
+                  label=integrator,
+                  edgecolor='black')
+        )
+    second_legend = ax.legend(handles=legend_elements,
+                            title='integrator (hatch)',
+                            bbox_to_anchor=(1.01, 0.7),
+                            loc='upper left')
+    ax.add_artist(second_legend)
+    
+    # Langevin legend
+    legend_elements = []
+    for langevin in langevin_order:
+        legend_elements.append(
+            Patch(facecolor='gray',
+                  alpha=alpha_map[langevin],
+                  label=langevin,
+                  edgecolor='black')
+        )
+    ax.legend(handles=legend_elements,
+             title='langevin (transparency)',
+             bbox_to_anchor=(1.01, 0.4),
+             loc='upper left')
+    
+    # Adjust layout to prevent legend overlap
+    plt.subplots_adjust(right=0.85)
+    
+    if output_file:
+        plt.savefig(output_file, bbox_inches='tight', dpi=300)
+    else:
+        plt.show()
+    
+    plt.close() 

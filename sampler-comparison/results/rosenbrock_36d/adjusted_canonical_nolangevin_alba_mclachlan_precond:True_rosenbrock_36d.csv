@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,736986.5920267513,818.7366103332622,,True,covariance,434363.40625,2.0,0.08911991904400923,128
-1,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,736986.5920267513,818.7366103332622,,False,covariance,434363.40625,2.0,0.08911991904400923,128
-2,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,83770.04117574623,93.06836788082188,,True,identity,434363.40625,2.0,0.08911991904400923,128
-3,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,13148.372158652726,12.437728892366163,,False,identity,434363.40625,2.0,0.08911991904400923,128
-4,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,94207.40876560457,359.52886337539024,,True,square,434363.40625,2.0,0.08911991904400923,128
-5,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,16356.394231726072,16.69328907076134,,False,square,434363.40625,2.0,0.08911991904400923,128
+0,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,inf,,,True,covariance,1286381.46875,2.0,0.09990666401317869,128
+1,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,inf,,,False,covariance,1286381.46875,2.0,0.09990666401317869,128
+2,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,182723.2697047564,,,True,identity,1286381.46875,2.0,0.09990666401317869,128
+3,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,16146.326829353751,35.417204858655914,,False,identity,1286381.46875,2.0,0.09990666401317869,128
+4,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,inf,,,True,square,1286381.46875,2.0,0.09990666401317869,128
+5,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,22226.365111728854,44.78122821004355,,False,square,1286381.46875,2.0,0.09990666401317869,128

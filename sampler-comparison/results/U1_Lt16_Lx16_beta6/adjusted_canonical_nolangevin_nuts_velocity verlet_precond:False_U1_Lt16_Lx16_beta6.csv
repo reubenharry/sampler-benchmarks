@@ -1,0 +1,3 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
+0,adjusted_canonical_nolangevin_nuts_velocity verlet_precond:False,U1_Lt16_Lx16_beta6,3438303.0,362.23660927631266,,True,top_charge,5112012.46875,85.02223766370533,0.08311069175337761,32
+1,adjusted_canonical_nolangevin_nuts_velocity verlet_precond:False,U1_Lt16_Lx16_beta6,3438303.0,362.23660927631266,,False,top_charge,5112012.46875,85.02223766370533,0.08311069175337761,32

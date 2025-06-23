@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,1468110.1767159363,,,True,covariance,441311.171875,4.0,0.09450715911864699,128
-1,adjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,1468110.1767159363,,,False,covariance,441311.171875,4.0,0.09450715911864699,128
-2,adjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,210673.5563311368,164.02439178366126,,True,identity,441311.171875,4.0,0.09450715911864699,128
-3,adjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,34293.72601049453,9.864334746955823,,False,identity,441311.171875,4.0,0.09450715911864699,128
-4,adjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,266390.2766148538,209.14683932586698,,True,square,441311.171875,4.0,0.09450715911864699,128
-5,adjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,39374.278012049275,18.9586154557763,,False,square,441311.171875,4.0,0.09450715911864699,128
+0,adjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,covariance,336237.421875,3.3816891068122126,0.10832825828498348,128
+1,adjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,False,covariance,336237.421875,3.3816891068122126,0.10832825828498348,128
+2,adjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,identity,336237.421875,3.3816891068122126,0.10832825828498348,128
+3,adjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,39140.574878666484,36.01713342285863,,False,identity,336237.421875,3.3816891068122126,0.10832825828498348,128
+4,adjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,square,336237.421875,3.3816891068122126,0.10832825828498348,128
+5,adjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,40453.59735862175,45.55151369603429,,False,square,336237.421875,3.3816891068122126,0.10832825828498348,128

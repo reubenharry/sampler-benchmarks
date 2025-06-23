@@ -1,7 +1,7 @@
-,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size
-0,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,3884.0,,,True,covariance,10668.0,0.7473250013724728,1.3572179817580143
-1,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,3884.0,,,False,covariance,10668.0,0.7473250013724728,1.3572179817580143
-2,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,178.0,7.903062697461029,,True,identity,10668.0,0.7473250013724728,1.3572179817580143
-3,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,100.0,3.837655534307372,,False,identity,10668.0,0.7473250013724728,1.3572179817580143
-4,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,1792.0,110.28817525011463,,True,square,10668.0,0.7473250013724728,1.3572179817580143
-5,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,1120.0,53.84347314206246,,False,square,10668.0,0.7473250013724728,1.3572179817580143
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
+0,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,inf,,,True,covariance,28668.0,0.7455315732946559,1.3493348745519187,128
+1,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,inf,,,False,covariance,28668.0,0.7455315732946559,1.3493348745519187,128
+2,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,154.0,11.4107668453965,,True,identity,28668.0,0.7455315732946559,1.3493348745519187,128
+3,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,102.0,5.686642243011248,,False,identity,28668.0,0.7455315732946559,1.3493348745519187,128
+4,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,inf,,,True,square,28668.0,0.7455315732946559,1.3493348745519187,128
+5,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,852.0,,,False,square,28668.0,0.7455315732946559,1.3493348745519187,128

@@ -1,7 +1,7 @@
-,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size
-0,unadjusted_canonical_langevin_alba_mclachlan_precond:True,ICG_2_1,530.0,11.603447763488228,,True,covariance,11112.0,0.7596676157515638,1.3371019176663628
-1,unadjusted_canonical_langevin_alba_mclachlan_precond:True,ICG_2_1,530.0,11.603447763488228,,False,covariance,11112.0,0.7596676157515638,1.3371019176663628
-2,unadjusted_canonical_langevin_alba_mclachlan_precond:True,ICG_2_1,232.0,6.024707461777708,,True,identity,11112.0,0.7596676157515638,1.3371019176663628
-3,unadjusted_canonical_langevin_alba_mclachlan_precond:True,ICG_2_1,140.0,6.023113812638775,,False,identity,11112.0,0.7596676157515638,1.3371019176663628
-4,unadjusted_canonical_langevin_alba_mclachlan_precond:True,ICG_2_1,250.0,7.175925027479035,,True,square,11112.0,0.7596676157515638,1.3371019176663628
-5,unadjusted_canonical_langevin_alba_mclachlan_precond:True,ICG_2_1,156.0,7.786982727603806,,False,square,11112.0,0.7596676157515638,1.3371019176663628
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
+0,unadjusted_canonical_langevin_alba_mclachlan_precond:True,ICG_2_1,546.0,13.771633889992865,,True,covariance,33112.0,0.7660274460208283,1.331387665834882,128
+1,unadjusted_canonical_langevin_alba_mclachlan_precond:True,ICG_2_1,546.0,13.771633889992865,,False,covariance,33112.0,0.7660274460208283,1.331387665834882,128
+2,unadjusted_canonical_langevin_alba_mclachlan_precond:True,ICG_2_1,230.0,11.490322014634753,,True,identity,33112.0,0.7660274460208283,1.331387665834882,128
+3,unadjusted_canonical_langevin_alba_mclachlan_precond:True,ICG_2_1,122.0,10.87902109566849,,False,identity,33112.0,0.7660274460208283,1.331387665834882,128
+4,unadjusted_canonical_langevin_alba_mclachlan_precond:True,ICG_2_1,218.0,21.433364178308548,,True,square,33112.0,0.7660274460208283,1.331387665834882,128
+5,unadjusted_canonical_langevin_alba_mclachlan_precond:True,ICG_2_1,144.0,7.362037761381016,,False,square,33112.0,0.7660274460208283,1.331387665834882,128

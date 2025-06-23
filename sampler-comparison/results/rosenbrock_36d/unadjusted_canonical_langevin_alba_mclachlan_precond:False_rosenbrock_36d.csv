@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,unadjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,354980.0,5850.889506485317,,True,covariance,1802668.0,1.4387483553212823,0.08802327913335967,128
-1,unadjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,354980.0,5850.889506485317,,False,covariance,1802668.0,1.4387483553212823,0.08802327913335967,128
-2,unadjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,61040.0,2602.1127717875725,,True,identity,1802668.0,1.4387483553212823,0.08802327913335967,128
-3,unadjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,10646.0,204.10445242571265,,False,identity,1802668.0,1.4387483553212823,0.08802327913335967,128
-4,unadjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,71830.0,2443.6620490362407,,True,square,1802668.0,1.4387483553212823,0.08802327913335967,128
-5,unadjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,12330.0,248.6789424137074,,False,square,1802668.0,1.4387483553212823,0.08802327913335967,128
+0,unadjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,covariance,226668.0,1.530952085252288,0.08759217206680107,128
+1,unadjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,False,covariance,226668.0,1.530952085252288,0.08759217206680107,128
+2,unadjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,70296.0,2711.862325709032,,True,identity,226668.0,1.530952085252288,0.08759217206680107,128
+3,unadjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,10322.0,180.4419297170145,,False,identity,226668.0,1.530952085252288,0.08759217206680107,128
+4,unadjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,77406.0,1539.2662765096882,,True,square,226668.0,1.530952085252288,0.08759217206680107,128
+5,unadjusted_canonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,13686.0,239.441704596338,,False,square,226668.0,1.530952085252288,0.08759217206680107,128

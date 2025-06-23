@@ -51,6 +51,8 @@ def nuts(
 
             adaptation_info = adaptation_info.info
 
+        print("tuning complete")
+
         alg = blackjax.nuts(
             logdensity_fn=logdensity_fn,
             step_size=params["step_size"],

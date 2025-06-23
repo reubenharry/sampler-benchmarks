@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,1287226.1574873673,358.9403571625793,,True,covariance,720220.75,21.70735713185095,0.5338206238508189,128
-1,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,1287226.1574873673,358.9403571625793,,False,covariance,720220.75,21.70735713185095,0.5338206238508189,128
-2,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,192623.9383097281,176.63918025172106,,True,identity,720220.75,21.70735713185095,0.5338206238508189,128
-3,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,36473.17175095444,22.640960668664217,,False,identity,720220.75,21.70735713185095,0.5338206238508189,128
-4,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,242855.9627970917,173.99173859698053,,True,square,720220.75,21.70735713185095,0.5338206238508189,128
-5,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,45347.224699289334,28.821816389672595,,False,square,720220.75,21.70735713185095,0.5338206238508189,128
+0,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,covariance,1331195.375,12.0,0.5739505137906284,128
+1,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,False,covariance,1331195.375,12.0,0.5739505137906284,128
+2,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,identity,1331195.375,12.0,0.5739505137906284,128
+3,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,47332.73245390905,54.60557755394589,,False,identity,1331195.375,12.0,0.5739505137906284,128
+4,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,square,1331195.375,12.0,0.5739505137906284,128
+5,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,57167.56192045956,106.50844285783171,,False,square,1331195.375,12.0,0.5739505137906284,128

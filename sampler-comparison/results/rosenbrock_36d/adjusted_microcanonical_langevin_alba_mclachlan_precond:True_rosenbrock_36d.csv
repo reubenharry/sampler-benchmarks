@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,rosenbrock_36d,inf,,,True,covariance,526394.21875,12.0,0.5296305157300096,128
-1,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,rosenbrock_36d,inf,,,False,covariance,526394.21875,12.0,0.5296305157300096,128
-2,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,rosenbrock_36d,177287.85674966997,344.7405196666038,,True,identity,526394.21875,12.0,0.5296305157300096,128
-3,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,rosenbrock_36d,26524.462288904113,36.74230667772506,,False,identity,526394.21875,12.0,0.5296305157300096,128
-4,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,rosenbrock_36d,243896.7827739646,257.68876886663105,,True,square,526394.21875,12.0,0.5296305157300096,128
-5,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,rosenbrock_36d,32937.97648656659,33.570634489088825,,False,square,526394.21875,12.0,0.5296305157300096,128
+0,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,rosenbrock_36d,inf,,,True,covariance,1905366.453125,12.0,0.5115870234588247,128
+1,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,rosenbrock_36d,inf,,,False,covariance,1905366.453125,12.0,0.5115870234588247,128
+2,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,rosenbrock_36d,87665.46411606536,80.97110595761923,,True,identity,1905366.453125,12.0,0.5115870234588247,128
+3,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,rosenbrock_36d,13656.664913155792,9.31495571648089,,False,identity,1905366.453125,12.0,0.5115870234588247,128
+4,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,rosenbrock_36d,107704.62534602248,98.35428765437733,,True,square,1905366.453125,12.0,0.5115870234588247,128
+5,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,rosenbrock_36d,17598.794991180144,27.436973229567435,,False,square,1905366.453125,12.0,0.5115870234588247,128
