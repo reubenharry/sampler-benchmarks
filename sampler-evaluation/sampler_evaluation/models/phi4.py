@@ -1,5 +1,5 @@
 import jax.numpy as jnp
-from sampler_evaluation.models.model import make_model
+from sampler_evaluation.models.model import SampleTransformation, make_model
 import pickle
 import numpy as np
 import os
@@ -52,17 +52,25 @@ def phi4(L,lam):
     return make_model(
         logdensity_fn=logdensity_fn,
         ndims=ndims,
-        transform=psd,
+        default_event_space_bijector=psd,
+        sample_transformations={
+            "identity": SampleTransformation(
+                    fn=lambda x: x,
+                    ground_truth_mean=e_x, ground_truth_standard_deviation=jnp.sqrt(e_x2 - e_x**2),),
+            "square": SampleTransformation(
+                    fn=lambda x: x**2,
+                    ground_truth_mean=e_x2, ground_truth_standard_deviation=jnp.sqrt(var_x2),)
+        },
 
         # x_ground_truth_mean=jnp.zeros((L,L)),
         # x_ground_truth_std=jnp.sqrt((jnp.zeros((L,L)))),
         # x2_ground_truth_mean=jnp.zeros((L,L)),
         # x2_ground_truth_std=jnp.sqrt((jnp.zeros((L,L)))),
 
-        x_ground_truth_mean=e_x,
-        x_ground_truth_std=jnp.sqrt(e_x2 - e_x**2),
-        x2_ground_truth_mean=e_x2,
-        x2_ground_truth_std=jnp.sqrt(var_x2),
+        # x_ground_truth_mean=e_x,
+        # x_ground_truth_std=jnp.sqrt(e_x2 - e_x**2),
+        # x2_ground_truth_mean=e_x2,
+        # x2_ground_truth_std=jnp.sqrt(var_x2),
         exact_sample=None,
         name=f'Phi4_L{L}_lam'+lam_str,
     )

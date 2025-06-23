@@ -23,7 +23,7 @@ def unadjusted_hmc_no_tuning(
     return_samples=False,
     incremental_value_transform=None,
     return_only_final=False,
-    desired_energy_var=5e-4,
+    desired_energy_var=3e-4,
     desired_energy_var_max_ratio=jnp.inf,
 ):
     """
@@ -88,8 +88,6 @@ def unadjusted_hmc_no_tuning(
 
         (expectations, info) = history
 
-        # jax.debug.print("EEVPD {x}", x=jnp.var(info.energy_change)/model.ndims)
-
         return (
             expectations,
             {
@@ -113,9 +111,9 @@ def unadjusted_hmc_tuning(
     diagonal_preconditioning,
     num_tuning_steps=500,
     stage3=True,
-    desired_energy_var=5e-4,
+    desired_energy_var=3e-4,
     desired_energy_var_max_ratio=jnp.inf,
-    num_windows=2,
+    num_windows=1,
     params=None,
 ):
     """

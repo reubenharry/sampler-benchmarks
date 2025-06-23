@@ -1,0 +1,7 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
+0,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:True,vector_synthetic_item_response_theory,52593.32233411093,,,True,identity,199223.078125,44.76605857119876,8.202936065257994,128
+1,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:True,vector_synthetic_item_response_theory,4936.774435312076,117.90191855945348,,False,identity,199223.078125,44.76605857119876,8.202936065257994,128
+2,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:True,vector_synthetic_item_response_theory,54659.87907447413,,,True,square,199223.078125,44.76605857119876,8.202936065257994,128
+3,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:True,vector_synthetic_item_response_theory,4275.257595142905,91.0066695358093,,False,square,199223.078125,44.76605857119876,8.202936065257994,128
+4,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:True,vector_synthetic_item_response_theory,inf,,,True,quartic,199223.078125,44.76605857119876,8.202936065257994,128
+5,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:True,vector_synthetic_item_response_theory,inf,,,False,quartic,199223.078125,44.76605857119876,8.202936065257994,128

@@ -21,12 +21,14 @@ def da_adaptation(
     initial_step_size: float = 1.0,
     target_acceptance_rate: float = 0.80,
     integrator=blackjax.mcmc.integrators.velocity_verlet,
-    cos_angle_termination: float = 0.0,
+    # cos_angle_termination: float = 0.0,
 ):
 
     da_init, da_update, da_final = dual_averaging_adaptation(target_acceptance_rate)
 
-    kernel = algorithm.build_kernel(integrator=integrator, cos_angle_termination=cos_angle_termination)
+    kernel = algorithm.build_kernel(integrator=integrator, 
+                                    # cos_angle_termination=cos_angle_termination
+                                    )
     init_kernel_state = algorithm.init(initial_position, logdensity_fn)
     inverse_mass_matrix = jnp.ones(pytree_size(initial_position))
 

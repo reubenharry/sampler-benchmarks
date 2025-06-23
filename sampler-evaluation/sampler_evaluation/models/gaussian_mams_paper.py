@@ -3,8 +3,8 @@ import tensorflow.compat.v2 as tf
 
 # import tensorflow_probability as tfp
 import tensorflow_probability.substrates.jax as tfp
-import sys
-sys.path.append("../sampler-comparison/src/inference-gym/spinoffs/inference_gym")
+# import sys
+# sys.path.append("../sampler-comparison/src/inference-gym/spinoffs/inference_gym")
 from inference_gym.targets import model
 import jax.numpy as jnp
 
@@ -109,7 +109,7 @@ class IllConditionedGaussian(model.Model):
             default_event_space_bijector=tfb.Identity(),
             event_shape=tf.TensorShape([ndims]),
             dtype=np.float32,
-            name=name,
+            name=name+f"_{self.ndims}_{self.condition_number}",
             pretty_name=pretty_name,
             sample_transformations=sample_transformations,
         )

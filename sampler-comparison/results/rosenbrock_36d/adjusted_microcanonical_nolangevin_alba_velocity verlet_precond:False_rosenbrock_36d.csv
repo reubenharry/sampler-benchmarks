@@ -1,0 +1,7 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
+0,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,1011997.8613157875,139.96935771803768,,True,covariance,678156.8984375,22.340892801045825,0.29804297070294145,128
+1,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,1011997.8613157875,139.96935771803768,,False,covariance,678156.8984375,22.340892801045825,0.29804297070294145,128
+2,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,156015.0868319625,157.69281023559697,,True,identity,678156.8984375,22.340892801045825,0.29804297070294145,128
+3,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,29327.836034277567,19.74466003758991,,False,identity,678156.8984375,22.340892801045825,0.29804297070294145,128
+4,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,206419.96103921192,198.55331173264273,,True,square,678156.8984375,22.340892801045825,0.29804297070294145,128
+5,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,38103.68466857546,23.822835683436175,,False,square,678156.8984375,22.340892801045825,0.29804297070294145,128

@@ -17,7 +17,8 @@ def nuts(
     num_tuning_steps=5000,
     return_only_final=False,
     target_acc_rate=0.8,
-    cos_angle_termination=0.,
+    # cos_angle_termination=0.,
+    progress_bar=False,
 ):
 
     def s(model, num_steps, initial_position, key):
@@ -36,12 +37,13 @@ def nuts(
                 logdensity_fn=logdensity_fn,
                 num_steps=num_tuning_steps,
                 target_acceptance_rate=target_acc_rate,
-                cos_angle_termination=cos_angle_termination,
+                # cos_angle_termination=cos_angle_termination,
             )
 
         else:
             warmup = blackjax.window_adaptation(
-                blackjax.nuts, logdensity_fn, integrator=integrator, cos_angle_termination=cos_angle_termination
+                blackjax.nuts, logdensity_fn, integrator=integrator,
+                #  cos_angle_termination=cos_angle_termination
             )
             (state, params), adaptation_info = warmup.run(
                 warmup_key, initial_position, num_tuning_steps
@@ -54,7 +56,7 @@ def nuts(
             step_size=params["step_size"],
             inverse_mass_matrix=params["inverse_mass_matrix"],
             integrator=integrator,
-            cos_angle_termination=cos_angle_termination,
+            # cos_angle_termination=cos_angle_termination,
         )
 
         if return_samples:
