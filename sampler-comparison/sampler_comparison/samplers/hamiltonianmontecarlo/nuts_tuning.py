@@ -34,7 +34,11 @@ def da_adaptation(
 
     def step(state, key):
 
+
         adaptation_state, kernel_state = state
+        # jax.debug.print("step {x}", x=jnp.exp(adaptation_state.log_step_size))
+
+        # print("step size", jnp.exp(adaptation_state.log_step_size))
 
         new_kernel_state, info = kernel(
             key,

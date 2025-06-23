@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:False,rosenbrock_36d,inf,,,True,covariance,2001.0,10.899066673932499,0.2506988090257514,128
-1,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:False,rosenbrock_36d,inf,,,False,covariance,2001.0,10.899066673932499,0.2506988090257514,128
-2,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:False,rosenbrock_36d,249405.0,10767.939208088983,,True,identity,2001.0,10.899066673932499,0.2506988090257514,128
-3,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:False,rosenbrock_36d,33557.0,1214.1886233612963,,False,identity,2001.0,10.899066673932499,0.2506988090257514,128
-4,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:False,rosenbrock_36d,278993.0,10234.323095720596,,True,square,2001.0,10.899066673932499,0.2506988090257514,128
-5,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:False,rosenbrock_36d,41875.0,2772.5289094795744,,False,square,2001.0,10.899066673932499,0.2506988090257514,128
+0,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:False,rosenbrock_36d,inf,,,True,covariance,20001.0,26.761358967482877,0.25435978407835236,128
+1,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:False,rosenbrock_36d,inf,,,False,covariance,20001.0,26.761358967482877,0.25435978407835236,128
+2,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:False,rosenbrock_36d,inf,,,True,identity,20001.0,26.761358967482877,0.25435978407835236,128
+3,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:False,rosenbrock_36d,21016.0,806.6335351322805,,False,identity,20001.0,26.761358967482877,0.25435978407835236,128
+4,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:False,rosenbrock_36d,inf,,,True,square,20001.0,26.761358967482877,0.25435978407835236,128
+5,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:False,rosenbrock_36d,26112.0,1529.9919624298684,,False,square,20001.0,26.761358967482877,0.25435978407835236,128

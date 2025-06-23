@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,722100.0,,,True,covariance,4446.0,14.185235515256945,0.5271452941089655,128
-1,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,722100.0,,,False,covariance,4446.0,14.185235515256945,0.5271452941089655,128
-2,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,165208.0,7629.414319978959,,True,identity,4446.0,14.185235515256945,0.5271452941089655,128
-3,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,19478.0,429.5346202577855,,False,identity,4446.0,14.185235515256945,0.5271452941089655,128
-4,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,216600.0,6585.426325607174,,True,square,4446.0,14.185235515256945,0.5271452941089655,128
-5,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,25028.0,697.3589666735489,,False,square,4446.0,14.185235515256945,0.5271452941089655,128
+0,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,inf,,,True,covariance,44446.0,20.033492564091198,0.5449282654410517,128
+1,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,inf,,,False,covariance,44446.0,20.033492564091198,0.5449282654410517,128
+2,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,70644.0,3215.4301964744936,,True,identity,44446.0,20.033492564091198,0.5449282654410517,128
+3,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,9524.0,175.24992753208204,,False,identity,44446.0,20.033492564091198,0.5449282654410517,128
+4,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,90558.0,2140.5624013095253,,True,square,44446.0,20.033492564091198,0.5449282654410517,128
+5,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,13788.0,158.08741221235803,,False,square,44446.0,20.033492564091198,0.5449282654410517,128

@@ -42,7 +42,7 @@ from sampler_comparison.samplers import samplers
 from sampler_comparison.samplers.general import sampler_grads_to_low_error
 from sampler_evaluation.models import models
 import pandas as pd
-
+import numpy as np
 
 def run_benchmarks(
     models, samplers, batch_size, num_steps, key=jax.random.PRNGKey(1), save_dir=None,map=jax.pmap, calculate_ess_corr=False,
@@ -107,37 +107,20 @@ def run_benchmarks(
                 }
             )
 
+        for trans in models[model].sample_transformations:
+            jax.debug.print("transformation: {x}", x=trans)
+            jax.debug.print("max (run benchmarks) {x}", x=stats["max_over_parameters"][trans]["grads_to_low_error"])
+            jax.debug.print("avg (run benchmarks) {x}", x=stats["avg_over_parameters"][trans]["grads_to_low_error"])
+
         df = pd.DataFrame(results)
 
         if save_dir is not None:
-            print(f"Saving results to", save_dir)
-            df.to_csv(save_dir)
+            print(f"Saving results to", os.path.join(save_dir, f"{sampler}_{model}.csv"))
+            df.to_csv(os.path.join(save_dir, f"{sampler}_{model}.csv"))
 
 
-<<<<<<< HEAD
+def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, langevin : bool, tuning : str, integrator_type : str, diagonal_preconditioning : bool, redo : bool, relative_path : str = '.', compute_missing : bool = False, redo_bad_results : bool = None):
 
-# model = gym.targets.dirichlet(dtype=jax.numpy.float64)
-
-# model = Dirichlet()
-
-
-# model = IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log')
-
-
-
-def lookup_results(model, batch_size, 
-                   mh : bool, 
-                   canonical : bool, 
-                   langevin : bool, 
-                   tuning : str, 
-                   integrator_type : str, 
-                   diagonal_preconditioning : bool, 
-                   cos_angle_termination: float = 0.,
-                   ):
-=======
-def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, langevin : bool, tuning : str, integrator_type : str, diagonal_preconditioning : bool, redo : bool, relative_path : str = '.'):
->>>>>>> 36f8e126e1b923da17a5f4bca28394701042723b
-    
     integrator_name = integrator_type.replace('_', ' ')
 
     # note: num_tuning_steps is ill-named: for the adjusted samplers, it just controls how many tuning steps are used to find the mass matrix. 
@@ -176,6 +159,21 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
     
     
     results_dir = f'{relative_path}/results/{model.name}'
+
+    # run_benchmarks(
+    #     models={model.name: model},
+    #     samplers={
+    #         # "underdamped_langevin": partial(unadjusted_lmc,desired_energy_var=3e-4, num_tuning_steps=20000, diagonal_preconditioning=True),
+    #         "unadjusted_microcanonical": partial(unadjusted_mclmc,num_tuning_steps=20000),
+    #     },
+    #     batch_size=batch_size,
+    #     num_steps=20000,
+    #     save_dir=results_dir,
+    #     key=jax.random.key(20),
+    #     map=jax.pmap,
+    #     calculate_ess_corr=False,
+    # )
+    # raise Exception
     
     # load results
 <<<<<<< HEAD
@@ -195,47 +193,59 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
 
     try:
         results = pd.read_csv(os.path.join(results_dir, f'{sampler_name}_{model.name}.csv'))
+        
+        # Check if we need to rerun due to inf/nan in avg results
+        if redo_bad_results is not None and not redo:  # Only check if redo_bad_results is True and we're not already redoing everything
+            r_results = results[~results[redo_bad_results]]  # Get only average results
+            has_bad_values = r_results['num_grads_to_low_error'].apply(lambda x: pd.isna(x) or np.isinf(x) or np.isnan(x)).any()
+            
+            if has_bad_values:
+                print(f"Found inf/nan in average results for {model.name}, rerunning...")
+                if os.path.exists(os.path.join(results_dir, f'{sampler_name}_{model.name}.csv')):
+                    os.remove(os.path.join(results_dir, f'{sampler_name}_{model.name}.csv'))
+                raise FileNotFoundError  # This will trigger the rerun in the except block
+                
     except FileNotFoundError:
         print(f"File not found for {model.name} with mh={mh}, canonical={canonical}, langevin={langevin}, tuning={tuning}, integrator_type={integrator_type}, diagonal_preconditioning={diagonal_preconditioning}")
 
-        print(f"Creating file")
->>>>>>> 36f8e126e1b923da17a5f4bca28394701042723b
-        
-    file = os.path.join(results_dir, f'{sampler_name}_{model.name}_cosangle={cos_angle_termination}.csv')
+        if compute_missing:
+            print(f"Creating file")
+            
+            # if results_dir does not exist, create it
+            if not os.path.exists(results_dir):
+                os.makedirs(results_dir)
 
-    if os.path.exists(file):
-        os.remove(file)
+            # run_benchmarks(
+            #     models={model.name: model},
+            #     samplers={sampler_name: sampler},
+            #     batch_size=batch_size,
+            #     num_steps=20000,
+            #     save_dir=results_dir,
+            #     key=jax.random.key(20),
+            #     map=jax.pmap,
+            #     calculate_ess_corr=False,
+            # )
 
-<<<<<<< HEAD
-    # if results_dir does not exist, create it
-    if not os.path.exists(results_dir):
-        os.makedirs(results_dir)
+            # raise Exception
 
-    # run sampler
-    run_benchmarks(
+            # run sampler
+            run_benchmarks(
 
-        models={model.name: model},
-        samplers={sampler_name: sampler},
-        batch_size=batch_size,
-        num_steps=10000,
-        save_dir=file,
-        key=jax.random.key(19),
-        map=jax.pmap,
-        calculate_ess_corr=False,
-    )
-=======
-            models={model.name: model},
-            samplers={sampler_name: sampler},
-            batch_size=batch_size,
-            num_steps=num_steps,
-            save_dir=results_dir,
-            key=jax.random.key(19),
-            map=jax.pmap,
-            calculate_ess_corr=False,
-        )
-        print(f"Results saved to {results_dir}")
->>>>>>> 36f8e126e1b923da17a5f4bca28394701042723b
+                models={model.name: model},
+                samplers={sampler_name: sampler},
+                batch_size=batch_size,
+                num_steps=num_steps,
+                save_dir=results_dir,
+                key=jax.random.key(16),
+                map=jax.pmap,
+                calculate_ess_corr=False,
+            )
+            print(f"Results saved to {results_dir}")
 
+            results = pd.read_csv(os.path.join(results_dir, f'{sampler_name}_{model.name}.csv'))
+        else:
+            
+            return pd.DataFrame()
 
 
 if __name__ == "__main__":

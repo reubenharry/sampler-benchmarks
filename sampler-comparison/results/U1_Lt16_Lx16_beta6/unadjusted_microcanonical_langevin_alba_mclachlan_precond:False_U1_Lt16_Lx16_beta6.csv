@@ -1,0 +1,3 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
+0,unadjusted_microcanonical_langevin_alba_mclachlan_precond:False,U1_Lt16_Lx16_beta6,371304.0,,,True,top_charge,40002.0,3785.5836770348096,6.157782951691978,32
+1,unadjusted_microcanonical_langevin_alba_mclachlan_precond:False,U1_Lt16_Lx16_beta6,371304.0,,,False,top_charge,40002.0,3785.5836770348096,6.157782951691978,32

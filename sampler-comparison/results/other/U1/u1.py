@@ -1,4 +1,5 @@
 import sys
+import time
 sys.path.append(".")  
 sys.path.append("../../blackjax")
 sys.path.append("../../sampler-benchmarks/sampler-comparison")
@@ -7,12 +8,12 @@ sys.path.append("../../src/inference-gym/spinoffs/inference_gym")
 import os
 print(os.listdir("../../src/inference-gym/spinoffs/inference_gym"))
 
-from results.run_benchmarks import lookup_results
 import jax
 batch_size = 1
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
 num_cores = jax.local_device_count()
 
+from results.run_benchmarks import lookup_results
 from sampler_evaluation.models.gaussian_mams_paper import IllConditionedGaussian
 import itertools
 # import pandas as pd
@@ -41,16 +42,26 @@ from sampler_evaluation.models.u1 import U1
 
 
 mh_options = [True]
-canonical_options = [True]
-langevin_options = [False]
-tuning_options = ['nuts']
-integrator_type_options = ['velocity_verlet'] # , 'mclachlan', 'omelyan']
-diagonal_preconditioning_options = [True]
-models = [U1(Lt=16, Lx=16, beta=6)]
+canonical_options = [True, False]
+langevin_options = [True, False]
+tuning_options = ['alba']
+integrator_type_options = ['velocity_verlet', 'mclachlan',] # 'omelyan']
+diagonal_preconditioning_options = [True, False]
+models = [U1(Lt=16, Lx=16, beta=2)]
 # models = [IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log')]
 
-redo = True 
+redo = False 
 
 for mh, canonical, langevin, tuning, integrator_type, diagonal_preconditioning, model in itertools.product(mh_options, canonical_options, langevin_options, tuning_options, integrator_type_options, diagonal_preconditioning_options, models):
-    results = lookup_results(model=model, num_steps = 10000, mh=mh, batch_size=batch_size, canonical=canonical, langevin=langevin, tuning=tuning, integrator_type=integrator_type, diagonal_preconditioning=diagonal_preconditioning, redo=redo)
+    time_start = time.time()
+    results = lookup_results(model=model, num_steps = 10, mh=mh, batch_size=batch_size, canonical=canonical, langevin=langevin, tuning=tuning, integrator_type=integrator_type, diagonal_preconditioning=diagonal_preconditioning, redo=redo)
+    time_end = time.time()
+    print(f"Time taken: {time_end - time_start} seconds")
     print(results)
+
+# mh_options = [False]
+
+
+# for mh, canonical, langevin, tuning, integrator_type, diagonal_preconditioning, model in itertools.product(mh_options, canonical_options, langevin_options, tuning_options, integrator_type_options, diagonal_preconditioning_options, models):
+#     results = lookup_results(model=model, num_steps = 20000, mh=mh, batch_size=batch_size, canonical=canonical, langevin=langevin, tuning=tuning, integrator_type=integrator_type, diagonal_preconditioning=diagonal_preconditioning, redo=redo)
+#     print(results)

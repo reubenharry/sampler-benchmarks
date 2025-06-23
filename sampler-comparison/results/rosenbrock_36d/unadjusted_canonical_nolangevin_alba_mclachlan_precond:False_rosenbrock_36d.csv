@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,485988.0,20093.226398652358,,True,covariance,1802668.0,1.6817352441575844,0.09029610243269172,128
-1,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,485988.0,20093.226398652358,,False,covariance,1802668.0,1.6817352441575844,0.09029610243269172,128
-2,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,86868.0,4425.885936171423,,True,identity,1802668.0,1.6817352441575844,0.09029610243269172,128
-3,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,14590.0,552.8985834671672,,False,identity,1802668.0,1.6817352441575844,0.09029610243269172,128
-4,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,100760.0,7426.722483195396,,True,square,1802668.0,1.6817352441575844,0.09029610243269172,128
-5,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,15970.0,434.5215488327362,,False,square,1802668.0,1.6817352441575844,0.09029610243269172,128
+0,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,covariance,226668.0,2.0908680848423438,0.08875103144568755,128
+1,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,False,covariance,226668.0,2.0908680848423438,0.08875103144568755,128
+2,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,89332.0,,,True,identity,226668.0,2.0908680848423438,0.08875103144568755,128
+3,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,12810.0,463.9874907796545,,False,identity,226668.0,2.0908680848423438,0.08875103144568755,128
+4,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,94130.0,,,True,square,226668.0,2.0908680848423438,0.08875103144568755,128
+5,unadjusted_canonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,15276.0,689.3931841844682,,False,square,226668.0,2.0908680848423438,0.08875103144568755,128
