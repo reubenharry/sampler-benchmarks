@@ -562,6 +562,7 @@ def grid_search_unadjusted_mclmc(
     grid_iterations=2,
     num_tuning_steps=10000,
     return_samples=False,
+    diagonal_preconditioning=True,
 ):
     
     def s(model, num_steps, initial_position, key):
@@ -584,7 +585,8 @@ def grid_search_unadjusted_mclmc(
             opt=opt,
             grid_iterations=grid_iterations,
             num_tuning_steps=num_tuning_steps,
-            sampler_type='unadjusted_mclmc'
+            sampler_type='unadjusted_mclmc',
+            diagonal_preconditioning=diagonal_preconditioning,
         )
 
         sampler=unadjusted_mclmc_no_tuning(

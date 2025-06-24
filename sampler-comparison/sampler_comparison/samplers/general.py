@@ -2,7 +2,9 @@ import jax
 import jax.numpy as jnp
 from blackjax.util import run_inference_algorithm
 from blackjax.util import store_only_expectation_values
+import sys, os
 
+sys.path.append('../sampler-evaluation/')
 from sampler_comparison.util import *
 from sampler_evaluation.evaluation.ess import samples_to_low_error
 from sampler_evaluation.evaluation.ess import get_standardized_squared_error
