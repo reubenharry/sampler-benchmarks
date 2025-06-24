@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,inf,,,True,identity,2798788.33984375,2.0,0.09995023568754649,512
-1,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,inf,,,False,identity,2798788.33984375,2.0,0.09995023568754649,512
-2,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,477208.38741341926,302.96378265396675,,True,square,2798788.33984375,2.0,0.09995023568754649,512
-3,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,31377.865883905986,10.115117399219843,,False,square,2798788.33984375,2.0,0.09995023568754649,512
-4,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,inf,,,True,quartic,2798788.33984375,2.0,0.09995023568754649,512
-5,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,inf,,,False,quartic,2798788.33984375,2.0,0.09995023568754649,512
+0,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,inf,,,True,identity,2726429.6875,2.0,0.14203159221879744,32
+1,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,inf,,,False,identity,2726429.6875,2.0,0.14203159221879744,32
+2,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,390965.60642949963,1872.7414605064948,,True,square,2726429.6875,2.0,0.14203159221879744,32
+3,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,25904.296321954564,75.3572823289163,,False,square,2726429.6875,2.0,0.14203159221879744,32
+4,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,inf,,,True,quartic,2726429.6875,2.0,0.14203159221879744,32
+5,adjusted_canonical_nolangevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,inf,,,False,quartic,2726429.6875,2.0,0.14203159221879744,32

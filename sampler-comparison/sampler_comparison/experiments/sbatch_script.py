@@ -108,6 +108,6 @@ if __name__ == "__main__":
     #     redo=False)
 
     run(
-        models=[stochastic_volatility_mams_paper], 
-        redo_bad_results=True)
+        models=[stochastic_volatility_mams_paper])
+        # redo_bad_results=True)
 

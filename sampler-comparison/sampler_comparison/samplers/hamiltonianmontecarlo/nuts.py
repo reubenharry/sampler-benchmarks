@@ -46,12 +46,12 @@ def nuts(
                 #  cos_angle_termination=cos_angle_termination
             )
             (state, params), adaptation_info = warmup.run(
-                warmup_key, initial_position, num_tuning_steps
+                warmup_key, initial_position, 20000
             )
 
             adaptation_info = adaptation_info.info
 
-        print("tuning complete")
+        jax.debug.print("params: {params}", params=params)
 
         alg = blackjax.nuts(
             logdensity_fn=logdensity_fn,

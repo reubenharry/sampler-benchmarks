@@ -617,6 +617,7 @@ def grid_search_unadjusted_lmc(
     num_tuning_steps=10000,
     return_samples=False,
     desired_energy_var=1e-4,
+    diagonal_preconditioning=True,
 ):
     
     def s(model, num_steps, initial_position, key):
@@ -642,6 +643,7 @@ def grid_search_unadjusted_lmc(
             sampler_type='unadjusted_lmc',
             euclidean=True,
             desired_energy_var=desired_energy_var,
+            diagonal_preconditioning=diagonal_preconditioning,
         )
 
         sampler=unadjusted_lmc_no_tuning(

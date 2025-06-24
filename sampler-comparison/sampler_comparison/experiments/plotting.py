@@ -51,15 +51,15 @@ from sampler_evaluation.models.stochastic_volatility_mams_paper import stochasti
 from sampler_evaluation.models.cauchy import cauchy
 from sampler_evaluation.models.u1 import U1
 
+print("Imports complete")
 
-def plot_results():
+def plot_results(tuning_option='alba'):
 
     mh_options = [True, False]
     canonical_options = [True, False]
     langevin_options = [True, False]
-    tuning_options = ['alba']
+    tuning_options = [tuning_option]  # Only use the specified tuning option
     integrator_type_options = ['velocity_verlet', 'mclachlan']
-    # integrator_type_options = ['velocity_verlet']
     diagonal_preconditioning_options = [True, False]
 
     # keys of model_info
@@ -84,12 +84,56 @@ def plot_results():
         results = lookup_results(model=model, num_steps=0, mh=mh, canonical=canonical, langevin=langevin, tuning=tuning, integrator_type=integrator_type, diagonal_preconditioning=diagonal_preconditioning, redo=False, batch_size=0, relative_path='./', compute_missing=False)
         full_results = pd.concat([full_results, results], ignore_index=True)
 
+    # Load NUTS results separately (only if using alba tuning)
+    nuts_results = pd.DataFrame()
+    if tuning_option != 'grid_search':
+        for integrator_type, diagonal_preconditioning, model in itertools.product(integrator_type_options, diagonal_preconditioning_options, models):
+            # NUTS only exists for: mh=True, canonical=True, langevin=False, tuning='nuts'
+            results = lookup_results(
+                model=model, num_steps=0, mh=True, canonical=True, langevin=False, 
+                tuning='nuts', integrator_type=integrator_type, 
+                diagonal_preconditioning=diagonal_preconditioning, redo=False, 
+                batch_size=0, relative_path='./', compute_missing=False
+            )
+            if not results.empty:
+                # Add a flag to identify NUTS results
+                results['is_nuts'] = True
+                nuts_results = pd.concat([nuts_results, results], ignore_index=True)
+
+        # Combine regular and NUTS results
+        if not nuts_results.empty:
+            full_results = pd.concat([full_results, nuts_results], ignore_index=True)
+
+    # Ensure 'is_nuts' column exists for all rows
+    if 'is_nuts' not in full_results.columns:
+        full_results['is_nuts'] = False
+
+    # Debug: print some sample sampler names
+    print("Sample sampler names:")
+    print(full_results['Sampler'].head(10).tolist())
+    
+    # Parse sampler names more carefully
     full_results['mh'] = full_results['Sampler'].str.split('_').str[0]
     full_results['canonical'] = full_results['Sampler'].str.split('_').str[1]
     full_results['langevin'] = full_results['Sampler'].str.split('_').str[2]
     full_results['tuning'] = full_results['Sampler'].str.split('_').str[3]
     full_results['integrator_type'] = full_results['Sampler'].str.split('_').str[4]
     full_results['precond'] = full_results['Sampler'].str.split('_').str[5]
+
+    # Debug: print parsed values
+    print("\nParsed values:")
+    print("mh values:", full_results['mh'].unique())
+    print("canonical values:", full_results['canonical'].unique())
+    print("langevin values:", full_results['langevin'].unique())
+    print("tuning values:", full_results['tuning'].unique())
+    print("integrator_type values:", full_results['integrator_type'].unique())
+    print("precond values:", full_results['precond'].unique())
+
+    # For NUTS results, set the appropriate values
+    nuts_mask = full_results['is_nuts'] == True
+    full_results.loc[nuts_mask, 'mh'] = 'nuts'
+    full_results.loc[nuts_mask, 'canonical'] = 'canonical'  # NUTS is always canonical
+    full_results.loc[nuts_mask, 'langevin'] = 'nolangevin'  # NUTS is always no langevin
 
     full_results_avg = full_results[full_results['max'] == False]
     full_results_max = full_results[full_results['max'] == True]
@@ -127,51 +171,50 @@ def plot_results():
             square_results_avg = results_model[(results_model['statistic'] == statistic) & (results_model['max'] == False)]
             square_results_max = results_model[(results_model['statistic'] == statistic) & (results_model['max'] == True)]
             
-            # print(f"Square results avg rows: {len(square_results_avg)}")
-            # print(f"Square results max rows: {len(square_results_max)}")
-            # print("\nSample of values:")
-            # print("Average values:", square_results_avg['num_grads_to_low_error'].head())
-            # print("Max values:", square_results_max['num_grads_to_low_error'].head())
-            
             for col, (plot_label, plot_df) in enumerate(zip(['avg', 'max'], [square_results_avg, square_results_max])):
                 ax = axes[row, col]
-                # print(f"\nPlotting {plot_label} data:")
-                # print(f"Number of rows in plot_df: {len(plot_df)}")
+                print(f"\nPlotting {plot_label} data:")
+                print(f"Number of rows in plot_df: {len(plot_df)}")
+                print("plot_df columns:", plot_df.columns.tolist())
+                if len(plot_df) > 0:
+                    print("Sample plot_df data:")
+                    print(plot_df[['mh', 'canonical', 'integrator_type', 'langevin', 'num_grads_to_low_error']].head())
+                
                 if plot_df.empty:
-                    # print("Plot DataFrame is empty!")
+                    print("Plot DataFrame is empty!")
                     ax.axis('off')
                     continue
 
-                # Create a DataFrame with all possible combinations
-                all_combos = pd.DataFrame(
-                    list(itertools.product(
-                        ["adjusted", "unadjusted"],
-                        ["canonical", "microcanonical"],
-                        ["velocity verlet", "mclachlan"],
-                        ["langevin", "nolangevin"]
-                    )),
-                    columns=["mh", "canonical", "integrator_type", "langevin"]
-                )
+                # Instead of trying to merge with all_combos, just plot what we have
+                # and ensure we have the right categorical variables
+                print(f"Available mh values: {plot_df['mh'].unique()}")
+                print(f"Available canonical values: {plot_df['canonical'].unique()}")
+                print(f"Available integrator_type values: {plot_df['integrator_type'].unique()}")
+                print(f"Available langevin values: {plot_df['langevin'].unique()}")
                 
-                # Merge with plot_df to ensure all combinations are present
-                plot_df_full = pd.merge(
-                    all_combos,
-                    plot_df,
-                    on=["mh", "canonical", "integrator_type", "langevin"],
-                    how="left"
-                )
-                # print("\nAfter merging with all combinations:")
-                # print(f"Number of rows in plot_df_full: {len(plot_df_full)}")
-                # print("Sample of merged data:")
-                # print(plot_df_full[['mh', 'canonical', 'integrator_type', 'langevin', 'num_grads_to_low_error']].head())
-
-                # Always use the full set of possible values for all variables
-                mh_order = ["adjusted", "unadjusted"]
-                group_labels = ['With MH Adjustment', 'Without MH Adjustment']
-                canonical_order = ['canonical', 'microcanonical']
-                integrator_order = ['velocity verlet', 'mclachlan']
-                langevin_order = ['langevin', 'nolangevin']
-
+                # Use the actual values present in the data
+                mh_order = plot_df['mh'].unique()
+                canonical_order = plot_df['canonical'].unique()
+                integrator_order = plot_df['integrator_type'].unique()
+                langevin_order = plot_df['langevin'].unique()
+                
+                print(f"Using mh_order: {mh_order}")
+                print(f"Using canonical_order: {canonical_order}")
+                print(f"Using integrator_order: {integrator_order}")
+                print(f"Using langevin_order: {langevin_order}")
+                
+                # Create group labels based on actual mh values
+                group_labels = []
+                for mh in mh_order:
+                    if mh == 'adjusted':
+                        group_labels.append('With MH Adjustment')
+                    elif mh == 'unadjusted':
+                        group_labels.append('Without MH Adjustment')
+                    elif mh == 'nuts':
+                        group_labels.append('NUTS')
+                    else:
+                        group_labels.append(mh)
+                
                 bar_width = 0.35
                 n_hue = len(canonical_order)
                 n_hatch = len(integrator_order)
@@ -184,58 +227,103 @@ def plot_results():
                 for i, mh in enumerate(mh_order):
                     group_label = group_labels[i]
                     group_x_centers = set()
-                    for j, canonical in enumerate(canonical_order):
+                    
+                    if mh == "nuts":
+                        # For NUTS, plot only canonical and nolangevin combinations
                         for k, integrator in enumerate(integrator_order):
-                            for l, langevin in enumerate(langevin_order):
-                                x_center = i + (j - n_hue/2) * bar_width + (k - n_hatch/2) * bar_group_width
-                                dodge = (l - (n_langevin - 1) / 2) * single_bar_width
-                                x_dodged = x_center + dodge
-                                row_df = plot_df_full[
-                                    (plot_df_full['mh'] == mh) &
-                                    (plot_df_full['canonical'] == canonical) &
-                                    (plot_df_full['integrator_type'] == integrator) &
-                                    (plot_df_full['langevin'] == langevin)
-                                ]
-                                if not row_df.empty and not pd.isna(row_df['num_grads_to_low_error'].values[0]):
-                                    y = row_df['num_grads_to_low_error'].values[0]
-                                    # print(f"\nPlotting bar with y={y} (before inf handling)")
-                                    yerr = row_df['grads_to_low_error_std'].values[0] if 'grads_to_low_error_std' in row_df and not pd.isna(row_df['grads_to_low_error_std'].values[0]) else 0
-                                    
-                                    # Handle infinite values
-                                    if np.isinf(y):
-                                        # print("Found infinite value!")
-                                        # Get the maximum finite value in the dataset for scaling
-                                        finite_values = plot_df_full['num_grads_to_low_error'][~np.isinf(plot_df_full['num_grads_to_low_error'])]
-                                        # print(f"Number of finite values found: {len(finite_values)}")
-                                        if len(finite_values) > 0:
-                                            y = finite_values.max() * 1.2  # Set to 120% of max finite value
-                                            # print(f"Setting to 120% of max finite value: {y}")
-                                        else:
-                                            y = 100  # Fallback if all values are infinite
-                                            # print("All values infinite, using fallback value: 100")
-                                        yerr = 0  # No error bar for infinite values
-                                else:
-                                    y = 0
-                                    yerr = 0
-                                color = color_map[canonical]
-                                zorder = -y
-                                bar = ax.bar(
-                                    x_dodged, y, width=single_bar_width,
-                                    color=color,
-                                    hatch=hatch_map[integrator],
-                                    edgecolor='black',
-                                    alpha=alpha_map[langevin],
-                                    yerr=yerr,
-                                    capsize=4,
-                                    zorder=zorder
-                                )
+                            x_center = i + (k - n_hatch/2) * bar_group_width
+                            row_df = plot_df[
+                                (plot_df['mh'] == mh) &
+                                (plot_df['integrator_type'] == integrator)
+                            ]
+                            print(f"NUTS row_df for {integrator}: {len(row_df)} rows")
+                            if not row_df.empty and not pd.isna(row_df['num_grads_to_low_error'].values[0]):
+                                y = row_df['num_grads_to_low_error'].values[0]
+                                yerr = row_df['grads_to_low_error_std'].values[0] if 'grads_to_low_error_std' in row_df and not pd.isna(row_df['grads_to_low_error_std'].values[0]) else 0
                                 
-                                # Add infinity symbol for infinite values
-                                if not row_df.empty and np.isinf(row_df['num_grads_to_low_error'].values[0]):
-                                    ax.text(x_dodged, y, '∞', 
-                                          ha='center', va='bottom',
-                                          fontweight='bold', fontsize=12)
-                                group_x_centers.add(x_center)  # always add, regardless of data
+                                # Handle infinite values
+                                if np.isinf(y):
+                                    finite_values = plot_df['num_grads_to_low_error'][~np.isinf(plot_df['num_grads_to_low_error'])]
+                                    if len(finite_values) > 0:
+                                        y = finite_values.max() * 1.2
+                                    else:
+                                        y = 100
+                                    yerr = 0
+                            else:
+                                y = 0
+                                yerr = 0
+                            
+                            print(f"Plotting NUTS bar at x={x_center}, y={y}")
+                            # NUTS gets a distinct color and hatch
+                            color = 'tab:green'  # Distinct color for NUTS
+                            zorder = -y
+                            bar = ax.bar(
+                                x_center, y, width=bar_group_width,
+                                color=color,
+                                hatch=hatch_map[integrator],
+                                edgecolor='black',
+                                alpha=1.0,  # NUTS is always full opacity
+                                yerr=yerr,
+                                capsize=4,
+                                zorder=zorder
+                            )
+                            
+                            # Add infinity symbol for infinite values
+                            if not row_df.empty and np.isinf(row_df['num_grads_to_low_error'].values[0]):
+                                ax.text(x_center, y, '∞', 
+                                      ha='center', va='bottom',
+                                      fontweight='bold', fontsize=12)
+                            group_x_centers.add(x_center)
+                    else:
+                        # Regular plotting for adjusted/unadjusted
+                        for j, canonical in enumerate(canonical_order):
+                            for k, integrator in enumerate(integrator_order):
+                                for l, langevin in enumerate(langevin_order):
+                                    x_center = i + (j - n_hue/2) * bar_width + (k - n_hatch/2) * bar_group_width
+                                    dodge = (l - (n_langevin - 1) / 2) * single_bar_width
+                                    x_dodged = x_center + dodge
+                                    row_df = plot_df[
+                                        (plot_df['mh'] == mh) &
+                                        (plot_df['canonical'] == canonical) &
+                                        (plot_df['integrator_type'] == integrator) &
+                                        (plot_df['langevin'] == langevin)
+                                    ]
+                                    print(f"Regular row_df for {mh}_{canonical}_{integrator}_{langevin}: {len(row_df)} rows")
+                                    if not row_df.empty and not pd.isna(row_df['num_grads_to_low_error'].values[0]):
+                                        y = row_df['num_grads_to_low_error'].values[0]
+                                        yerr = row_df['grads_to_low_error_std'].values[0] if 'grads_to_low_error_std' in row_df and not pd.isna(row_df['grads_to_low_error_std'].values[0]) else 0
+                                        
+                                        # Handle infinite values
+                                        if np.isinf(y):
+                                            finite_values = plot_df['num_grads_to_low_error'][~np.isinf(plot_df['num_grads_to_low_error'])]
+                                            if len(finite_values) > 0:
+                                                y = finite_values.max() * 1.2  # Set to 120% of max finite value
+                                            else:
+                                                y = 100  # Fallback if all values are infinite
+                                            yerr = 0  # No error bar for infinite values
+                                    else:
+                                        y = 0
+                                        yerr = 0
+                                    color = color_map[canonical]
+                                    zorder = -y
+                                    print(f"Plotting regular bar at x={x_dodged}, y={y}")
+                                    bar = ax.bar(
+                                        x_dodged, y, width=single_bar_width,
+                                        color=color,
+                                        hatch=hatch_map[integrator],
+                                        edgecolor='black',
+                                        alpha=alpha_map[langevin],
+                                        yerr=yerr,
+                                        capsize=4,
+                                        zorder=zorder
+                                    )
+                                    
+                                    # Add infinity symbol for infinite values
+                                    if not row_df.empty and np.isinf(row_df['num_grads_to_low_error'].values[0]):
+                                        ax.text(x_dodged, y, '∞', 
+                                              ha='center', va='bottom',
+                                              fontweight='bold', fontsize=12)
+                                    group_x_centers.add(x_center)  # always add, regardless of data
                     group_xs[group_label] = sorted(group_x_centers)
 
                 # 1. Find the maximum bar top (including error bars) for this axis
@@ -277,10 +365,17 @@ def plot_results():
                     ax.set_xlabel('')
 
         # Place legends only once (on the bottom right axis)
-        legend_elements = [
-            Patch(facecolor='tab:blue', edgecolor='black', label='canonical'),
-            Patch(facecolor='tab:orange', edgecolor='black', label='microcanonical')
-        ]
+        if tuning_option == 'alba':
+            legend_elements = [
+                Patch(facecolor='tab:blue', edgecolor='black', label='canonical'),
+                Patch(facecolor='tab:orange', edgecolor='black', label='microcanonical'),
+                Patch(facecolor='tab:green', edgecolor='black', label='NUTS')
+            ]
+        else:
+            legend_elements = [
+                Patch(facecolor='tab:blue', edgecolor='black', label='canonical'),
+                Patch(facecolor='tab:orange', edgecolor='black', label='microcanonical')
+            ]
         hatch_elements = [
             Patch(facecolor='white', edgecolor='black', hatch='///', label='Leapfrog', linewidth=2),
             Patch(facecolor='white', edgecolor='black', hatch='o', label='2nd Order Minimal Norm', linewidth=2)
@@ -296,13 +391,22 @@ def plot_results():
         axes[1, 1].add_artist(legend2)
         axes[1, 1].add_artist(legend3)
 
-        plt.suptitle(f"Model: {model_info[model.name]['pretty_name']}", fontsize=16, fontweight='bold', y=0.98)
+        plt.suptitle(f"Model: {model_info[model.name]['pretty_name']} ({tuning_option.upper()})", fontsize=16, fontweight='bold', y=0.98)
         plt.tight_layout(rect=[0, 0, 1, 0.93])  # leave more space at the top
 
         plt.subplots_adjust(top=0.88)  # lower this value if you need even more space
-        plt.savefig(f'results/figures/{model.name}_precond_grid.png')
-        print(f"Saved figure to results/figures/{model.name}_precond_grid.png")
+        plt.savefig(f'results/figures/{model.name}_{tuning_option}_grid.png')
+        print(f"Saved figure to results/figures/{model.name}_{tuning_option}_grid.png")
         plt.close()
 
+
+def plot_all_results():
+    """Plot results for both alba and grid_search tuning options"""
+    print("Plotting ALBA results...")
+    plot_results('alba')
+    print("Plotting Grid Search results...")
+    plot_results('grid_search')
+
+
 if __name__ == "__main__":
-    plot_results()
+    plot_all_results()
