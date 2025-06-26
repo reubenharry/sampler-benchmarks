@@ -36,9 +36,9 @@ print('Number of devices: ', len(jax.devices()))
 
 model = stochastic_volatility_mams_paper # IllConditionedGaussian(ndims=2, condition_number=1)
 
-samples, info, settings_info = parallel_microcanonical(num_steps1=800, 
-                                                       num_steps2=1500, 
-                                                       num_chains=batch_size, mesh=mesh)(model=model)
+samples, info, settings_info = parallel_microcanonical(num_steps1= 800, 
+                                                       num_steps2= 1500, 
+                                                       num_chains= batch_size, mesh= mesh, early_stop= True)(model=model)
 
 plot_trace(info, model, settings_info, 'sampler_comparison/img/laps/trace/')
 
