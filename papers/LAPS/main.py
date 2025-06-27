@@ -38,7 +38,7 @@ model = stochastic_volatility_mams_paper # IllConditionedGaussian(ndims=2, condi
 
 samples, info, settings_info = parallel_microcanonical(num_steps1= 800, 
                                                        num_steps2= 1500, 
-                                                       num_chains= batch_size, mesh= mesh, early_stop= True)(model=model)
+                                                       num_chains= batch_size, mesh= mesh, superchain_size= 64)(model=model)
 
 plot_trace(info, model, settings_info, 'sampler_comparison/img/laps/trace/')
 

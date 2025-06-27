@@ -73,6 +73,12 @@ def plot_trace(info, model, settings_info, dir):
     plt.plot(steps1, info1['r_max'][:n1], '--', color = 'tab:red')
     plt.plot([], [], '--', color = 'tab:gray',label = r'Fluctuations $\delta_t^2[x_i^2]$')
 
+    plt.plot(steps1, info1['R_avg'][:n1], ':', color = 'tab:blue')
+    plt.plot(steps1, info1['R_max'][:n1], ':', color = 'tab:red')
+    plt.plot(steps2, info2['R_avg'], ':', color = 'tab:blue')
+    plt.plot(steps2, info2['R_max'], ':', color = 'tab:red')
+    plt.plot([], [], '--', color = 'tab:gray',label = 'split R')
+
     # pathfinder
     #pf= pd.read_csv('ensemble/submission/pathfinder_convergence.csv', sep= '\t')
     #pf_grads_all = np.array(pd.read_csv('ensemble/submission/pathfinder_cost.csv', sep= '\t')[model.name])
@@ -153,7 +159,7 @@ def plot_trace(info, model, settings_info, dir):
 
 
 def parallel_microcanonical(num_steps1, num_steps2, num_chains, mesh, early_stop=True,
-                            diagonal_preconditioning=True,
+                            diagonal_preconditioning=True, superchain_size= None,
                             ):
 
     def s(model):
@@ -185,7 +191,8 @@ def parallel_microcanonical(num_steps1, num_steps2, num_chains, mesh, early_stop
             observables_for_bias=observables_for_bias,
             contract = contract,
             r_end=0.01,
-            diagnostics= True
+            diagnostics= True,
+            superchain_size= superchain_size
             ) 
 
         settings_info = {'acc_rate': _acc_prob, 'num_grads_per_proposal': grads_per_step, 'num_chains': num_chains}
