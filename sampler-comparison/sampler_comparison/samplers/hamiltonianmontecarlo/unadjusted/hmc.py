@@ -169,11 +169,11 @@ def unadjusted_hmc_tuning(
     else:
         inverse_mass_matrix = jnp.ones((initial_position.shape[0],))
 
-    if params is None:
+    # if params is None:
 
-        params = MCLMCAdaptationState(
-            1., 0.25 , inverse_mass_matrix=inverse_mass_matrix
-        )
+    #     params = MCLMCAdaptationState(
+    #         1., 0.25 , inverse_mass_matrix=inverse_mass_matrix
+    #     )
         # jax.debug.print("params {x}", x=params)
 
     # jax.debug.print("frac_tune1 {x}", x=frac_tune1)
@@ -250,7 +250,7 @@ def unadjusted_hmc(
             stage3=stage3,
         
         )
-        # jax.debug.print("params {x}", x=(blackjax_mclmc_sampler_params))
+        # jax.debug.print("params main {x}", x=(blackjax_mclmc_sampler_params))
 
         expectations, metadata = unadjusted_hmc_no_tuning(
             initial_state=blackjax_state_after_tuning,

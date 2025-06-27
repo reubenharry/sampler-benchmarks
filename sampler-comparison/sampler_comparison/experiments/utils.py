@@ -49,7 +49,7 @@ model_info = {
     IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log').name: {
         'pretty_name' : 'Ill-Conditioned Gaussian in 2D, with condition number 1',
         'batch_size' : 128,
-        'num_steps' : {True : 500, False : 500}},
+        'num_steps' : {True : 5000, False : 2000}},
             
     IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log').name: {
         'pretty_name' : 'Ill-Conditioned Gaussian in 100D, with condition number 1',

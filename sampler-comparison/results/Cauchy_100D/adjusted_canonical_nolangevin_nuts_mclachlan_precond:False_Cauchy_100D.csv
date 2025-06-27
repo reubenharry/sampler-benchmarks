@@ -1,0 +1,3 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
+0,adjusted_canonical_nolangevin_nuts_mclachlan_precond:False,Cauchy_100D,4571964.5274,3376.0739363349253,,True,entropy,1877432.875,119.02683764883523,0.6440006706914456,32
+1,adjusted_canonical_nolangevin_nuts_mclachlan_precond:False,Cauchy_100D,195951.90033333335,55.17990485675016,,False,entropy,1877432.875,119.02683764883523,0.6440006706914456,32
