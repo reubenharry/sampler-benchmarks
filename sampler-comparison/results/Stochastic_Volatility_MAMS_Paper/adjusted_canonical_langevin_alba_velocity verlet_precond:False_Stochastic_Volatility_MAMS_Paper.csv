@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_canonical_langevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,True,identity,2185622.8984375,0.8460340829598543,0.0065979196305127365,512
-1,adjusted_canonical_langevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,False,identity,2185622.8984375,0.8460340829598543,0.0065979196305127365,512
-2,adjusted_canonical_langevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,503394.6815746738,131.31124056987656,,True,square,2185622.8984375,0.8460340829598543,0.0065979196305127365,512
-3,adjusted_canonical_langevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,33003.17172568652,3.6228579878322584,,False,square,2185622.8984375,0.8460340829598543,0.0065979196305127365,512
-4,adjusted_canonical_langevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,True,quartic,2185622.8984375,0.8460340829598543,0.0065979196305127365,512
-5,adjusted_canonical_langevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,False,quartic,2185622.8984375,0.8460340829598543,0.0065979196305127365,512
+0,adjusted_canonical_langevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,True,identity,622721.03125,0.3780279705916361,0.009587155664033214,32
+1,adjusted_canonical_langevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,False,identity,622721.03125,0.3780279705916361,0.009587155664033214,32
+2,adjusted_canonical_langevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,590986.8296812008,1851.7278816013977,,True,square,622721.03125,0.3780279705916361,0.009587155664033214,32
+3,adjusted_canonical_langevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,45831.631689562506,58.65439795957333,,False,square,622721.03125,0.3780279705916361,0.009587155664033214,32
+4,adjusted_canonical_langevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,True,quartic,622721.03125,0.3780279705916361,0.009587155664033214,32
+5,adjusted_canonical_langevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,False,quartic,622721.03125,0.3780279705916361,0.009587155664033214,32

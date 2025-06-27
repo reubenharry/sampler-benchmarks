@@ -67,8 +67,6 @@ def run(models, mh_options=[True, False], canonical_options=[True, False], lange
 
     
 
-    redo = True
-    compute_missing = True
 
     full_results = pd.DataFrame()
     for mh, canonical, langevin, tuning, integrator_type, diagonal_preconditioning, model in itertools.product(mh_options, canonical_options, langevin_options, tuning_options, integrator_type_options, diagonal_preconditioning_options, models):
@@ -121,8 +119,8 @@ if __name__ == "__main__":
     models = [
         # IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log'),
         # IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
-        # IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log', do_covariance=False),
-        item_response(),
+        IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log', do_covariance=False),
+        # item_response(),
         # IllConditionedGaussian(ndims=10000, condition_number=100, eigenvalues='log', do_covariance=False),
         # brownian_motion(),
         # german_credit(),
@@ -132,12 +130,50 @@ if __name__ == "__main__":
         # U1(Lt=16, Lx=16, beta=6)
         ]
     
+    # run(
+    #     models=models,
+    #     tuning_options=['alba'],
+    #     mh_options = [True, False],
+    #     canonical_options = [False],
+    #     langevin_options = [True, False],
+    #     integrator_type_options = ['velocity_verlet', 'mclachlan'],
+    #     diagonal_preconditioning_options = [True, False],
+    #     redo=True,
+    #     # mh_options = [False],
+    #     # diagonal_preconditioning_options = [False],
+    #     # redo_bad_results=True
+    # )
+
+    # print(IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log').sample_transformations)
+    # raise Exception("stop")
+    
+    # run(
+    #     models=[IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log', do_covariance=False)],
+    #     tuning_options=['alba'],
+    #     mh_options = [True],
+    #     canonical_options = [False],
+    #     langevin_options = [True],
+    #     integrator_type_options = ['velocity_verlet'],
+    #     diagonal_preconditioning_options = [True],
+    #     redo=False,
+    #     # mh_options = [False],
+    #     # diagonal_preconditioning_options = [False],
+    #     redo_bad_results='avg'
+    # )
+
     run(
-        models=models, 
+        models=[IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log', do_covariance=False)],
+        tuning_options=['grid_search'],
+        mh_options = [False],
+        canonical_options = [True, False],
+        langevin_options = [True],
+        integrator_type_options = ['velocity_verlet', 'mclachlan'],
+        diagonal_preconditioning_options = [True, False],
         # redo=True,
         # mh_options = [False],
         # diagonal_preconditioning_options = [False],
         # redo_bad_results=True
     )
 
+    # plot_results()
     # plot_results()

@@ -1,12 +1,5 @@
 import os
 import jax
-<<<<<<< HEAD
-
-batch_size = 128
-os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
-# from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
-=======
->>>>>>> 36f8e126e1b923da17a5f4bca28394701042723b
 import os
 import jax
 jax.config.update("jax_enable_x64", True)
@@ -30,6 +23,7 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.mchmc import unadjuste
 from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.hmc import unadjusted_hmc
 import itertools
 import jax.numpy as jnp
+from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc, grid_search_unadjusted_lmc, grid_search_hmc
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(128)
 num_cores = jax.local_device_count()
@@ -107,10 +101,10 @@ def run_benchmarks(
                 }
             )
 
-        for trans in models[model].sample_transformations:
-            jax.debug.print("transformation: {x}", x=trans)
-            jax.debug.print("max (run benchmarks) {x}", x=stats["max_over_parameters"][trans]["grads_to_low_error"])
-            jax.debug.print("avg (run benchmarks) {x}", x=stats["avg_over_parameters"][trans]["grads_to_low_error"])
+        # for trans in models[model].sample_transformations:
+        #     jax.debug.print("transformation: {x}", x=trans)
+        #     jax.debug.print("max (run benchmarks) {x}", x=stats["max_over_parameters"][trans]["grads_to_low_error"])
+        #     jax.debug.print("avg (run benchmarks) {x}", x=stats["avg_over_parameters"][trans]["grads_to_low_error"])
 
         df = pd.DataFrame(results)
 
@@ -119,7 +113,7 @@ def run_benchmarks(
             df.to_csv(os.path.join(save_dir, f"{sampler}_{model}.csv"))
 
 
-def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, langevin : bool, tuning : str, integrator_type : str, diagonal_preconditioning : bool, redo : bool, relative_path : str = '.', compute_missing : bool = False, redo_bad_results : bool = None):
+def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, langevin : bool, tuning : str, integrator_type : str, diagonal_preconditioning : bool, redo : bool, relative_path : str = '.', compute_missing : bool = False, redo_bad_results : bool = None, statistic = 'square'):
 
     integrator_name = integrator_type.replace('_', ' ')
 
@@ -144,9 +138,23 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
 
         (False, False, False, 'alba'): (f'unadjusted_microcanonical_nolangevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(unadjusted_mchmc,num_tuning_steps=20000, desired_energy_var=5e-4, diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
 
+        (False, False, True, 'alba'): (f'unadjusted_microcanonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(unadjusted_mclmc,num_tuning_steps=2000,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
+
+        (False, False, False, 'alba'): (f'unadjusted_microcanonical_nolangevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(unadjusted_mchmc,num_tuning_steps=2000,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
+
+        
+        
+        (True, True, False, 'nuts'): (f'adjusted_canonical_nolangevin_nuts_{integrator_name}_precond:{diagonal_preconditioning}', partial(nuts,num_tuning_steps=500, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning)),
+                                        # cos_angle_termination= cos_angle_termination)),
         (True, True, False, 'nuts'): (f'adjusted_canonical_nolangevin_nuts_{integrator_name}_precond:{diagonal_preconditioning}', partial(nuts,num_tuning_steps=5000, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning)),
-                    }
+
+
+        (False, False, True, 'grid_search'): (f'unadjusted_microcanonical_langevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(grid_search_unadjusted_mclmc,num_tuning_steps=20000, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, num_chains= batch_size)),
+                    
     
+        (False, True, True, 'grid_search'): (f'unadjusted_canonical_langevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(grid_search_unadjusted_lmc,num_tuning_steps=20000, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, num_chains= batch_size)),
+    
+        }
     
     results_dir = f'{relative_path}/results/{model.name}'
 
@@ -166,10 +174,8 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
     # raise Exception
     
     # load results
-<<<<<<< HEAD
-    sampler_name, sampler = sampler_dict[(mh, canonical, langevin, tuning)]
+    # sampler_name, sampler = sampler_dict[(mh, canonical, langevin, tuning)]
     
-=======
     try:
         sampler_name, sampler = sampler_dict[(mh, canonical, langevin, tuning)]
     except KeyError:
@@ -186,8 +192,9 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
         
         # Check if we need to rerun due to inf/nan in avg results
         if redo_bad_results is not None and not redo:  # Only check if redo_bad_results is True and we're not already redoing everything
-            r_results = results[~results[redo_bad_results]]  # Get only average results
+            r_results = results[(results['max'] == (redo_bad_results == 'avg')) & (results['statistic'] == statistic)]  # Get only average results
             has_bad_values = r_results['num_grads_to_low_error'].apply(lambda x: pd.isna(x) or np.isinf(x) or np.isnan(x)).any()
+            print(r_results['num_grads_to_low_error'], "has_bad_values")
             
             if has_bad_values:
                 print(f"Found inf/nan in average results for {model.name}, rerunning...")
@@ -197,6 +204,7 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
                 
     except FileNotFoundError:
         print(f"File not found for {model.name} with mh={mh}, canonical={canonical}, langevin={langevin}, tuning={tuning}, integrator_type={integrator_type}, diagonal_preconditioning={diagonal_preconditioning}")
+        print(f'{sampler_name}_{model.name}.csv')
 
         if compute_missing:
             print(f"Creating file")
@@ -217,6 +225,10 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
             # )
 
             # raise Exception
+            if tuning == 'grid_search':
+                map = lambda x : x
+            else:
+                map = jax.pmap
 
             # run sampler
             run_benchmarks(
@@ -227,7 +239,7 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
                 num_steps=num_steps,
                 save_dir=results_dir,
                 key=jax.random.key(16),
-                map=jax.pmap,
+                map=map,
                 calculate_ess_corr=False,
             )
             print(f"Results saved to {results_dir}")
