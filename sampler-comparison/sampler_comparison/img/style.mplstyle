@@ -1,3 +1,0 @@
-axes.spines.right: False
-axes.spines.top: False
-axes.prop_cycle : cycler(color=['teal', 'chocolate', 'xkcd:ruby', 'xkcd:marigold', 'black'])
