@@ -11,7 +11,7 @@ from sampler_evaluation.evaluation.ess import samples_to_low_error
 
 import numpy as np
 import matplotlib.pyplot as plt
-plt.style.use('sampler_comparison/img/style.mplstyle')
+plt.style.use('style.mplstyle')
 plt.rcParams['xtick.labelsize'] = 14
 plt.rcParams['ytick.labelsize'] = 14
 plt.rcParams['font.size'] = 16

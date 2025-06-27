@@ -12,9 +12,9 @@ print(num_cores)
 
 
 import os, sys
-current_path = os.getcwd()
-sys.path.append(current_path + '/../../blackjax/')
-sys.path.append(current_path + '/../sampler-evaluation/')
+sys.path.append('../blackjax/')
+sys.path.append('sampler-evaluation/')
+sys.path.append('sampler-comparison/')
 # sys.path.append(current_path + '/src/inference-gym/')
 
 #from sampler_evaluation.models.german_credit import german_credit
@@ -27,7 +27,6 @@ from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.laps import p
 from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unadjusted_mclmc
 from sampler_comparison.samplers.general import initialize_model
 # from sampler_evaluation.models.banana import banana
-import time
 
 batch_size = 4096
 mesh = jax.sharding.Mesh(jax.devices()[:1], 'chains')
@@ -40,7 +39,7 @@ samples, info, settings_info = parallel_microcanonical(num_steps1= 800,
                                                        num_steps2= 1500, 
                                                        num_chains= batch_size, mesh= mesh, superchain_size= 64)(model=model)
 
-plot_trace(info, model, settings_info, 'sampler_comparison/img/laps/trace/')
+plot_trace(info, model, settings_info, 'papers/LAPS/img/trace/')
 
 
-#shifter --image=reubenharry/cosmo:1.0 python3 -m sampler_comparison.experiments.laps_experiment
+#shifter --image=reubenharry/cosmo:1.0 python3 -m papers.LAPS.main
