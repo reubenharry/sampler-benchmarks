@@ -1,3 +1,4 @@
+# Taken from: https://github.com/tensorflow/probability/blob/303e844fd6e80202410932fd52570850a5957500/discussion/meads/meads.ipynb
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
      
+import optax
 import functools
 import fun_mc.using_jax as fun_mc
 import jax
 import jax.numpy as jnp
 from jax import lax, vmap, random, jit, value_and_grad
-import optax
 
 from sampler_comparison.samplers.general import make_log_density_fn
 

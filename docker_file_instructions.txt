@@ -1,0 +1,18 @@
+Docker image can be used to run jax code with a GPU installation in a stable way.
+These are instructions on how to build such an image on NERSC.
+
+1. Go to Docekerfile and add any packages that you may need to the pip install.
+
+2. From this directory run: 
+    $ podman-hpc build --net=slirp4netns -t ubuntumpich:1.0 .
+    $ podman-hpc tag ubuntumpich:1.0 jrobnik/sampling:1.0
+    $ podman-hpc login docker.io
+    $ podman-hpc push jrobnik/sampling:1.0
+
+    You can swap "jrobnik/sampling:1.0" for your custom name of the image.
+    For the third line you will need a docker account.
+
+3. You can then download the image on the machine where you want to run it:
+    $ shifterimg pull jrobnik/sampling:1.0
+
+

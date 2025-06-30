@@ -15,7 +15,8 @@ import os, sys
 sys.path.append('../blackjax/')
 sys.path.append('sampler-evaluation/')
 sys.path.append('sampler-comparison/')
-sys.path.append("../src/inference-gym/spinoffs/inference_gym")
+sys.path.append('../probability/spinoffs/inference_gym')
+sys.path.append('../probability/spinoffs/fun_mc')
 
 #from sampler_evaluation.models.banana import banana
 from sampler_evaluation.models.banana_mams_paper import banana_mams_paper
@@ -26,7 +27,7 @@ from sampler_evaluation.models.item_response import item_response
 from sampler_evaluation.models.german_credit import german_credit
 
 from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.laps import parallel_microcanonical
-from sampler_compariosn.samplers.parallel.hamiltonianmontecarlo.meads import run_meads_with_adam
+from sampler_comparison.samplers.parallel.hamiltonianmontecarlo.meads import meads_with_adam
 from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.laps import plot_trace
 from sampler_comparison.samplers.general import initialize_model
 
@@ -40,7 +41,7 @@ m = [(banana_mams_paper, 100, 50, 500),
      (german_credit(), 500, 400, 2000),      
      (brownian_motion(), 500, 500, 2000),
      (item_response(), 500, 500, 2000), #500],
-     (stochastic_volatility_mams_paper(), 800, 1500, 50000)] # change to 3000 for M dependence plot
+     (stochastic_volatility_mams_paper, 800, 1500, 5000)] # change to 3000 for M dependence plot
     
 
 model, n1, n2, n_meads = m[0]
@@ -49,7 +50,7 @@ model, n1, n2, n_meads = m[0]
 #                                                        num_chains= batch_size, mesh= mesh, superchain_size= 1)(model=model)
 
 
-meads_results = run_meads_with_adam(model.logdensity_fn, model.ndims, n_meads, batch_size)
+meads_results = meads_with_adam(model.logdensity_fn, model.ndims, n_meads, batch_size)
 
 print(meads_results)
 
@@ -57,4 +58,4 @@ print(meads_results)
 #plot_trace(info, model, settings_info, 'papers/LAPS/img/trace/')
 
 
-#shifter --image=reubenharry/cosmo:1.0 python3 -m papers.LAPS.main
+#shifter --image=jrobnik/sampling:1.0 python3 -m papers.LAPS.main
