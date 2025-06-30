@@ -503,6 +503,7 @@ def grid_search_hmc(
     num_tuning_steps=10000,
     return_samples=False,
     L_proposal_factor=jnp.inf,
+    diagonal_preconditioning=True,
 ):
     
     def s(model, num_steps, initial_position, key):
@@ -528,6 +529,7 @@ def grid_search_hmc(
             sampler_type='adjusted_hmc',
             euclidean=True,
             L_proposal_factor=L_proposal_factor,
+            diagonal_preconditioning=diagonal_preconditioning,
         )
 
         sampler=adjusted_hmc_no_tuning(

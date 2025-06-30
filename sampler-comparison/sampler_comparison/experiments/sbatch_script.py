@@ -51,63 +51,38 @@ from sampler_comparison.experiments.utils import model_info
 from sampler_comparison.experiments.plotting import plot_results
 from sampler_evaluation.models.u1 import U1
 import time 
-
-def run(models, mh_options=[True, False], canonical_options=[True, False], langevin_options=[True, False], tuning_options=['alba'], integrator_type_options=['velocity_verlet','mclachlan'], diagonal_preconditioning_options=[True, False], redo=False, compute_missing=True):
-
-    
-    # mh_options = [True,False]
-    # canonical_options = [True,False]
-    # langevin_options = [True,False]
-    # tuning_options = ['alba']
-    # integrator_type_options = ['velocity_verlet','mclachlan']
-    # diagonal_preconditioning_options = [True,False]
-    
-   
+from sampler_comparison.experiments.benchmark import run
+from sampler_evaluation.models.cauchy import cauchy
 
 
-    
-
-    redo = True
-    compute_missing = True
-
-    full_results = pd.DataFrame()
-    for mh, canonical, langevin, tuning, integrator_type, diagonal_preconditioning, model in itertools.product(mh_options, canonical_options, langevin_options, tuning_options, integrator_type_options, diagonal_preconditioning_options, models):
-        time_start = time.time()
-        results = lookup_results(model=model, num_steps=model_info[model.name]['num_steps'][mh], mh=mh, canonical=canonical, langevin=langevin, tuning=tuning, integrator_type=integrator_type, diagonal_preconditioning=diagonal_preconditioning, redo=redo, batch_size=model_info[model.name]['batch_size'], relative_path='./', compute_missing=compute_missing)
-        full_results = pd.concat([full_results, results], ignore_index=True)
-        time_end = time.time()
-        print(f"Time taken: {time_end - time_start} seconds")
-   
 if __name__ == "__main__":
 
-    # run(
-    #     model=U1(Lt=16, Lx=16, beta=6), 
-    #     mh_options = [True],
-    #     canonical_options = [True],
-    #     langevin_options = [False],
-    #     tuning_options = ['nuts'],
-    #     integrator_type_options = ['velocity_verlet'],
-    #     diagonal_preconditioning_options = [True])
-
-    # models = [
-    #     model
-    #     IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log'),
-    #     IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
-    #     IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log', do_covariance=False),
-    #     IllConditionedGaussian(ndims=10000, condition_number=100, eigenvalues='log', do_covariance=False),
-    #     brownian_motion(),
-    #     german_credit(),
-    #     item_response(),
-    #     Rosenbrock(18),
-    #     stochastic_volatility_mams_paper,
-    #     U1(Lt=16, Lx=16, beta=6)
-    #     ]
-    
-    # run(
-    #     models=[brownian_motion(), german_credit(), Rosenbrock(18), IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False), IllConditionedGaussian(ndims=10000, condition_number=100, eigenvalues='log', do_covariance=False)], 
-    #     redo=False)
+    models = [
+        brownian_motion(),
+        Rosenbrock(18),
+        german_credit(),
+        # IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log'),
+        IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log', do_covariance=False),
+        IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
+        IllConditionedGaussian(ndims=10000, condition_number=100, eigenvalues='log', do_covariance=False),
+        item_response(),
+        stochastic_volatility_mams_paper,
+        # U1(Lt=16, Lx=16, beta=6)
+        cauchy(ndims=100),
+        banana(),
+        ]
+  
 
     run(
-        models=[stochastic_volatility_mams_paper])
-        # redo_bad_results=True)
-
+        models=models,
+        tuning_options=['grid_search'],
+        mh_options = [True, False],
+        canonical_options = [True, False],
+        langevin_options = [True, False],
+        integrator_type_options = ['velocity_verlet', 'mclachlan'],
+        diagonal_preconditioning_options = [True, False],
+        redo=False,
+        # mh_options = [False],
+        # diagonal_preconditioning_options = [False],
+        # redo_bad_results=True
+    )

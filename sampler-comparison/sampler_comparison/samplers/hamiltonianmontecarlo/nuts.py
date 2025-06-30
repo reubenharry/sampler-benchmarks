@@ -42,16 +42,31 @@ def nuts(
 
         else:
             warmup = blackjax.window_adaptation(
-                blackjax.nuts, logdensity_fn, integrator=integrator,
+                blackjax.nuts, logdensity_fn, integrator=integrator, target_acceptance_rate=target_acc_rate,
                 #  cos_angle_termination=cos_angle_termination
             )
             (state, params), adaptation_info = warmup.run(
-                warmup_key, initial_position, 20000
+                warmup_key, initial_position, num_tuning_steps
             )
+
+            # state, params, adaptation_info = da_adaptation(
+            #     rng_key=warmup_key,
+            #     initial_position=initial_position,
+            #     algorithm=blackjax.nuts,
+            #     integrator=integrator,
+            #     logdensity_fn=logdensity_fn,
+            #     num_steps=num_tuning_steps,
+            #     target_acceptance_rate=target_acc_rate,
+            #     # cos_angle_termination=cos_angle_termination,
+            # )
 
             adaptation_info = adaptation_info.info
 
-        jax.debug.print("params: {params}", params=params)
+        # jax.debug.print("acc_rate: {x}", x=(adaptation_info.acceptance_rate.mean(), params['step_size']))
+            
+
+        # jax.debug.print("params: {params}", params=params)
+        # raise Exception("stop")
 
         alg = blackjax.nuts(
             logdensity_fn=logdensity_fn,
@@ -94,6 +109,8 @@ def nuts(
             return get_final_sample(final_output, {})
 
         (expectations, info) = history
+
+        # jax.debug.print("x {x}", x=info.acceptance_rate.mean())
 
         return (
             expectations,

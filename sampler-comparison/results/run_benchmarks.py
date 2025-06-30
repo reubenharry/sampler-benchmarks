@@ -23,7 +23,7 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.mchmc import unadjuste
 from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.hmc import unadjusted_hmc
 import itertools
 import jax.numpy as jnp
-from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc, grid_search_unadjusted_lmc, grid_search_hmc
+from sampler_comparison.samplers.grid_search.grid_search import grid_search_adjusted_mclmc, grid_search_unadjusted_mclmc, grid_search_unadjusted_lmc, grid_search_hmc
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(128)
 num_cores = jax.local_device_count()
@@ -122,11 +122,11 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
     sampler_dict = {
 
         # adjusted/unadjusted  canonical/microcanonical  langevin/nolangevin  alba/nuts
-        (True, True, True, 'alba'): (f'adjusted_canonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_hmc,num_tuning_steps=5000, integrator_type=integrator_type, L_proposal_factor=1.25,diagonal_preconditioning=diagonal_preconditioning)),
+        (True, True, True, 'alba'): (f'adjusted_canonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_hmc,num_tuning_steps=5000, integrator_type=integrator_type, L_proposal_factor=1.25,  L_factor_stage_3=0.23, random_trajectory_length=False, diagonal_preconditioning=diagonal_preconditioning)),
 
         (True, True, False, 'alba'): (f'adjusted_canonical_nolangevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_hmc,num_tuning_steps=5000, integrator_type=integrator_type, L_proposal_factor=jnp.inf,diagonal_preconditioning=diagonal_preconditioning)),
 
-        (True, False, True, 'alba'): (f'adjusted_microcanonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_mclmc,L_proposal_factor=5.0, random_trajectory_length=True, L_factor_stage_3=0.23, num_tuning_steps=5000,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
+        (True, False, True, 'alba'): (f'adjusted_microcanonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_mclmc,L_proposal_factor=1.25, random_trajectory_length=False, L_factor_stage_3=0.23, num_tuning_steps=5000,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
 
         (True, False, False, 'alba'): (f'adjusted_microcanonical_nolangevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_mclmc,num_tuning_steps=5000,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
 
@@ -138,21 +138,23 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
 
         (False, False, False, 'alba'): (f'unadjusted_microcanonical_nolangevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(unadjusted_mchmc,num_tuning_steps=20000, desired_energy_var=5e-4, diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
 
-        (False, False, True, 'alba'): (f'unadjusted_microcanonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(unadjusted_mclmc,num_tuning_steps=2000,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
-
-        (False, False, False, 'alba'): (f'unadjusted_microcanonical_nolangevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(unadjusted_mchmc,num_tuning_steps=2000,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
 
         
-        
-        (True, True, False, 'nuts'): (f'adjusted_canonical_nolangevin_nuts_{integrator_name}_precond:{diagonal_preconditioning}', partial(nuts,num_tuning_steps=500, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning)),
+        (True, True, False, 'nuts'): (f'adjusted_canonical_nolangevin_nuts_{integrator_name}_precond:{diagonal_preconditioning}', partial(nuts,num_tuning_steps=5000, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, target_acc_rate=0.8)),
                                         # cos_angle_termination= cos_angle_termination)),
-        (True, True, False, 'nuts'): (f'adjusted_canonical_nolangevin_nuts_{integrator_name}_precond:{diagonal_preconditioning}', partial(nuts,num_tuning_steps=5000, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning)),
 
 
         (False, False, True, 'grid_search'): (f'unadjusted_microcanonical_langevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(grid_search_unadjusted_mclmc,num_tuning_steps=20000, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, num_chains= batch_size)),
                     
     
         (False, True, True, 'grid_search'): (f'unadjusted_canonical_langevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(grid_search_unadjusted_lmc,num_tuning_steps=20000, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, num_chains= batch_size)),
+        
+        (True, False, False, 'grid_search'): (f'adjusted_microcanonical_nolangevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(grid_search_adjusted_mclmc,num_tuning_steps=20000, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, num_chains= batch_size)),
+                    
+    
+        (True, True, False, 'grid_search'): (f'adjusted_canonical_nolangevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(grid_search_hmc,num_tuning_steps=20000, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, num_chains= batch_size)),
+
+
     
         }
     
@@ -201,6 +203,8 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
                 if os.path.exists(os.path.join(results_dir, f'{sampler_name}_{model.name}.csv')):
                     os.remove(os.path.join(results_dir, f'{sampler_name}_{model.name}.csv'))
                 raise FileNotFoundError  # This will trigger the rerun in the except block
+        
+        return results  # Return the loaded results
                 
     except FileNotFoundError:
         print(f"File not found for {model.name} with mh={mh}, canonical={canonical}, langevin={langevin}, tuning={tuning}, integrator_type={integrator_type}, diagonal_preconditioning={diagonal_preconditioning}")
@@ -245,6 +249,7 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
             print(f"Results saved to {results_dir}")
 
             results = pd.read_csv(os.path.join(results_dir, f'{sampler_name}_{model.name}.csv'))
+            return results  # Return the newly created results
         else:
             
             return pd.DataFrame()
