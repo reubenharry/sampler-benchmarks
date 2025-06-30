@@ -36,7 +36,8 @@ mesh = jax.sharding.Mesh(jax.devices()[:1], 'chains')
 
 print('Number of devices: ', len(jax.devices()))
 
-m = [(banana_mams_paper, 100, 50, 500),
+m = [(banana_mams_paper, 100,
+       50, 500),
      #(Gaussian(ndims=100, eigenvalues='Gamma', numpy_seed= rng_inference_gym_icg), 500, 500])
      (german_credit(), 500, 400, 2000),      
      (brownian_motion(), 500, 500, 2000),
