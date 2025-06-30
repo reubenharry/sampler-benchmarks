@@ -5,8 +5,9 @@ jax.config.update("jax_enable_x64", True)
 from typing import NamedTuple
 import os, sys
 current_path = os.getcwd()
-sys.path.append(current_path + '/../../blackjax/')
-sys.path.append(current_path + '/../sampler-evaluation/')
+sys.path.append('../blackjax/')
+sys.path.append('sampler-evaluation/')
+sys.path.append('sampler-comparison/')
 
 from blackjax.adaptation import ensemble_umclmc as umclmc
 from sampler_comparison.samplers.general import make_log_density_fn
@@ -14,9 +15,9 @@ from sampler_comparison.samplers.general import make_log_density_fn
 import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
-from scipy.optimize import minimize
+from scipy import optimize
 
-img_path = os.path.dirname(os.path.abspath(__file__)) + '/../img/laps/greedy/'
+img_path = os.path.dirname(os.path.abspath(__file__)) + '/img/greedy/'
 
 
 class AdaptationState(NamedTuple):
@@ -25,7 +26,7 @@ class AdaptationState(NamedTuple):
     inverse_mass_matrix: jnp.ndarray
 
 
-def grid_search1(loss, x, savefig = None):
+def _grid1(loss, x, savefig = None):
     Z = jax.vmap(loss)(x)
     index = jnp.argmin(Z)
 
@@ -37,8 +38,15 @@ def grid_search1(loss, x, savefig = None):
     return Z[index], x[index]
 
 
+def grid1(eps_low, eps_high):
 
-def grid_search2(loss, x, y, savefig = None):
+    def func(loss): 
+        x = np.logspace(eps_low, eps_high, 50)
+        return _grid1(loss, x)[1]
+    
+    return func
+
+def _grid2(loss, x, y, savefig = None):
     X, Y = jnp.meshgrid(x, y)
     Z = jax.vmap(jax.vmap(loss))(X, Y)
     index = jnp.unravel_index(jnp.argmin(Z), Z.shape)
@@ -64,30 +72,31 @@ class Problem:
         L = 100.,
         beta = 1):
 
-        num_steps = 2 ** num_steps_pow
-        self.L = jnp.full(num_steps, L)
+        self.num_steps = 2 ** num_steps_pow
+        self.L = jnp.full(self.num_steps, L)
+        self.sigma = jnp.ones(model.ndims)
 
         logdensity_fn = make_log_density_fn(model)
 
         key_init, key_kernel = jax.random.split(rng_key)
-        keys_kernel = jax.random.split(key_kernel, (num_steps, num_chains))
+        keys_kernel = jax.random.split(key_kernel, (self.num_steps, num_chains))
 
         # initialize the chains
         initial_state = umclmc.initialize(
-            key_init, logdensity_fn, lambda k: model.sample_init(k, beta), num_chains, mesh
+            key_init, logdensity_fn, lambda k: model.sample_init(k, beta), num_chains, mesh, superchain_size=1
         )
 
         self.kernel = jax.vmap(umclmc.build_kernel(logdensity_fn), (0, 0, None))
 
         def kernel_wrap(state, xs):
-            return self.kernel(xs['key'], state, AdaptationState(L= xs['steps_per_trajectory'], step_size = xs['step_size'], inverse_mass_matrix= sigma))
+            return self.kernel(xs['key'], state, AdaptationState(L= xs['steps_per_trajectory'], step_size = xs['step_size'], inverse_mass_matrix= self.sigma))
 
 
         def propagator(step_size):
             return jax.lax.scan(kernel_wrap, init= initial_state, 
                                 xs = {'key': keys_kernel, 
                                         'step_size': step_size,
-                                        'steps_per_trajectory': L
+                                        'steps_per_trajectory': self.L
                                         }
                                     )[0]
 
@@ -98,9 +107,11 @@ class Problem:
             bsq = jnp.square(e_x - model.sample_transformations["square"].ground_truth_mean) / (model.sample_transformations["square"].ground_truth_standard_deviation**2)
             
             return jnp.max(bsq)
-
+ 
 
         self.propagator = propagator
+        self.initial_state = initial_state
+        self.keys = keys_kernel
         self.state_to_loss = state_to_loss
         self.num_steps_pow = num_steps_pow
 
@@ -108,7 +119,7 @@ class Problem:
     def get_loss_history(self, stepsize):
 
         def step(state, xs):
-            state_new = self.kernel(xs['key'], state, AdaptationState(L = xs['steps_per_trajectory'], step_size = xs['stepsize'], inverse_mass_matrix= sigma))[0]
+            state_new = self.kernel(xs['key'], state, AdaptationState(L = xs['steps_per_trajectory'], step_size = xs['stepsize'], inverse_mass_matrix= self.sigma))[0]
             return state_new, self.state_to_loss(state_new)
 
         loss_history = jax.lax.scan(step, self.initial_state, xs= {'key': self.keys, 'stepsize': stepsize, 'steps_per_trajectory': self.L})[1]
@@ -116,6 +127,25 @@ class Problem:
         return np.array(loss_history)
 
 
+
+    def optimize(self, optimizer, x_to_eps):
+
+
+        def loss(x):
+            step_size = x_to_eps(x, self.num_steps)
+            final_state = self.propagator(step_size)
+            return jnp.log(self.state_to_loss(final_state))
+
+        x = optimizer(loss)
+        
+        stepsize = x_to_eps(x, self.num_steps)
+
+        loss_history = self.get_loss_history(stepsize)
+
+        return x, loss_history, stepsize
+
+
+        
 
 
 #####   Optimizers   #####
@@ -136,7 +166,7 @@ def refine_annealing(problem):
         if not grid_search:
             bounds = [(-np.inf, np.inf), ] + [(0, np.inf) for i in range(len(x_init)-1)]
 
-            opt = minimize(jax.value_and_grad(loss), jac= True, 
+            opt = optimize.minimize(jax.value_and_grad(loss), jac= True, 
                         x0= x_init, 
                         method='L-BFGS-B', 
                         bounds = bounds,
@@ -186,103 +216,21 @@ def refine_annealing(problem):
     return np.array(loss_history), np.array(stepsize)
 
 
+def scipy_wrap(method, x0, bounds= None, maxiter= 100):
 
-def const(problem):
+    def func(loss):
+        opt = optimize.minimize(jax.value_and_grad(loss), jac= True, 
+                    x0= x0, 
+                    method=method, 
+                    bounds= bounds,
+                    options={'maxiter': maxiter})
+        
+        return opt.x
 
+    return func
 
-    def loss_const_stepsize(eps):
-        final_state = problem.propagator(jnp.full(len(self.keys), eps), self.L)
-        return self.state_to_loss(final_state)
+monotonic_repeat = lambda x, size: jnp.repeat(jnp.exp(-jnp.cumsum(x)), size // len(x))
 
-    eps_arr = jnp.logspace(0, 1.5, 100)
-    L_arr = jnp.logspace(0, 2, 100)
-
-    _, eps, L = grid_search2(loss_const_stepsize, eps_arr, L_arr)
-
-    loss_history = get_loss_history(self.kernel, state_to_loss, initial_state, jnp.full(len(keys), eps), jnp.full(len(keys), L), keys)
-    
-    return loss_history, eps, L
-
-
-    def greedy_opt1(kernel, state_to_loss, initial_state, initial_stepsize, keys, L):
-
-        """
-        Greedily optimize the step size by minimizing the loss function.
-        """
-        state = initial_state
-        stepsize = initial_stepsize
-        stepsize_history = []
-        loss_history = []
-
-        for key in keys:
-
-            one_step = lambda eps: kernel(key, state, AdaptationState(L = L, step_size= eps, inverse_mass_matrix= sigma))[0]
-            fact = np.log10(4.)
-            eps = jnp.logspace(-fact, fact, 200) * stepsize
-            loss= jax.vmap(lambda eps: state_to_loss(one_step(eps)))(eps)
-            stepsize = eps[jnp.argmin(loss)]
-            state = one_step(stepsize)
-            stepsize_history.append(stepsize)
-            loss_history.append(jnp.min(loss))
-
-        return np.array(loss_history), np.array(stepsize_history)
-
-
-
-def full_opt_reparam(kernel, propagator, state_to_loss, initial_state, stepsize_guess, keys, L):
-
-
-    x_to_eps = lambda x: jnp.cumprod(x) * stepsize_guess[0]
-    init = jnp.insert(stepsize_guess[1:] / stepsize_guess[:-1], 0, 1.)
-
-    def loss(x):
-        step_size = x_to_eps(x)
-        final_state = propagator(step_size)
-        return jnp.log(state_to_loss(final_state))
-
-    opt = minimize(jax.value_and_grad(loss), jac= True, 
-                x0= init, 
-                method='L-BFGS-B', 
-                bounds= [(1./4., 4.),] * len(keys), 
-                options={'maxiter': 20}
-                )
-    print(opt)
-
-    stepsize = x_to_eps(opt.x)
-
-    loss_history = get_loss_history(kernel, state_to_loss, initial_state, stepsize, L, keys)
-
-    return loss_history, stepsize
-
-
-
-def full_opt(kernel, propagator, state_to_loss, initial_state, keys, L):
-
-    LL = jnp.full(len(keys), L)
-
-    t = jnp.arange(len(keys))
-
-    x_to_eps = lambda x: x[0] * jnp.power(t + 1, - x[2]) + x[1]
-
-
-    def loss(x):
-        final_state = propagator(x_to_eps(x), LL)
-        return jnp.log(state_to_loss(final_state))
-
-
-    opt = minimize(jax.value_and_grad(loss), jac= True, 
-                x0= (8, 0.1, 2), 
-                method='L-BFGS-B', 
-                #bounds= jnp.array([stepsize_guess * 0.5, stepsize_guess * 2.]).T,
-                options={'maxiter': 100}
-                )
-    print(opt)
-
-    stepsize = x_to_eps(opt.x)
-
-    loss_history = get_loss_history(kernel, state_to_loss, initial_state, stepsize, LL, keys)
-
-    return loss_history, stepsize
 
 
 def plott():
@@ -327,14 +275,70 @@ mesh = jax.sharding.Mesh(jax.devices()[:1], 'chains')
 key = jax.random.key(0)
 
 model = banana_mams_paper # IllConditionedGaussian(ndims=2, condition_number=1)
-num_steps_pow = 5
+num_steps_pow = 4
+num_steps = 2 ** num_steps_pow
 
-sigma = jnp.ones(model.ndims)
-
-mainn(model, batch_size, mesh, num_steps_pow, key, beta = 1)
-
-
-#shifter --image=reubenharry/cosmo:1.0 python3 -m sampler_comparison.experiments.greedy_ensemble
+problem = Problem(model, batch_size, mesh, key, num_steps_pow)
 
 
-# Use with "autodiff" branch on blackjax
+# x, b, eps = problem.optimize(grid1(0, 1.5), 
+#                              x_to_eps = lambda x, size: jnp.full(size, x))
+
+bounds_unconstrained = [(0., np.inf) for i in range(num_steps)]
+bounds = [(0., np.log(3.))]
+
+basinhopping = {'algorithm': lambda loss: optimize.basinhopping(jax.value_and_grad(loss), 
+                                                  x0= jnp.ones(num_steps), 
+                                                  minimizer_kwargs= {'bounds': bounds_unconstrained, 
+                                                                     'method': 'L-BFGS-B', 
+                                                                     'jac': True}).x,
+                'name': 'basinhopping'}
+
+diff_evol = {'algorithm': lambda loss: optimize.differential_evolution(loss, bounds).x, 'name': 'differential_evolution'}
+
+shgo = {'algorithm': lambda loss: optimize.shgo(loss, bounds).x, 'name': 'shgo'}
+
+dual_annealing = {'algorithm': lambda loss: optimize.dual_annealing(loss, bounds).x, 'name': 'dual_annealing'}
+
+direct = {'algorithm': lambda loss: optimize.direct(loss, bounds).x, 'name': 'direct'}
+
+
+algorithms = [basinhopping, diff_evol, shgo, dual_annealing, direct]
+
+from time import time
+
+for alg in algorithms:
+
+    tic = time()
+    x, b, eps = problem.optimize(alg['algorithm'], monotonic_repeat)
+
+
+    plt.rcParams.update({'font.size': 23})
+    plt.figure(figsize=(10, 10))
+
+    plt.subplot(2, 1, 1)
+    plt.plot(b, 'o-')
+
+    plt.yscale('log')
+    plt.ylabel('Max squared bias')
+
+    plt.subplot(2, 1, 2)
+    edges = np.arange(len(b) + 1)
+    plt.stairs(eps, edges)
+
+    plt.ylabel('Stepsize')
+
+    plt.xlabel('# gradient calls')
+    plt.tight_layout()
+    plt.savefig(img_path + model.name + '_' + alg['name']+ '.png')
+    plt.close()
+
+
+    toc = time()
+
+    diff = (toc - tic)/ 60
+
+    print(f"Algorithm {alg['name']} took {diff:.2f} minutes.")
+
+
+#shifter --image=reubenharry/cosmo:1.0 python3 -m papers.LAPS.opt
