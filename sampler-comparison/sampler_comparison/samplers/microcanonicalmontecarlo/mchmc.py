@@ -11,7 +11,7 @@ from sampler_comparison.util import (
     map_integrator_type_to_integrator,
 )
 from blackjax.adaptation.mclmc_adaptation import MCLMCAdaptationState
-
+from blackjax.adaptation.unadjusted_alba import unadjusted_alba
 
 
 def unadjusted_mchmc_no_tuning(
@@ -132,13 +132,25 @@ def unadjusted_mchmc_tuning(
     initial_state = blackjax.mcmc.mchmc.init(
         position=initial_position,
         logdensity_fn=logdensity_fn,
-        rng_key=init_key,
+        random_generator_arg=init_key,
     )
 
-    kernel = lambda inverse_mass_matrix: blackjax.mcmc.mchmc.build_kernel(
-        logdensity_fn=logdensity_fn,
+    # kernel = lambda inverse_mass_matrix: blackjax.mcmc.mchmc.build_kernel(
+    #     logdensity_fn=logdensity_fn,
+    #     integrator=map_integrator_type_to_integrator["mclmc"][integrator_type],
+    #     inverse_mass_matrix=inverse_mass_matrix,
+    # )
+
+    kernel = lambda inverse_mass_matrix: lambda rng_key, state, L, step_size: blackjax.mcmc.mclmc.build_kernel(
         integrator=map_integrator_type_to_integrator["mclmc"][integrator_type],
+    )(
+        rng_key=rng_key,
+        state=state,
+        step_size=step_size,
+        logdensity_fn=logdensity_fn,
         inverse_mass_matrix=inverse_mass_matrix,
+        L=L,
+        # L_proposal_factor=L_proposal_factor,
     )
 
     dim = initial_position.shape[0]
@@ -179,28 +191,42 @@ def unadjusted_mchmc(
 
         tune_key, run_key = jax.random.split(key, 2)
 
-        (
-            blackjax_state_after_tuning,
-            blackjax_mchmc_sampler_params,
-            num_tuning_integrator_steps,
-        ) = unadjusted_mchmc_tuning(
-            initial_position=initial_position,
-            num_steps=num_steps,
-            rng_key=tune_key,
-            logdensity_fn=logdensity_fn,
-            integrator_type=integrator_type,
-            diagonal_preconditioning=diagonal_preconditioning,
-            num_tuning_steps=num_tuning_steps,
-            desired_energy_var=desired_energy_var,
-            num_windows=num_windows,
-        )
+        # (
+        #     blackjax_state_after_tuning,
+        #     blackjax_mchmc_sampler_params,
+        #     num_tuning_integrator_steps,
+        # ) = unadjusted_mchmc_tuning(
+        #     initial_position=initial_position,
+        #     num_steps=num_steps,
+        #     rng_key=tune_key,
+        #     logdensity_fn=logdensity_fn,
+        #     integrator_type=integrator_type,
+        #     diagonal_preconditioning=diagonal_preconditioning,
+        #     num_tuning_steps=num_tuning_steps,
+        #     desired_energy_var=desired_energy_var,
+        #     num_windows=num_windows,
+        # )
+
+        num_alba_steps = num_tuning_steps // 3
+        warmup = unadjusted_alba(
+            algorithm=blackjax.mchmc, 
+            logdensity_fn=logdensity_fn, integrator=map_integrator_type_to_integrator["mclmc"][integrator_type], 
+            target_eevpd=5e-4, 
+            v=1., 
+            num_alba_steps=num_alba_steps,
+            preconditioning=diagonal_preconditioning
+            )
+        
+        (blackjax_state_after_tuning, blackjax_mchmc_sampler_params), adaptation_info = warmup.run(tune_key, initial_position, num_tuning_steps)
+
+        num_tuning_integrator_steps = num_tuning_steps
 
         expectations, metadata = unadjusted_mchmc_no_tuning(
             initial_state=blackjax_state_after_tuning,
             integrator_type=integrator_type,
-            step_size=blackjax_mchmc_sampler_params.step_size,
-            L=blackjax_mchmc_sampler_params.L,
-            inverse_mass_matrix=blackjax_mchmc_sampler_params.inverse_mass_matrix,
+            step_size=blackjax_mchmc_sampler_params['step_size'],
+            L=blackjax_mchmc_sampler_params['L'],
+            inverse_mass_matrix=blackjax_mchmc_sampler_params['inverse_mass_matrix'],
             return_samples=return_samples,
             return_only_final=return_only_final,
             incremental_value_transform=incremental_value_transform,

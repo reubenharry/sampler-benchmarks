@@ -23,7 +23,7 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.mchmc import unadjuste
 from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.hmc import unadjusted_hmc
 import itertools
 import jax.numpy as jnp
-from sampler_comparison.samplers.grid_search.grid_search import grid_search_adjusted_mclmc, grid_search_unadjusted_mclmc, grid_search_unadjusted_lmc, grid_search_hmc
+from sampler_comparison.samplers.grid_search.grid_search import grid_search_adjusted_mclmc, grid_search_unadjusted_mclmc, grid_search_unadjusted_lmc, grid_search_hmc, grid_search_unadjusted_hmc
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(128)
 num_cores = jax.local_device_count()
@@ -62,6 +62,7 @@ def run_benchmarks(
             key=key,
             calculate_ess_corr=calculate_ess_corr
         )
+        # jax.debug.print("stats {x}", x=1)
 
 
         for trans in models[model].sample_transformations:
@@ -113,46 +114,52 @@ def run_benchmarks(
             df.to_csv(os.path.join(save_dir, f"{sampler}_{model}.csv"))
 
 
-def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, langevin : bool, tuning : str, integrator_type : str, diagonal_preconditioning : bool, redo : bool, relative_path : str = '.', compute_missing : bool = False, redo_bad_results : bool = None, statistic = 'square'):
+def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, langevin : bool, tuning : str, integrator_type : str, diagonal_preconditioning : bool, redo : bool, relative_path : str = '.', compute_missing : bool = False, redo_bad_results : bool = None, statistic = 'square', key=jax.random.PRNGKey(16)):
 
     integrator_name = integrator_type.replace('_', ' ')
 
-    # note: num_tuning_steps is ill-named: for the adjusted samplers, it just controls how many tuning steps are used to find the mass matrix. 
+
+    unadjusted_tuning_steps = 20000
+    adjusted_tuning_steps = 5000
+
+    target_acc_rate = 0.9 if integrator_type == 'mclachlan' else 0.9
 
     sampler_dict = {
 
         # adjusted/unadjusted  canonical/microcanonical  langevin/nolangevin  alba/nuts
-        (True, True, True, 'alba'): (f'adjusted_canonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_hmc,num_tuning_steps=5000, integrator_type=integrator_type, L_proposal_factor=1.25,  L_factor_stage_3=0.23, random_trajectory_length=False, diagonal_preconditioning=diagonal_preconditioning)),
+        (True, True, True, 'alba'): (f'adjusted_canonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_hmc,num_tuning_steps=adjusted_tuning_steps, integrator_type=integrator_type, L_proposal_factor=1.25,target_acc_rate=target_acc_rate, L_factor_stage_3=0.23, random_trajectory_length=False, diagonal_preconditioning=diagonal_preconditioning)),
 
-        (True, True, False, 'alba'): (f'adjusted_canonical_nolangevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_hmc,num_tuning_steps=5000, integrator_type=integrator_type, L_proposal_factor=jnp.inf,diagonal_preconditioning=diagonal_preconditioning)),
+        (True, True, False, 'alba'): (f'adjusted_canonical_nolangevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_hmc,num_tuning_steps=adjusted_tuning_steps, integrator_type=integrator_type, L_proposal_factor=jnp.inf,target_acc_rate=target_acc_rate,diagonal_preconditioning=diagonal_preconditioning)),
 
-        (True, False, True, 'alba'): (f'adjusted_microcanonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_mclmc,L_proposal_factor=1.25, random_trajectory_length=False, L_factor_stage_3=0.23, num_tuning_steps=5000,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
+        (True, False, True, 'alba'): (f'adjusted_microcanonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_mclmc,L_proposal_factor=1.25, random_trajectory_length=False, L_factor_stage_3=0.23, target_acc_rate=target_acc_rate, num_tuning_steps=adjusted_tuning_steps,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
 
-        (True, False, False, 'alba'): (f'adjusted_microcanonical_nolangevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_mclmc,num_tuning_steps=5000,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
+        (True, False, False, 'alba'): (f'adjusted_microcanonical_nolangevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_mclmc,num_tuning_steps=adjusted_tuning_steps,target_acc_rate=target_acc_rate,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
 
-        (False, True, True, 'alba'): (f'unadjusted_canonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(unadjusted_lmc,desired_energy_var=3e-4, num_tuning_steps=20000,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
+        (False, True, True, 'alba'): (f'unadjusted_canonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(unadjusted_lmc,desired_energy_var=3e-4, num_tuning_steps=unadjusted_tuning_steps,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
 
-        (False, True, False, 'alba'): (f'unadjusted_canonical_nolangevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(unadjusted_hmc, desired_energy_var=3e-4,num_tuning_steps=20000,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
+        (False, True, False, 'alba'): (f'unadjusted_canonical_nolangevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(unadjusted_hmc, desired_energy_var=3e-4,num_tuning_steps=unadjusted_tuning_steps,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
 
-        (False, False, True, 'alba'): (f'unadjusted_microcanonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(unadjusted_mclmc,num_tuning_steps=20000, desired_energy_var=5e-4, diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
+        (False, False, True, 'alba'): (f'unadjusted_microcanonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(unadjusted_mclmc,num_tuning_steps=unadjusted_tuning_steps, desired_energy_var=5e-4, diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
 
-        (False, False, False, 'alba'): (f'unadjusted_microcanonical_nolangevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(unadjusted_mchmc,num_tuning_steps=20000, desired_energy_var=5e-4, diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
+        (False, False, False, 'alba'): (f'unadjusted_microcanonical_nolangevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(unadjusted_mchmc,num_tuning_steps=unadjusted_tuning_steps, desired_energy_var=5e-4, diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
 
 
         
-        (True, True, False, 'nuts'): (f'adjusted_canonical_nolangevin_nuts_{integrator_name}_precond:{diagonal_preconditioning}', partial(nuts,num_tuning_steps=5000, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, target_acc_rate=0.8)),
+        (True, True, False, 'nuts'): (f'adjusted_canonical_nolangevin_nuts_{integrator_name}_precond:{diagonal_preconditioning}', partial(nuts,num_tuning_steps=adjusted_tuning_steps, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, target_acc_rate=target_acc_rate)),
                                         # cos_angle_termination= cos_angle_termination)),
 
 
-        (False, False, True, 'grid_search'): (f'unadjusted_microcanonical_langevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(grid_search_unadjusted_mclmc,num_tuning_steps=20000, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, num_chains= batch_size)),
+        (False, False, True, 'grid_search'): (f'unadjusted_microcanonical_langevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(grid_search_unadjusted_mclmc,num_tuning_steps=unadjusted_tuning_steps, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, num_chains= batch_size)),
                     
     
-        (False, True, True, 'grid_search'): (f'unadjusted_canonical_langevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(grid_search_unadjusted_lmc,num_tuning_steps=20000, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, num_chains= batch_size)),
+        (False, True, True, 'grid_search'): (f'unadjusted_canonical_langevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(grid_search_unadjusted_lmc,num_tuning_steps=unadjusted_tuning_steps, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, num_chains= batch_size)),
         
-        (True, False, False, 'grid_search'): (f'adjusted_microcanonical_nolangevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(grid_search_adjusted_mclmc,num_tuning_steps=20000, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, num_chains= batch_size)),
+        (False, True, False, 'grid_search'): (f'unadjusted_canonical_nolangevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(grid_search_unadjusted_hmc,num_tuning_steps=unadjusted_tuning_steps, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, num_chains= batch_size)),
+        
+        (True, False, False, 'grid_search'): (f'adjusted_microcanonical_nolangevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(grid_search_adjusted_mclmc,num_tuning_steps=unadjusted_tuning_steps, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, num_chains= batch_size)),
                     
     
-        (True, True, False, 'grid_search'): (f'adjusted_canonical_nolangevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(grid_search_hmc,num_tuning_steps=20000, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, num_chains= batch_size)),
+        (True, True, False, 'grid_search'): (f'adjusted_canonical_nolangevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(grid_search_hmc,num_tuning_steps=unadjusted_tuning_steps, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, num_chains= batch_size)),
 
 
     
@@ -242,7 +249,7 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
                 batch_size=batch_size,
                 num_steps=num_steps,
                 save_dir=results_dir,
-                key=jax.random.key(16),
+                key=key,
                 map=map,
                 calculate_ess_corr=False,
             )

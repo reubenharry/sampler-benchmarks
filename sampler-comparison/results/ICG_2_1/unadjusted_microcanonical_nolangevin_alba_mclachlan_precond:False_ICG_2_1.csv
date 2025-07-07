@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,inf,,,True,covariance,40002.0,1.2905409276793223,1.0491745601059865,128
-1,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,inf,,,False,covariance,40002.0,1.2905409276793223,1.0491745601059865,128
-2,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,772.0,37.827475464270684,,True,identity,40002.0,1.2905409276793223,1.0491745601059865,128
-3,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,408.0,31.199158642501885,,False,identity,40002.0,1.2905409276793223,1.0491745601059865,128
-4,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,678.0,43.971867142526484,,True,square,40002.0,1.2905409276793223,1.0491745601059865,128
-5,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,358.0,26.00423042506738,,False,square,40002.0,1.2905409276793223,1.0491745601059865,128
+0,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,1414.0,42.46420963588042,,True,covariance,40000.0,1.4041968555485518,1.0974616239321164,128
+1,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,1414.0,42.46420963588042,,False,covariance,40000.0,1.4041968555485518,1.0974616239321164,128
+2,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,650.0,30.042002263497686,,True,identity,40000.0,1.4041968555485518,1.0974616239321164,128
+3,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,404.0,35.009248778001506,,False,identity,40000.0,1.4041968555485518,1.0974616239321164,128
+4,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,596.0,41.868097640088685,,True,square,40000.0,1.4041968555485518,1.0974616239321164,128
+5,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,ICG_2_1,284.0,15.011578864330026,,False,square,40000.0,1.4041968555485518,1.0974616239321164,128

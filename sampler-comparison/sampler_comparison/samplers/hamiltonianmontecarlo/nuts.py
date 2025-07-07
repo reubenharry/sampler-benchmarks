@@ -28,24 +28,26 @@ def nuts(
 
         rng_key, warmup_key = jax.random.split(key, 2)
 
-        if not diagonal_preconditioning:
-            state, params, adaptation_info = da_adaptation(
-                rng_key=warmup_key,
-                initial_position=initial_position,
-                algorithm=blackjax.nuts,
-                integrator=integrator,
-                logdensity_fn=logdensity_fn,
-                num_steps=num_tuning_steps,
-                target_acceptance_rate=target_acc_rate,
-                # cos_angle_termination=cos_angle_termination,
-            )
+        # if not diagonal_preconditioning:
+        #     state, params, adaptation_info = da_adaptation(
+        #         rng_key=warmup_key,
+        #         initial_position=initial_position,
+        #         algorithm=blackjax.nuts,
+        #         integrator=integrator,
+        #         logdensity_fn=logdensity_fn,
+        #         num_steps=num_tuning_steps,
+        #         target_acceptance_rate=target_acc_rate,
+        #         # cos_angle_termination=cos_angle_termination,
+        #     )
 
-        else:
-            warmup = blackjax.window_adaptation(
-                blackjax.nuts, logdensity_fn, integrator=integrator, target_acceptance_rate=target_acc_rate,
+        # else:
+        warmup = blackjax.window_adaptation(
+                blackjax.nuts, logdensity_fn, integrator=integrator, 
+                preconditioning=diagonal_preconditioning,
+                target_acceptance_rate=target_acc_rate,
                 #  cos_angle_termination=cos_angle_termination
             )
-            (state, params), adaptation_info = warmup.run(
+        (state, params), adaptation_info = warmup.run(
                 warmup_key, initial_position, num_tuning_steps
             )
 
@@ -60,7 +62,7 @@ def nuts(
             #     # cos_angle_termination=cos_angle_termination,
             # )
 
-            adaptation_info = adaptation_info.info
+        adaptation_info = adaptation_info.info
 
         # jax.debug.print("acc_rate: {x}", x=(adaptation_info.acceptance_rate.mean(), params['step_size']))
             

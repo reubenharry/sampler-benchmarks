@@ -27,6 +27,7 @@ from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import (
 )
 from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_langevin import unadjusted_lmc_no_tuning
 import blackjax.mcmc.metrics as metrics
+from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.hmc import unadjusted_hmc_no_tuning
 
 def grid_search_step_size(state, params, num_steps, da_key_per_iter):
     return params
@@ -103,27 +104,32 @@ def grid_search_L(
 
         kernel = lambda rng_key, state, avg_num_integration_steps, step_size, inverse_mass_matrix: blackjax.mcmc.adjusted_mclmc_dynamic.build_kernel(
             integrator=map_integrator_type_to_integrator["mclmc"][integrator_type],
-            integration_steps_fn=integration_steps_fn(avg_num_integration_steps),
-            inverse_mass_matrix=inverse_mass_matrix,
         )(
             rng_key=rng_key,
             state=state,
             step_size=step_size,
             logdensity_fn=logdensity_fn,
             L_proposal_factor=jnp.inf,
+            integration_steps_fn=integration_steps_fn(avg_num_integration_steps),
+            inverse_mass_matrix=inverse_mass_matrix,
         )
 
     elif sampler_type=='unadjusted_mclmc':
-        kernel = lambda inverse_mass_matrix: blackjax.mcmc.mclmc.build_kernel(
-        logdensity_fn=logdensity_fn,
-        integrator=map_integrator_type_to_integrator["mclmc"][integrator_type],
-        inverse_mass_matrix=inverse_mass_matrix,
+        kernel = lambda inverse_mass_matrix: lambda rng_key, state, L, step_size: blackjax.mcmc.mclmc.build_kernel(
+            integrator=map_integrator_type_to_integrator["mclmc"][integrator_type],
+        )(
+            rng_key=rng_key,
+            state=state,
+            step_size=step_size,
+            logdensity_fn=logdensity_fn,
+            inverse_mass_matrix=inverse_mass_matrix,
+            L=L,
+            # L_proposal_factor=L_proposal_factor,
         )
 
     elif sampler_type=='adjusted_hmc':
         kernel = lambda rng_key, state, avg_num_integration_steps, step_size, inverse_mass_matrix: blackjax.mcmc.dynamic_malt.build_kernel(
         integrator=map_integrator_type_to_integrator["hmc"][integrator_type],
-        integration_steps_fn=integration_steps_fn(avg_num_integration_steps),
         L_proposal_factor=L_proposal_factor,
         )(
             rng_key=rng_key,
@@ -132,18 +138,39 @@ def grid_search_L(
             logdensity_fn=logdensity_fn,
             # L_proposal_factor=L_proposal_factor,
             inverse_mass_matrix=inverse_mass_matrix,
+            integration_steps_fn=integration_steps_fn(avg_num_integration_steps),
         )
 
     elif sampler_type=='unadjusted_lmc':
         
 
-        kernel = lambda inverse_mass_matrix: blackjax.langevin.build_kernel(
-        logdensity_fn=logdensity_fn,
-        integrator=map_integrator_type_to_integrator["hmc"][integrator_type],
-        inverse_mass_matrix=inverse_mass_matrix,
-        desired_energy_var=1e-1,
-        desired_energy_var_max_ratio=jnp.inf,
-        # (1/desired_energy_var)*10000,
+        kernel = lambda inverse_mass_matrix: lambda rng_key, state, L, step_size: blackjax.langevin.build_kernel(
+            integrator=map_integrator_type_to_integrator["hmc"][integrator_type],
+            desired_energy_var=desired_energy_var,
+            # desired_energy_var_max_ratio=desired_energy_var_max_ratio,
+        )(
+            rng_key=rng_key,
+            state=state,
+            logdensity_fn=logdensity_fn,
+            L=L,
+            step_size=step_size,
+            inverse_mass_matrix=inverse_mass_matrix,
+        )
+    
+    elif sampler_type=='unadjusted_hmc':
+        
+
+        kernel = lambda inverse_mass_matrix: lambda rng_key, state, L, step_size: blackjax.uhmc.build_kernel(
+            integrator=map_integrator_type_to_integrator["hmc"][integrator_type],
+            desired_energy_var=desired_energy_var,
+            # desired_energy_var_max_ratio=desired_energy_var_max_ratio,
+        )(
+            rng_key=rng_key,
+            state=state,
+            logdensity_fn=logdensity_fn,
+            L=L,
+            step_size=step_size,
+            inverse_mass_matrix=inverse_mass_matrix,
         )
     else:
         raise Exception('sampler not recognized')
@@ -221,7 +248,7 @@ def grid_search_L(
                 mclmc_state = blackjax.mcmc.mclmc.init(
                     position=state.position,
                     logdensity_fn=logdensity_fn,
-                    rng_key=jax.random.key(0),
+                    random_generator_arg=jax.random.key(0),
                 )
 
                 (blackjax_state_after_tuning, params) = (
@@ -276,8 +303,8 @@ def grid_search_L(
                 lmc_state = blackjax.mcmc.underdamped_langevin.init(
                     position=state.position,
                     logdensity_fn=logdensity_fn,
-                    rng_key=jax.random.key(0),
-                    metric=metrics.default_metric(inverse_mass_matrix),
+                    random_generator_arg=jax.random.key(0),
+                    # metric=metrics.default_metric(inverse_mass_matrix),
                 )
 
                 
@@ -315,59 +342,59 @@ def grid_search_L(
                 # jax.debug.print("out {x}", x=blackjax_mclmc_sampler_params.step_size)
                 jax.debug.print("step size {x}", x=params.step_size)
 
-            if sampler_type=='unadjusted_lmc':
-                key_per_step_size = jax.random.fold_in(bench_key_per_iter, i)
+                # if sampler_type=='unadjusted_lmc':
+                #     key_per_step_size = jax.random.fold_in(bench_key_per_iter, i)
 
-                # params = grid_search_step_size(lmc_state, params, num_steps, da_key_per_iter)  
-                step_sizes = jnp.linspace(params.step_size / 3, params.step_size * 3, 10)
-                jax.debug.print("step sizes {x}", x=step_sizes)
-                Num_Grads_AVG_step_size = jnp.zeros(len(step_sizes))
-                Num_Grads_MAX_step_size = jnp.zeros(len(step_sizes))
-                
-                do_grid_search_step_size = True
-                if do_grid_search_step_size:
-                    for j, step_size in enumerate(step_sizes):
+                #     # params = grid_search_step_size(lmc_state, params, num_steps, da_key_per_iter)  
+                #     step_sizes = jnp.linspace(params.step_size / 3, params.step_size * 3, 10)
+                #     jax.debug.print("step sizes {x}", x=step_sizes)
+                #     Num_Grads_AVG_step_size = jnp.zeros(len(step_sizes))
+                #     Num_Grads_MAX_step_size = jnp.zeros(len(step_sizes))
+                    
+                #     do_grid_search_step_size = True
+                #     if do_grid_search_step_size:
+                #         for j, step_size in enumerate(step_sizes):
 
-                        sampler = unadjusted_lmc_no_tuning(
-                            initial_state=blackjax_state_after_tuning,
-                            integrator_type=integrator_type,
-                            inverse_mass_matrix=inverse_mass_matrix,
-                            L=Lgrid[i],
-                            step_size=step_size,
-                        )
+                #             sampler = unadjusted_lmc_no_tuning(
+                #                 initial_state=blackjax_state_after_tuning,
+                #                 integrator_type=integrator_type,
+                #                 inverse_mass_matrix=inverse_mass_matrix,
+                #                 L=Lgrid[i],
+                #                 step_size=step_size,
+                #             )
 
-                        (stats, sq_error) = sampler_grads_to_low_error(
-                            model=model,
-                            sampler=jax.pmap(
-                        lambda key, pos: sampler(
-                            model=model, num_steps=num_steps, initial_position=pos, key=key
-                            )
-                        ),
-                            key=key_per_step_size,
-                            # num_steps=num_steps,
-                            batch_size=num_chains,
-                            )
+                #             (stats, sq_error) = sampler_grads_to_low_error(
+                #                 model=model,
+                #                 sampler=jax.pmap(
+                #             lambda key, pos: sampler(
+                #                 model=model, num_steps=num_steps, initial_position=pos, key=key
+                #                 )
+                #             ),
+                #                 key=key_per_step_size,
+                #                 # num_steps=num_steps,
+                #                 batch_size=num_chains,
+                #                 )
 
-                        Num_Grads_AVG_step_size = Num_Grads_AVG_step_size.at[j].set(
-                            stats["avg_over_parameters"][target_expectation]["grads_to_low_error"]
-                        )
-                        Num_Grads_MAX_step_size = Num_Grads_MAX_step_size.at[j].set(
-                            stats["max_over_parameters"][target_expectation]["grads_to_low_error"]
-                        )
+                #             Num_Grads_AVG_step_size = Num_Grads_AVG_step_size.at[j].set(
+                #                 stats["avg_over_parameters"][target_expectation]["grads_to_low_error"]
+                #             )
+                #             Num_Grads_MAX_step_size = Num_Grads_MAX_step_size.at[j].set(
+                #                 stats["max_over_parameters"][target_expectation]["grads_to_low_error"]
+                #             )
 
-                        jax.debug.print("Num_Grads_AVG_step_size {x}", x=(Num_Grads_AVG_step_size[j], step_size, Lgrid[i]))
-                        jax.debug.print("Num_Grads_MAX_step_size {x}", x=(Num_Grads_MAX_step_size[j], step_size, Lgrid[i]))
-                        # jax.debug.print("Num_Grads_COV_step_size {x}", x=(stats["max_over_parameters"]["covariance"]["grads_to_low_error"]))
-                
-                    if opt=="max":
-                        iopt_step_size = np.argmin(Num_Grads_MAX_step_size)
-                    elif opt=="avg":
-                        iopt_step_size = np.argmin(Num_Grads_AVG_step_size)
-                    else:
-                        raise Exception("opt not recognized")
-                
-                    step_size = step_sizes[iopt_step_size]
-                    params = params._replace(step_size=step_size)
+                #             jax.debug.print("Num_Grads_AVG_step_size {x}", x=(Num_Grads_AVG_step_size[j], step_size, Lgrid[i]))
+                #             jax.debug.print("Num_Grads_MAX_step_size {x}", x=(Num_Grads_MAX_step_size[j], step_size, Lgrid[i]))
+                #             # jax.debug.print("Num_Grads_COV_step_size {x}", x=(stats["max_over_parameters"]["covariance"]["grads_to_low_error"]))
+                    
+                #         if opt=="max":
+                #             iopt_step_size = np.argmin(Num_Grads_MAX_step_size)
+                #         elif opt=="avg":
+                #             iopt_step_size = np.argmin(Num_Grads_AVG_step_size)
+                #         else:
+                #             raise Exception("opt not recognized")
+                    
+                #         step_size = step_sizes[iopt_step_size]
+                #         params = params._replace(step_size=step_size)
                 
                 
                 sampler = unadjusted_lmc_no_tuning(
@@ -377,6 +404,39 @@ def grid_search_L(
                         L=Lgrid[i],
                         step_size=params.step_size,
                     )
+
+            elif sampler_type=='unadjusted_hmc':
+
+                hmc_state = blackjax.mcmc.uhmc.init(
+                    position=state.position,
+                    logdensity_fn=logdensity_fn,
+                    random_generator_arg=jax.random.key(0),
+                    # metric=metrics.default_metric(inverse_mass_matrix),
+                )
+
+                
+                
+                (blackjax_state_after_tuning, params) = make_L_step_size_adaptation(
+                            kernel=kernel,
+                            dim=model.ndims,
+                            frac_tune1=0.1,
+                            frac_tune2=0.0,
+                            # target=0.9,
+                            diagonal_preconditioning=False,
+                            euclidean=True,
+                            desired_energy_var=desired_energy_var,
+                        )(hmc_state, params, num_steps, da_key_per_iter)
+                
+                sampler = unadjusted_hmc_no_tuning(
+                        initial_state=blackjax_state_after_tuning,
+                        integrator_type=integrator_type,
+                        inverse_mass_matrix=inverse_mass_matrix,
+                        L=Lgrid[i],
+                        step_size=params.step_size,
+                    )
+                
+                
+                
             
 
             (stats, sq_error) = sampler_grads_to_low_error(
@@ -651,6 +711,66 @@ def grid_search_unadjusted_lmc(
         )
 
         sampler=unadjusted_lmc_no_tuning(
+                    initial_state=blackjax_state_after_tuning,
+                    integrator_type=integrator_type,
+                    inverse_mass_matrix=inverse_mass_matrix,
+                    L=L,
+                    step_size=step_size,
+                    return_samples=return_samples,
+                    # return_ess_corr=False,
+                )
+        
+ 
+        
+
+        return jax.pmap(
+            lambda key, pos: sampler(
+                model=model, num_steps=num_steps*4, initial_position=pos, key=key
+                )
+            )(key, initial_position)
+        
+    return s
+
+
+def grid_search_unadjusted_hmc(
+    num_chains,
+    integrator_type,
+    grid_size=10,
+    opt="max",
+    grid_iterations=2,
+    num_tuning_steps=10000,
+    return_samples=False,
+    desired_energy_var=1e-4,
+    diagonal_preconditioning=True,
+):
+    
+    def s(model, num_steps, initial_position, key):
+
+        (
+            L,
+            step_size,
+            num_grads,
+            num_grads_avg,
+            edge,
+            inverse_mass_matrix,
+            blackjax_state_after_tuning,
+        ) = grid_search_L(
+            model=model,
+            num_steps=num_steps,
+            num_chains=num_chains,
+            integrator_type=integrator_type,
+            key=jax.random.key(0),
+            grid_size=grid_size,
+            opt=opt,
+            grid_iterations=grid_iterations,
+            num_tuning_steps=num_tuning_steps,
+            sampler_type='unadjusted_hmc',
+            euclidean=True,
+            desired_energy_var=desired_energy_var,
+            diagonal_preconditioning=diagonal_preconditioning,
+        )
+
+        sampler=unadjusted_hmc_no_tuning(
                     initial_state=blackjax_state_after_tuning,
                     integrator_type=integrator_type,
                     inverse_mass_matrix=inverse_mass_matrix,

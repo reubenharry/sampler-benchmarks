@@ -26,19 +26,13 @@ def da_adaptation(
 
     da_init, da_update, da_final = dual_averaging_adaptation(target_acceptance_rate)
 
-    kernel = algorithm.build_kernel(integrator=integrator, 
-                                    # cos_angle_termination=cos_angle_termination
-                                    )
+    kernel = algorithm.build_kernel(integrator=integrator)
     init_kernel_state = algorithm.init(initial_position, logdensity_fn)
     inverse_mass_matrix = jnp.ones(pytree_size(initial_position))
 
     def step(state, key):
 
-
         adaptation_state, kernel_state = state
-        # jax.debug.print("step {x}", x=jnp.exp(adaptation_state.log_step_size))
-
-        # print("step size", jnp.exp(adaptation_state.log_step_size))
 
         new_kernel_state, info = kernel(
             key,

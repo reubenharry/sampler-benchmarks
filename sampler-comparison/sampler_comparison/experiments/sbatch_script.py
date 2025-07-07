@@ -61,15 +61,15 @@ if __name__ == "__main__":
         brownian_motion(),
         Rosenbrock(18),
         german_credit(),
-        # IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log'),
+        # # IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log'),
         IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log', do_covariance=False),
-        IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
-        IllConditionedGaussian(ndims=10000, condition_number=100, eigenvalues='log', do_covariance=False),
-        item_response(),
-        stochastic_volatility_mams_paper,
-        # U1(Lt=16, Lx=16, beta=6)
-        cauchy(ndims=100),
-        banana(),
+        # IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
+        # IllConditionedGaussian(ndims=10000, condition_number=100, eigenvalues='log', do_covariance=False),
+        # item_response(),
+        # stochastic_volatility_mams_paper,
+        # # U1(Lt=16, Lx=16, beta=6)
+        # cauchy(ndims=100),
+        # banana(),
         ]
   
 
@@ -82,6 +82,7 @@ if __name__ == "__main__":
         integrator_type_options = ['velocity_verlet', 'mclachlan'],
         diagonal_preconditioning_options = [True, False],
         redo=False,
+        key=jax.random.key(0),
         # mh_options = [False],
         # diagonal_preconditioning_options = [False],
         # redo_bad_results=True

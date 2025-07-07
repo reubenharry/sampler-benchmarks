@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,inf,,,True,covariance,14334.0,0.9943947908962836,0.40990951739594916,128
-1,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,inf,,,False,covariance,14334.0,0.9943947908962836,0.40990951739594916,128
-2,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,489.0,,,True,identity,14334.0,0.9943947908962836,0.40990951739594916,128
-3,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,270.0,41.752292152647136,,False,identity,14334.0,0.9943947908962836,0.40990951739594916,128
-4,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,inf,,,True,square,14334.0,0.9943947908962836,0.40990951739594916,128
-5,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,332.0,,,False,square,14334.0,0.9943947908962836,0.40990951739594916,128
+0,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,1779.0,212.84924148326206,,True,covariance,20000.0,0.9911210869158467,0.41248391377065907,128
+1,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,1779.0,212.84924148326206,,False,covariance,20000.0,0.9911210869158467,0.41248391377065907,128
+2,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,676.0,82.03237104948266,,True,identity,20000.0,0.9911210869158467,0.41248391377065907,128
+3,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,314.0,48.77575627296823,,False,identity,20000.0,0.9911210869158467,0.41248391377065907,128
+4,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,843.0,128.2408090273919,,True,square,20000.0,0.9911210869158467,0.41248391377065907,128
+5,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,ICG_2_1,414.0,72.37672208659356,,False,square,20000.0,0.9911210869158467,0.41248391377065907,128

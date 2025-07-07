@@ -11,7 +11,7 @@ from sampler_comparison.util import (
     map_integrator_type_to_integrator,
 )
 from blackjax.adaptation.mclmc_adaptation import MCLMCAdaptationState, make_L_step_size_adaptation
-
+from blackjax.adaptation.unadjusted_alba import unadjusted_alba
 
 
 def unadjusted_lmc_no_tuning(
@@ -140,17 +140,21 @@ def unadjusted_lmc_tuning(
     initial_state = blackjax.langevin.init(
         position=initial_position,
         logdensity_fn=logdensity_fn,
-        rng_key=init_key,
-        metric=blackjax.mcmc.metrics.default_metric(jnp.ones(initial_position.shape[0]))
+        random_generator_arg=init_key,
+        # metric=blackjax.mcmc.metrics.default_metric(jnp.ones(initial_position.shape[0]))
     )
 
-    kernel = lambda inverse_mass_matrix: blackjax.langevin.build_kernel(
-        logdensity_fn=logdensity_fn,
+    kernel = lambda inverse_mass_matrix: lambda rng_key, state, L, step_size: blackjax.langevin.build_kernel(
         integrator=map_integrator_type_to_integrator["hmc"][integrator_type],
-        inverse_mass_matrix=inverse_mass_matrix,
         desired_energy_var=desired_energy_var,
         desired_energy_var_max_ratio=desired_energy_var_max_ratio,
-        # (1/desired_energy_var)*10000,
+    )(
+        rng_key=rng_key,
+        state=state,
+        logdensity_fn=logdensity_fn,
+        L=L,
+        step_size=step_size,
+        inverse_mass_matrix=inverse_mass_matrix,
     )
 
     do_nuts_warmup=True
@@ -233,33 +237,49 @@ def unadjusted_lmc(
 
         tune_key, run_key = jax.random.split(key, 2)
 
-        (
-            blackjax_state_after_tuning,
-            blackjax_mclmc_sampler_params,
-            num_tuning_integrator_steps,
-        ) = unadjusted_lmc_tuning(
-            initial_position=initial_position,
-            num_steps=num_steps,
-            rng_key=tune_key,
-            logdensity_fn=logdensity_fn,
-            integrator_type=integrator_type,
-            diagonal_preconditioning=diagonal_preconditioning,
-            num_tuning_steps=num_tuning_steps,
-            desired_energy_var=desired_energy_var,
-            desired_energy_var_max_ratio=desired_energy_var_max_ratio,
-            num_windows=num_windows,
-            params=params,
-            stage3=stage3,
+        num_dimensions = initial_position.shape[0]
+
+        num_alba_steps = num_tuning_steps // 3
+        warmup = unadjusted_alba(
+            algorithm=blackjax.langevin, 
+            logdensity_fn=logdensity_fn, 
+            integrator=map_integrator_type_to_integrator["hmc"][integrator_type], 
+            target_eevpd=desired_energy_var, 
+            v=jnp.sqrt(num_dimensions), num_alba_steps=num_alba_steps,
+            preconditioning=diagonal_preconditioning
+            )
         
-        )
+        (blackjax_state_after_tuning, blackjax_mclmc_sampler_params), adaptation_info = warmup.run(tune_key, initial_position, num_tuning_steps)
+
+        num_tuning_integrator_steps = num_tuning_steps
+
+        # (
+        #     blackjax_state_after_tuning,
+        #     blackjax_mclmc_sampler_params,
+        #     num_tuning_integrator_steps,
+        # ) = unadjusted_lmc_tuning(
+        #     initial_position=initial_position,
+        #     num_steps=num_steps,
+        #     rng_key=tune_key,
+        #     logdensity_fn=logdensity_fn,
+        #     integrator_type=integrator_type,
+        #     diagonal_preconditioning=diagonal_preconditioning,
+        #     num_tuning_steps=num_tuning_steps,
+        #     desired_energy_var=desired_energy_var,
+        #     desired_energy_var_max_ratio=desired_energy_var_max_ratio,
+        #     num_windows=num_windows,
+        #     params=params,
+        #     stage3=stage3,
+        
+        # )
         # jax.debug.print("params {x}", x=(blackjax_mclmc_sampler_params))
 
         expectations, metadata = unadjusted_lmc_no_tuning(
             initial_state=blackjax_state_after_tuning,
             integrator_type=integrator_type,
-            step_size=blackjax_mclmc_sampler_params.step_size,
-            L=blackjax_mclmc_sampler_params.L,
-            inverse_mass_matrix=blackjax_mclmc_sampler_params.inverse_mass_matrix,
+            step_size=blackjax_mclmc_sampler_params['step_size'],
+            L=blackjax_mclmc_sampler_params['L'],
+            inverse_mass_matrix=blackjax_mclmc_sampler_params['inverse_mass_matrix'],
             return_samples=return_samples,
             return_only_final=return_only_final,
             desired_energy_var=desired_energy_var,

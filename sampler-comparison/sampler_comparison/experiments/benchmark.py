@@ -52,7 +52,7 @@ from sampler_comparison.experiments.plotting import plot_results, plot_all_resul
 from sampler_evaluation.models.u1 import U1
 import time 
 
-def run(models, mh_options=[True, False], canonical_options=[True, False], langevin_options=[True, False], tuning_options=['alba'], integrator_type_options=['velocity_verlet','mclachlan'], diagonal_preconditioning_options=[True, False], redo=False, compute_missing=True, redo_bad_results=None):
+def run(models, key, mh_options=[True, False], canonical_options=[True, False], langevin_options=[True, False], tuning_options=['alba'], integrator_type_options=['velocity_verlet','mclachlan'], diagonal_preconditioning_options=[True, False], redo=False, compute_missing=True, redo_bad_results=None):
 
     
     # mh_options = [True,False]
@@ -73,6 +73,7 @@ def run(models, mh_options=[True, False], canonical_options=[True, False], lange
         time_start = time.time()
         results = lookup_results(
             model=model, 
+            key=key,
             num_steps=model_info[model.name]['num_steps'][mh], 
             mh=mh, 
             canonical=canonical, 
@@ -117,68 +118,110 @@ if __name__ == "__main__":
     # )
 
     models = [
-        brownian_motion(),
-        german_credit(),
-        banana(),
-        Rosenbrock(18),
-        stochastic_volatility_mams_paper,
+        # brownian_motion(),
+        # german_credit(),
+        # banana(),
+        # Rosenbrock(18),
+        # stochastic_volatility_mams_paper,
         IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log'),
-        IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
-        IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log', do_covariance=False),
-        # item_response(),
-        IllConditionedGaussian(ndims=10000, condition_number=100, eigenvalues='log', do_covariance=False),
-        cauchy(ndims=100),
+        # IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
+        # IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log', do_covariance=False),
+        # # item_response(),
+        # IllConditionedGaussian(ndims=10000, condition_number=100, eigenvalues='log', do_covariance=False),
+        # cauchy(ndims=100),
         # U1(Lt=16, Lx=16, beta=6)
         ]
     
     for model in models:
+        
+            # print(f"\n\ni={i} \n\n")
+            run(
+                key=jax.random.PRNGKey(4),
+                models=[model],
+                tuning_options=['alba'],
+                mh_options = [True, False],
+                canonical_options = [True, False],
+                langevin_options = [True, False],
+                integrator_type_options = ['mclachlan', 'velocity_verlet'],
+                diagonal_preconditioning_options = [True, False],
+                redo=True,  
+                # redo_bad_results=True
+            )
+            
+            run(
+                key=jax.random.PRNGKey(4),
+                models=[model],
+                tuning_options=['nuts'],
+                mh_options = [True],
+                canonical_options = [True],
+                langevin_options = [False],
+                integrator_type_options = ['velocity_verlet', 'mclachlan'],
+                diagonal_preconditioning_options = [True, False],
+                redo=True,
+                # redo_bad_results=True
+            )
+
+        # run(
+        #     models=models,
+        #     tuning_options=['grid_search'],
+        #     mh_options = [False],
+        #     canonical_options = [True],
+        #     langevin_options = [True, False],
+        #     integrator_type_options = ['mclachlan'],
+        #     diagonal_preconditioning_options = [True],
+        #     redo=False,
+        #     # mh_options = [False],
+        #     # diagonal_preconditioning_options = [False],
+        #     # redo_bad_results=True
+        # )
+
         # run(
         #     models=[model],
         #     tuning_options=['alba'],
         #     mh_options = [True],
-        #     canonical_options = [False],
-        #     langevin_options = [True],
-        #     integrator_type_options = ['velocity_verlet', 'mclachlan'],
-        #     diagonal_preconditioning_options = [True, False],
+        #     canonical_options = [True, False],
+        #     langevin_options = [True, False],
+        #     integrator_type_options = ['mclachlan', 'velocity_verlet'],
+        #     diagonal_preconditioning_options = [False],
         #     redo=True,
         #     # mh_options = [False],
         #     # diagonal_preconditioning_options = [False],
         #     # redo_bad_results=True
         # )
 
-        run(
-            models=[model],
-            tuning_options=['nuts'],
-            mh_options = [True],
-            canonical_options = [True],
-            langevin_options = [False],
-            integrator_type_options = ['velocity_verlet', 'mclachlan'],
-            diagonal_preconditioning_options = [True, False],
-            redo=False,
-            # mh_options = [False],
-            # diagonal_preconditioning_options = [False],
-            redo_bad_results='avg'
-        )
+        # run(
+        #     models=[model],
+        #     tuning_options=['nuts'],
+        #     mh_options = [True],
+        #     canonical_options = [True],
+        #     langevin_options = [False],
+        #     integrator_type_options = ['velocity_verlet', 'mclachlan'],
+        #     diagonal_preconditioning_options = [True, False],
+        #     redo=False,
+        #     # mh_options = [False],
+        #     # diagonal_preconditioning_options = [False],
+        #     redo_bad_results='avg'
+        # )
 
     # print(IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log').sample_transformations)
     # raise Exception("stop")
     
     ## nuts
-    # plot_all_results()
+    plot_all_results()
 
-    run(
-        models=[IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log', do_covariance=False)],
-        tuning_options=['grid_search'],
-        mh_options = [True, False],
-        canonical_options = [True, False],
-        langevin_options = [True, False],
-        integrator_type_options = ['velocity_verlet', 'mclachlan'],
-        diagonal_preconditioning_options = [True, False],
-        redo=True,
-        # mh_options = [False],
-        # diagonal_preconditioning_options = [False],
-        # redo_bad_results=True
-    )
+    # run(
+    #     models=[IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log', do_covariance=False)],
+    #     tuning_options=['grid_search'],
+    #     mh_options = [True, False],
+    #     canonical_options = [True, False],
+    #     langevin_options = [True, False],
+    #     integrator_type_options = ['velocity_verlet', 'mclachlan'],
+    #     diagonal_preconditioning_options = [True, False],
+    #     redo=True,
+    #     # mh_options = [False],
+    #     # diagonal_preconditioning_options = [False],
+    #     # redo_bad_results=True
+    # )
 
     # plot_results()
     # plot_results()

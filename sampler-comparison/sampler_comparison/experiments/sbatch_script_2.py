@@ -77,7 +77,7 @@ if __name__ == "__main__":
         models=models,
         tuning_options=['alba'],
         mh_options = [True, False],
-        canonical_options = [True, False],
+        canonical_options = [False],
         langevin_options = [True, False],
         integrator_type_options = ['velocity_verlet', 'mclachlan'],
         diagonal_preconditioning_options = [True, False],

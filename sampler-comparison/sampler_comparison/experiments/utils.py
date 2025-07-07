@@ -49,7 +49,7 @@ model_info = {
     IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log').name: {
         'pretty_name' : 'Ill-Conditioned Gaussian in 2D, with condition number 1',
         'batch_size' : 128,
-        'num_steps' : {True : 5000, False : 2000}},
+        'num_steps' : {True : 5000, False : 5000}},
             
     IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log').name: {
         'pretty_name' : 'Ill-Conditioned Gaussian in 100D, with condition number 1',
@@ -79,8 +79,8 @@ model_info = {
         'num_steps' : {True : 80000, False : 200000}},
     stochastic_volatility_mams_paper.name: {
         'pretty_name' : 'Stochastic Volatility',
-        'batch_size' : 32,
-        'num_steps' : {True : 70000, False : 200000}},
+        'batch_size' : 128,
+        'num_steps' : {True : 50000, False : 200000}},
     Rosenbrock(18).name: {
         'pretty_name' : 'Rosenbrock',
         'batch_size' : 128,

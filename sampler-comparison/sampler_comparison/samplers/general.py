@@ -123,6 +123,9 @@ def sampler_grads_to_low_error(
     calculate_ess_corr=False,
 ):
 
+    # jax.debug.print("sampler_grads_to_low_error {x}", x=1)
+
+
     keys = jax.random.split(key, batch_size)
 
     # this key is deliberately fixed to the same value: we want the set of initial positions to be the same for different samplers
@@ -199,7 +202,8 @@ def sampler_grads_to_low_error(
         ess_correlation = {'max': jnp.nan,
              'avg': jnp.nan}
 
-    contract_fn = lambda x : np.nanmedian(x, axis=0)
+    def contract_fn(x):
+        return np.nanmedian(x, axis=0)
 
     # err_ = contract_fn(squared_errors['square']['avg'])
     # b2 = jnp.mean(err_[-1]*(model.sample_transformations['square'].ground_truth_standard_deviation**2)/(model.sample_transformations['square'].ground_truth_mean**2))
@@ -220,7 +224,9 @@ def sampler_grads_to_low_error(
     # # std of errs   
     # jax.debug.print("std {x}", x=jnp.std(errs))
 
+    # jax.debug.print("\n\nsquared_errors\n\n {x}", x=contract_fn(np.array(squared_errors['square']['avg'])).shape)
 
+    
 
     return (
         {
