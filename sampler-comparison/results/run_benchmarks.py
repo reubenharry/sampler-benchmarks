@@ -15,7 +15,7 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import (
     adjusted_mclmc,
 )
 from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
-from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unadjusted_mclmc
+from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import grid_search_unadjusted_mclmc_new, unadjusted_mclmc
 from functools import partial
 from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import adjusted_hmc
 from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_langevin import unadjusted_lmc
@@ -23,7 +23,8 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.mchmc import unadjuste
 from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.hmc import unadjusted_hmc
 import itertools
 import jax.numpy as jnp
-from sampler_comparison.samplers.grid_search.grid_search import grid_search_adjusted_mclmc, grid_search_unadjusted_mclmc, grid_search_unadjusted_lmc, grid_search_hmc, grid_search_unadjusted_hmc
+from sampler_comparison.samplers.grid_search.grid_search import grid_search_adjusted_mclmc, grid_search_unadjusted_lmc, grid_search_hmc, grid_search_unadjusted_hmc
+from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import grid_search_unadjusted_mclmc
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(128)
 num_cores = jax.local_device_count()
@@ -149,9 +150,11 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
                                         # cos_angle_termination= cos_angle_termination)),
 
 
-        (False, False, True, 'grid_search'): (f'unadjusted_microcanonical_langevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(unadjusted_mclmc, grid_search=True, num_tuning_steps=unadjusted_tuning_steps, integrator_type=integrator_type, diagonal_preconditioning=diagonal_preconditioning, num_chains=batch_size)),
+        
                     
     
+        (False, False, True, 'grid_search'): (f'unadjusted_microcanonical_langevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(grid_search_unadjusted_mclmc_new,num_tuning_steps=unadjusted_tuning_steps, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, num_chains=batch_size)),
+        
         (False, True, True, 'grid_search'): (f'unadjusted_canonical_langevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(grid_search_unadjusted_lmc,num_tuning_steps=unadjusted_tuning_steps, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, num_chains= batch_size)),
         
         (False, True, False, 'grid_search'): (f'unadjusted_canonical_nolangevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(grid_search_unadjusted_hmc,num_tuning_steps=unadjusted_tuning_steps, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, num_chains= batch_size)),

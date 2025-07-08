@@ -21,7 +21,8 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import (
 from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
 import sampler_evaluation
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_adjusted_mclmc
-from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc
+from sampler_comparison.samplers.grid_search.grid_search import grid_search_hmc
+from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import grid_search_unadjusted_mclmc
 from sampler_evaluation.models.gaussian_mams_paper import IllConditionedGaussian
 from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unadjusted_mclmc
 import numpy as np

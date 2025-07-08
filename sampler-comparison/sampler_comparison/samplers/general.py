@@ -158,7 +158,7 @@ def sampler_grads_to_low_error(
 
         mean_runs = jnp.mean(good_runs)
 
-        jax.debug.print("\npercent failures\n {x}", x=percent_failures)
+        # jax.debug.print("\npercent failures\n {x}", x=percent_failures)
 
         std = jnp.std(good_runs* grad_evals_per_step)
 

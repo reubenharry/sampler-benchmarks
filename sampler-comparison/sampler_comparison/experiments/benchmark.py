@@ -138,7 +138,7 @@ if __name__ == "__main__":
             run(
                 key=jax.random.PRNGKey(4),
                 models=[model],
-                tuning_options=['alba'],
+                tuning_options=['grid_search'],
                 mh_options = [False],
                 canonical_options = [False],
                 langevin_options = [True],
