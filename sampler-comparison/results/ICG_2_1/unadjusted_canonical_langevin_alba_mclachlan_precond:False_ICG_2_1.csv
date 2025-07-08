@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,unadjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,594.0,32.93698680814625,,True,covariance,40000.0,0.7565424076278301,1.2893980407101342,128
-1,unadjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,594.0,32.93698680814625,,False,covariance,40000.0,0.7565424076278301,1.2893980407101342,128
-2,unadjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,222.0,19.991488188726724,,True,identity,40000.0,0.7565424076278301,1.2893980407101342,128
-3,unadjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,142.0,8.895498861783976,,False,identity,40000.0,0.7565424076278301,1.2893980407101342,128
-4,unadjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,270.0,20.674455252799284,,True,square,40000.0,0.7565424076278301,1.2893980407101342,128
-5,unadjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,138.0,19.609375308764943,,False,square,40000.0,0.7565424076278301,1.2893980407101342,128
+0,unadjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,596.0,29.320811721369516,,True,covariance,40000.0,0.764104185938963,1.3312561558863965,128
+1,unadjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,596.0,29.320811721369516,,False,covariance,40000.0,0.764104185938963,1.3312561558863965,128
+2,unadjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,220.0,21.307895250352622,,True,identity,40000.0,0.764104185938963,1.3312561558863965,128
+3,unadjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,136.0,8.367430907990817,,False,identity,40000.0,0.764104185938963,1.3312561558863965,128
+4,unadjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,252.0,23.59325327291681,,True,square,40000.0,0.764104185938963,1.3312561558863965,128
+5,unadjusted_canonical_langevin_alba_mclachlan_precond:False,ICG_2_1,146.0,10.306750215271544,,False,square,40000.0,0.764104185938963,1.3312561558863965,128

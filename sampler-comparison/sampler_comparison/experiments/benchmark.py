@@ -52,7 +52,7 @@ from sampler_comparison.experiments.plotting import plot_results, plot_all_resul
 from sampler_evaluation.models.u1 import U1
 import time 
 
-def run(models, key, mh_options=[True, False], canonical_options=[True, False], langevin_options=[True, False], tuning_options=['alba'], integrator_type_options=['velocity_verlet','mclachlan'], diagonal_preconditioning_options=[True, False], redo=False, compute_missing=True, redo_bad_results=None):
+def run(models, key, mh_options=[True, False], canonical_options=[True, False], langevin_options=[True, False], tuning_options=['alba', 'grid_search'], integrator_type_options=['velocity_verlet','mclachlan'], diagonal_preconditioning_options=[True, False], redo=False, compute_missing=True, redo_bad_results=None):
 
     
     # mh_options = [True,False]
@@ -124,7 +124,7 @@ if __name__ == "__main__":
         # Rosenbrock(18),
         # stochastic_volatility_mams_paper,
         IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log'),
-        # IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
+        # IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log', do_covariance=False),
         # IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log', do_covariance=False),
         # # item_response(),
         # IllConditionedGaussian(ndims=10000, condition_number=100, eigenvalues='log', do_covariance=False),
@@ -139,27 +139,40 @@ if __name__ == "__main__":
                 key=jax.random.PRNGKey(4),
                 models=[model],
                 tuning_options=['alba'],
-                mh_options = [True, False],
-                canonical_options = [True, False],
-                langevin_options = [True, False],
-                integrator_type_options = ['mclachlan', 'velocity_verlet'],
-                diagonal_preconditioning_options = [True, False],
+                mh_options = [False],
+                canonical_options = [False],
+                langevin_options = [True],
+                integrator_type_options = ['mclachlan'],
+                diagonal_preconditioning_options = [True],
                 redo=True,  
                 # redo_bad_results=True
             )
             
-            run(
-                key=jax.random.PRNGKey(4),
-                models=[model],
-                tuning_options=['nuts'],
-                mh_options = [True],
-                canonical_options = [True],
-                langevin_options = [False],
-                integrator_type_options = ['velocity_verlet', 'mclachlan'],
-                diagonal_preconditioning_options = [True, False],
-                redo=True,
-                # redo_bad_results=True
-            )
+            # # Grid search run
+            # run(
+            #     key=jax.random.PRNGKey(5),
+            #     models=[model],
+            #     tuning_options=['grid_search'],
+            #     mh_options = [False],
+            #     canonical_options = [False],
+            #     langevin_options = [True],
+            #     integrator_type_options = ['mclachlan'],
+            #     diagonal_preconditioning_options = [True],
+            #     redo=True,
+            # )
+            
+            # run(
+            #     key=jax.random.PRNGKey(4),
+            #     models=[model],
+            #     tuning_options=['nuts'],
+            #     mh_options = [True],
+            #     canonical_options = [True],
+            #     langevin_options = [False],
+            #     integrator_type_options = ['velocity_verlet', 'mclachlan'],
+            #     diagonal_preconditioning_options = [True, False],
+            #     redo=True,
+            #     # redo_bad_results=True
+            # )
 
         # run(
         #     models=models,
@@ -207,7 +220,7 @@ if __name__ == "__main__":
     # raise Exception("stop")
     
     ## nuts
-    plot_all_results()
+    # plot_all_results()
 
     # run(
     #     models=[IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log', do_covariance=False)],

@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,ICG_2_1,639.5941633077047,25.85772418446759,,True,covariance,10059.328125,1.4187053056257954,2.480513237878569,128
-1,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,ICG_2_1,639.5941633077047,25.85772418446759,,False,covariance,10059.328125,1.4187053056257954,2.480513237878569,128
-2,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,ICG_2_1,197.94237969987998,29.089317626922774,,True,identity,10059.328125,1.4187053056257954,2.480513237878569,128
-3,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,ICG_2_1,129.29184338778288,14.796905081806804,,False,identity,10059.328125,1.4187053056257954,2.480513237878569,128
-4,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,ICG_2_1,218.5375405935091,29.180094242479754,,True,square,10059.328125,1.4187053056257954,2.480513237878569,128
-5,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,ICG_2_1,120.13843854616992,13.01833706738307,,False,square,10059.328125,1.4187053056257954,2.480513237878569,128
+0,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,ICG_2_1,409.8745291833194,69.79582437366867,,True,covariance,10021.359375,1.0745247085288938,2.4758072657042485,128
+1,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,ICG_2_1,409.8745291833194,69.79582437366867,,False,covariance,10021.359375,1.0745247085288938,2.4758072657042485,128
+2,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,ICG_2_1,150.2294354845641,12.081767254834865,,True,identity,10021.359375,1.0745247085288938,2.4758072657042485,128
+3,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,ICG_2_1,79.02241982136032,15.03319992549823,,False,identity,10021.359375,1.0745247085288938,2.4758072657042485,128
+4,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,ICG_2_1,164.1234873212868,29.627478799249864,,True,square,10021.359375,1.0745247085288938,2.4758072657042485,128
+5,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,ICG_2_1,129.38835772948008,15.785296956345169,,False,square,10021.359375,1.0745247085288938,2.4758072657042485,128

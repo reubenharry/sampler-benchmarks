@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,inf,,,True,covariance,302995.9609375,3.6309523595312214,0.06371034521101165,128
-1,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,inf,,,False,covariance,302995.9609375,3.6309523595312214,0.06371034521101165,128
-2,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,164881.79411760616,129.92753518788848,,True,identity,302995.9609375,3.6309523595312214,0.06371034521101165,128
-3,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,27546.837273885776,12.651683682419506,,False,identity,302995.9609375,3.6309523595312214,0.06371034521101165,128
-4,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,215184.71435687583,285.5398879316163,,True,square,302995.9609375,3.6309523595312214,0.06371034521101165,128
-5,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,32964.95226564385,26.731440290414586,,False,square,302995.9609375,3.6309523595312214,0.06371034521101165,128
+0,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,inf,,,True,covariance,85298.9921875,0.703858926938511,0.04257257347811339,128
+1,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,inf,,,False,covariance,85298.9921875,0.703858926938511,0.04257257347811339,128
+2,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,inf,,,True,identity,85298.9921875,0.703858926938511,0.04257257347811339,128
+3,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,32880.833158571004,78.889479019702,,False,identity,85298.9921875,0.703858926938511,0.04257257347811339,128
+4,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,inf,,,True,square,85298.9921875,0.703858926938511,0.04257257347811339,128
+5,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,39595.932888138326,136.5585310407226,,False,square,85298.9921875,0.703858926938511,0.04257257347811339,128

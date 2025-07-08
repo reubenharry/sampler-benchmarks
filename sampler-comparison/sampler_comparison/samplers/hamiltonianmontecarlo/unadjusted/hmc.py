@@ -10,7 +10,6 @@ from sampler_comparison.util import (
     calls_per_integrator_step,
     map_integrator_type_to_integrator,
 )
-from blackjax.adaptation.mclmc_adaptation import MCLMCAdaptationState, make_L_step_size_adaptation
 from blackjax.adaptation.unadjusted_alba import unadjusted_alba
 
 
@@ -24,7 +23,7 @@ def unadjusted_hmc_no_tuning(
     incremental_value_transform=None,
     return_only_final=False,
     desired_energy_var=3e-4,
-    desired_energy_var_max_ratio=jnp.inf,
+    desired_energy_var_max_ratio=1e3,
 ):
     """
     Args:
@@ -102,148 +101,21 @@ def unadjusted_hmc_no_tuning(
     return s
 
 
-def unadjusted_hmc_tuning(
-    initial_position,
-    num_steps,
-    rng_key,
-    logdensity_fn,
-    integrator_type,
-    diagonal_preconditioning,
-    num_tuning_steps=500,
-    stage3=True,
-    desired_energy_var=3e-4,
-    desired_energy_var_max_ratio=jnp.inf,
-    num_windows=1,
-    params=None,
-):
-    """
-    Args:
-        initial_position: Initial position of the chain
-        num_steps: Number of steps to run the chain for
-        rng_key: Random number generator key
-        logdensity_fn: Log density function of the target distribution
-        integrator_type: Type of integrator to use (e.g. velocity verlet, mclachlan...)
-        diagonal_preconditioning: Whether to use diagonal preconditioning
-        num_tuning_steps: Number of tuning steps to use
-    Returns:
-        A tuple of the form (state, params) where state is the state of the chain after tuning and params are the hyperparameters of the chain (L, stepsize and inverse mass matrix)
-    """
-
-    tune_key, init_key, nuts_key = jax.random.split(rng_key, 3)
-
-    frac_tune1 = num_tuning_steps / (3 * num_steps)
-    frac_tune2 = num_tuning_steps / (3 * num_steps)
-    frac_tune3 = num_tuning_steps / (3 * num_steps) if stage3 else 0.0
-
-    initial_state = blackjax.uhmc.init(
-        position=initial_position,
-        logdensity_fn=logdensity_fn,
-        random_generator_arg=init_key,
-        # metric=blackjax.mcmc.metrics.default_metric(jnp.ones(initial_position.shape[0]))
-    )
-
-    # kernel = lambda inverse_mass_matrix: blackjax.uhmc.build_kernel(
-    #     logdensity_fn=logdensity_fn,
-    #     integrator=map_integrator_type_to_integrator["hmc"][integrator_type],
-    #     inverse_mass_matrix=inverse_mass_matrix,
-    #     desired_energy_var=desired_energy_var,
-    #     desired_energy_var_max_ratio=desired_energy_var_max_ratio,
-    #     # (1/desired_energy_var)*10000,
-    # )
-
-    kernel = lambda inverse_mass_matrix: lambda rng_key, state, L, step_size: blackjax.uhmc.build_kernel(
-        integrator=map_integrator_type_to_integrator["hmc"][integrator_type],
-        desired_energy_var=desired_energy_var,
-        desired_energy_var_max_ratio=desired_energy_var_max_ratio,
-    )(
-        rng_key=rng_key,
-        state=state,
-        logdensity_fn=logdensity_fn,
-        L=L,
-        step_size=step_size,
-        inverse_mass_matrix=inverse_mass_matrix,
-    )
-
-    do_nuts_warmup=True
-    if do_nuts_warmup:
-
-        
-
-        warmup = blackjax.window_adaptation(
-                    blackjax.nuts, logdensity_fn, 
-                    target_acceptance_rate = 0.8, 
-                    integrator=map_integrator_type_to_integrator["hmc"]['velocity_verlet'], 
-                )
-        
-        (_, nuts_params), inf = warmup.run(nuts_key, initial_position, num_tuning_steps)
-
-        inverse_mass_matrix = nuts_params['inverse_mass_matrix']
-    
-    else:
-        inverse_mass_matrix = jnp.ones((initial_position.shape[0],))
-
-    # if params is None:
-
-    #     params = MCLMCAdaptationState(
-    #         1., 0.25 , inverse_mass_matrix=inverse_mass_matrix
-    #     )
-        # jax.debug.print("params {x}", x=params)
-
-    # jax.debug.print("frac_tune1 {x}", x=frac_tune1)
-    return blackjax.mclmc_find_L_and_step_size(
-        mclmc_kernel=kernel,
-        num_steps=num_steps,
-        state=initial_state,
-        rng_key=tune_key,
-        diagonal_preconditioning=diagonal_preconditioning,
-        frac_tune1=2.0,
-        frac_tune2=frac_tune2,
-        frac_tune3=frac_tune3,
-        # frac_tune2=0.0,
-        # frac_tune3=0.0,
-        params=params,
-        desired_energy_var=desired_energy_var,
-        num_windows=num_windows,
-        euclidean=True,
-    )
-
-    # jax.debug.print("frac_tune1 {x}", x=frac_tune1)
-
-    # (blackjax_state_after_tuning, params) = make_L_step_size_adaptation(
-    #                         kernel=kernel,
-    #                         dim=initial_position.shape[0],
-    #                         frac_tune1=1.0,
-    #                         frac_tune2=0.0,
-    #                         # target=0.9,
-    #                         diagonal_preconditioning=False,
-    #                         euclidean=True,
-    #                         desired_energy_var=1e-1,
-    #                     )(initial_state, params, num_steps, tune_key)
-    
-    # return (blackjax_state_after_tuning, params, jnp.inf)
-
-
 def unadjusted_hmc(
     diagonal_preconditioning=True,
     integrator_type="velocity_verlet",
     num_tuning_steps=20000,
     return_samples=False,
     desired_energy_var=3e-4,
-    desired_energy_var_max_ratio=jnp.inf,
+    desired_energy_var_max_ratio=1e3,
     return_only_final=False,
-    num_windows=1,
-    params=None,
-    stage3=True,
     incremental_value_transform=None,
+    alba_factor=0.4,
 ):
     def s(model, num_steps, initial_position, key):
 
-        # logdensity_fn = lambda x : model.unnormalized_log_prob(make_transform(model)(x))
-
         logdensity_fn = make_log_density_fn(model)
-
         tune_key, run_key = jax.random.split(key, 2)
-
         num_dimensions = initial_position.shape[0]
 
         num_alba_steps = num_tuning_steps // 3
@@ -252,35 +124,12 @@ def unadjusted_hmc(
             logdensity_fn=logdensity_fn, integrator=map_integrator_type_to_integrator["hmc"][integrator_type], 
             target_eevpd=desired_energy_var, 
             v=jnp.sqrt(num_dimensions), num_alba_steps=num_alba_steps,
-            preconditioning=diagonal_preconditioning
+            preconditioning=diagonal_preconditioning,
+            alba_factor=alba_factor,
             )
         num_tuning_integrator_steps = num_tuning_steps
         
         (blackjax_state_after_tuning, blackjax_mclmc_sampler_params), adaptation_info = warmup.run(tune_key, initial_position, num_tuning_steps)
-
-        # raise Exception("stop here")
-        # jax.debug.print("blackjax_state_after_tuning \n\n\n\n{x}\n\n\n\n", x=blackjax_state_after_tuning)
-
-        # (
-        #     blackjax_state_after_tuning,
-        #     blackjax_mclmc_sampler_params,
-        #     num_tuning_integrator_steps,
-        # ) = unadjusted_hmc_tuning(
-        #     initial_position=initial_position,
-        #     num_steps=num_steps,
-        #     rng_key=tune_key,
-        #     logdensity_fn=logdensity_fn,
-        #     integrator_type=integrator_type,
-        #     diagonal_preconditioning=diagonal_preconditioning,
-        #     num_tuning_steps=num_tuning_steps,
-        #     desired_energy_var=desired_energy_var,
-        #     desired_energy_var_max_ratio=desired_energy_var_max_ratio,
-        #     num_windows=num_windows,
-        #     params=params,
-        #     stage3=stage3,
-        
-        # )
-        # jax.debug.print("params main {x}", x=(blackjax_mclmc_sampler_params))
 
         expectations, metadata = unadjusted_hmc_no_tuning(
             initial_state=blackjax_state_after_tuning,

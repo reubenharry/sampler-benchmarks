@@ -127,11 +127,11 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
     sampler_dict = {
 
         # adjusted/unadjusted  canonical/microcanonical  langevin/nolangevin  alba/nuts
-        (True, True, True, 'alba'): (f'adjusted_canonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_hmc,num_tuning_steps=adjusted_tuning_steps, integrator_type=integrator_type, L_proposal_factor=1.25,target_acc_rate=target_acc_rate, L_factor_stage_3=0.23, random_trajectory_length=False, diagonal_preconditioning=diagonal_preconditioning)),
+        (True, True, True, 'alba'): (f'adjusted_canonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_hmc,num_tuning_steps=adjusted_tuning_steps, integrator_type=integrator_type, L_proposal_factor=1.25,target_acc_rate=target_acc_rate, alba_factor=0.23, random_trajectory_length=False, diagonal_preconditioning=diagonal_preconditioning)),
 
         (True, True, False, 'alba'): (f'adjusted_canonical_nolangevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_hmc,num_tuning_steps=adjusted_tuning_steps, integrator_type=integrator_type, L_proposal_factor=jnp.inf,target_acc_rate=target_acc_rate,diagonal_preconditioning=diagonal_preconditioning)),
 
-        (True, False, True, 'alba'): (f'adjusted_microcanonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_mclmc,L_proposal_factor=1.25, random_trajectory_length=False, L_factor_stage_3=0.23, target_acc_rate=target_acc_rate, num_tuning_steps=adjusted_tuning_steps,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
+        (True, False, True, 'alba'): (f'adjusted_microcanonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_mclmc,L_proposal_factor=1.25, random_trajectory_length=False, alba_factor=0.23, target_acc_rate=target_acc_rate, num_tuning_steps=adjusted_tuning_steps,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
 
         (True, False, False, 'alba'): (f'adjusted_microcanonical_nolangevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_mclmc,num_tuning_steps=adjusted_tuning_steps,target_acc_rate=target_acc_rate,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
 
@@ -149,7 +149,7 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
                                         # cos_angle_termination= cos_angle_termination)),
 
 
-        (False, False, True, 'grid_search'): (f'unadjusted_microcanonical_langevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(grid_search_unadjusted_mclmc,num_tuning_steps=unadjusted_tuning_steps, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, num_chains= batch_size)),
+        (False, False, True, 'grid_search'): (f'unadjusted_microcanonical_langevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(unadjusted_mclmc, grid_search=True, num_tuning_steps=unadjusted_tuning_steps, integrator_type=integrator_type, diagonal_preconditioning=diagonal_preconditioning, num_chains=batch_size)),
                     
     
         (False, True, True, 'grid_search'): (f'unadjusted_canonical_langevin_grid_search_{integrator_name}_precond:{diagonal_preconditioning}', partial(grid_search_unadjusted_lmc,num_tuning_steps=unadjusted_tuning_steps, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, num_chains= batch_size)),

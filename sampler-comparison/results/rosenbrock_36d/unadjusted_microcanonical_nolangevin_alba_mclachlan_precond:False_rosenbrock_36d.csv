@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,covariance,40002.0,38.23960725501324,0.5791148678305003,128
-1,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,False,covariance,40002.0,38.23960725501324,0.5791148678305003,128
-2,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,identity,40002.0,38.23960725501324,0.5791148678305003,128
-3,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,20108.0,483.02516456184765,,False,identity,40002.0,38.23960725501324,0.5791148678305003,128
-4,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,square,40002.0,38.23960725501324,0.5791148678305003,128
-5,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,22372.0,480.67887991880815,,False,square,40002.0,38.23960725501324,0.5791148678305003,128
+0,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,covariance,40000.0,13.469779713134281,0.6054583738292163,128
+1,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,False,covariance,40000.0,13.469779713134281,0.6054583738292163,128
+2,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,identity,40000.0,13.469779713134281,0.6054583738292163,128
+3,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,11696.0,216.13639582448857,,False,identity,40000.0,13.469779713134281,0.6054583738292163,128
+4,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,square,40000.0,13.469779713134281,0.6054583738292163,128
+5,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,rosenbrock_36d,15092.0,352.7054011494579,,False,square,40000.0,13.469779713134281,0.6054583738292163,128

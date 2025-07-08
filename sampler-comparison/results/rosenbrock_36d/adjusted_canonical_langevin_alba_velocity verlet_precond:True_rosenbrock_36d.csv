@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,True,covariance,760725.8359375,2.0,0.051190171774083165,128
-1,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,False,covariance,760725.8359375,2.0,0.051190171774083165,128
-2,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,91167.58920638144,151.2848078955716,,True,identity,760725.8359375,2.0,0.051190171774083165,128
-3,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,15370.5974080257,13.875388282855367,,False,identity,760725.8359375,2.0,0.051190171774083165,128
-4,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,113147.934609207,199.8833887545436,,True,square,760725.8359375,2.0,0.051190171774083165,128
-5,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,20689.684551769962,43.41508839101908,,False,square,760725.8359375,2.0,0.051190171774083165,128
+0,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,True,covariance,135554.765625,1.0235943249203467,0.038777846148854794,128
+1,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,False,covariance,135554.765625,1.0235943249203467,0.038777846148854794,128
+2,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,True,identity,135554.765625,1.0235943249203467,0.038777846148854794,128
+3,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,44303.369537724,58.166086339034365,,False,identity,135554.765625,1.0235943249203467,0.038777846148854794,128
+4,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,True,square,135554.765625,1.0235943249203467,0.038777846148854794,128
+5,adjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,55920.462861084285,101.8607657540429,,False,square,135554.765625,1.0235943249203467,0.038777846148854794,128

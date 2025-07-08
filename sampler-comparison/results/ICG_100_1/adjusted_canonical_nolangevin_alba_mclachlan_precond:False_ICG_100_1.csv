@@ -1,5 +1,5 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_canonical_nolangevin_alba_mclachlan_precond:False,ICG_100_1,5788.199999987314,128.40441736949705,,True,identity,21990.34375,0.9704196949199246,0.8821997226563922,64
-1,adjusted_canonical_nolangevin_alba_mclachlan_precond:False,ICG_100_1,725.9999999984088,4.917916225394654,,False,identity,21990.34375,0.9704196949199246,0.8821997226563922,64
-2,adjusted_canonical_nolangevin_alba_mclachlan_precond:False,ICG_100_1,3222.999999992936,54.177637453104204,,True,square,21990.34375,0.9704196949199246,0.8821997226563922,64
-3,adjusted_canonical_nolangevin_alba_mclachlan_precond:False,ICG_100_1,472.99999999896335,8.36982078661186,,False,square,21990.34375,0.9704196949199246,0.8821997226563922,64
+0,adjusted_canonical_nolangevin_alba_mclachlan_precond:False,ICG_100_1,708.5466178114957,98.47673583136273,,True,identity,10126.78125,0.3756028635373839,1.1992696783130556,64
+1,adjusted_canonical_nolangevin_alba_mclachlan_precond:False,ICG_100_1,98.85368135595867,4.714604967545,,False,identity,10126.78125,0.3756028635373839,1.1992696783130556,64
+2,adjusted_canonical_nolangevin_alba_mclachlan_precond:False,ICG_100_1,559.4089829334309,91.09647358707142,,True,square,10126.78125,0.3756028635373839,1.1992696783130556,64
+3,adjusted_canonical_nolangevin_alba_mclachlan_precond:False,ICG_100_1,81.71142447342248,3.2498615355119362,,False,square,10126.78125,0.3756028635373839,1.1992696783130556,64

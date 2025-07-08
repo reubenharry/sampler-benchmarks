@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,unadjusted_canonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,1316.0,212.8709212175303,,True,covariance,20000.0,1.0071550202576294,0.4158543152274152,128
-1,unadjusted_canonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,1316.0,212.8709212175303,,False,covariance,20000.0,1.0071550202576294,0.4158543152274152,128
-2,unadjusted_canonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,831.0,89.9260423903999,,True,identity,20000.0,1.0071550202576294,0.4158543152274152,128
-3,unadjusted_canonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,418.0,46.39769283057079,,False,identity,20000.0,1.0071550202576294,0.4158543152274152,128
-4,unadjusted_canonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,587.0,67.90705044397085,,True,square,20000.0,1.0071550202576294,0.4158543152274152,128
-5,unadjusted_canonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,338.0,58.81802444829306,,False,square,20000.0,1.0071550202576294,0.4158543152274152,128
+0,unadjusted_canonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,1252.0,214.36432982191795,,True,covariance,20000.0,0.8781258814469058,0.41128294743303395,128
+1,unadjusted_canonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,1252.0,214.36432982191795,,False,covariance,20000.0,0.8781258814469058,0.41128294743303395,128
+2,unadjusted_canonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,863.0,147.42317456899377,,True,identity,20000.0,0.8781258814469058,0.41128294743303395,128
+3,unadjusted_canonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,522.0,58.47974350148947,,False,identity,20000.0,0.8781258814469058,0.41128294743303395,128
+4,unadjusted_canonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,587.0,74.67853506865275,,True,square,20000.0,0.8781258814469058,0.41128294743303395,128
+5,unadjusted_canonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,305.0,50.19449671029684,,False,square,20000.0,0.8781258814469058,0.41128294743303395,128

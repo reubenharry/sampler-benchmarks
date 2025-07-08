@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_canonical_langevin_alba_velocity verlet_precond:False,banana,17534.994155663695,1220.723690070771,,True,identity,18990.71875,4.0,1.175867458681489,128
-1,adjusted_canonical_langevin_alba_velocity verlet_precond:False,banana,10967.032267066556,418.45610331311934,,False,identity,18990.71875,4.0,1.175867458681489,128
-2,adjusted_canonical_langevin_alba_velocity verlet_precond:False,banana,10347.348978458635,828.4358263619458,,True,square,18990.71875,4.0,1.175867458681489,128
-3,adjusted_canonical_langevin_alba_velocity verlet_precond:False,banana,9107.982401242794,380.63016906178103,,False,square,18990.71875,4.0,1.175867458681489,128
-4,adjusted_canonical_langevin_alba_velocity verlet_precond:False,banana,inf,,,True,covariance,18990.71875,4.0,1.175867458681489,128
-5,adjusted_canonical_langevin_alba_velocity verlet_precond:False,banana,inf,,,False,covariance,18990.71875,4.0,1.175867458681489,128
+0,adjusted_canonical_langevin_alba_velocity verlet_precond:False,banana,19084.693843406236,29.52038448259101,,True,identity,570839.3828125,11.219452772202226,0.10817983916713311,128
+1,adjusted_canonical_langevin_alba_velocity verlet_precond:False,banana,12651.650974842336,19.03091169650051,,False,identity,570839.3828125,11.219452772202226,0.10817983916713311,128
+2,adjusted_canonical_langevin_alba_velocity verlet_precond:False,banana,17154.780982837066,27.45446229668321,,True,square,570839.3828125,11.219452772202226,0.10817983916713311,128
+3,adjusted_canonical_langevin_alba_velocity verlet_precond:False,banana,9327.912159417656,36.42729059372931,,False,square,570839.3828125,11.219452772202226,0.10817983916713311,128
+4,adjusted_canonical_langevin_alba_velocity verlet_precond:False,banana,1084289.3754964455,,,True,covariance,570839.3828125,11.219452772202226,0.10817983916713311,128
+5,adjusted_canonical_langevin_alba_velocity verlet_precond:False,banana,1084289.3754964455,,,False,covariance,570839.3828125,11.219452772202226,0.10817983916713311,128

@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,unadjusted_microcanonical_nolangevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,True,covariance,22223.0,19.797138328319335,0.23296513109027833,128
-1,unadjusted_microcanonical_nolangevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,False,covariance,22223.0,19.797138328319335,0.23296513109027833,128
-2,unadjusted_microcanonical_nolangevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,True,identity,22223.0,19.797138328319335,0.23296513109027833,128
-3,unadjusted_microcanonical_nolangevin_alba_velocity verlet_precond:True,rosenbrock_36d,12373.0,479.89444787369655,,False,identity,22223.0,19.797138328319335,0.23296513109027833,128
-4,unadjusted_microcanonical_nolangevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,True,square,22223.0,19.797138328319335,0.23296513109027833,128
-5,unadjusted_microcanonical_nolangevin_alba_velocity verlet_precond:True,rosenbrock_36d,17764.0,627.5225187991265,,False,square,22223.0,19.797138328319335,0.23296513109027833,128
+0,unadjusted_microcanonical_nolangevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,True,covariance,20000.0,11.747536542570963,0.2349507308514192,128
+1,unadjusted_microcanonical_nolangevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,False,covariance,20000.0,11.747536542570963,0.2349507308514192,128
+2,unadjusted_microcanonical_nolangevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,True,identity,20000.0,11.747536542570963,0.2349507308514192,128
+3,unadjusted_microcanonical_nolangevin_alba_velocity verlet_precond:True,rosenbrock_36d,18019.0,982.3338446780708,,False,identity,20000.0,11.747536542570963,0.2349507308514192,128
+4,unadjusted_microcanonical_nolangevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,True,square,20000.0,11.747536542570963,0.2349507308514192,128
+5,unadjusted_microcanonical_nolangevin_alba_velocity verlet_precond:True,rosenbrock_36d,21882.0,1465.3472481292617,,False,square,20000.0,11.747536542570963,0.2349507308514192,128

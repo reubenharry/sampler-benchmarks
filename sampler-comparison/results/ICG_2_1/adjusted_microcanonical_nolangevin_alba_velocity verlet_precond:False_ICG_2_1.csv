@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,346.19953854734194,26.908011818044084,,True,covariance,5340.0703125,1.4262653694112812,1.5414242511413483,128
-1,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,346.19953854734194,26.908011818044084,,False,covariance,5340.0703125,1.4262653694112812,1.5414242511413483,128
-2,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,304.5445138558169,40.337549504153074,,True,identity,5340.0703125,1.4262653694112812,1.5414242511413483,128
-3,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,181.430774211976,28.514338498376567,,False,identity,5340.0703125,1.4262653694112812,1.5414242511413483,128
-4,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,144.40408559728704,25.801356553483767,,True,square,5340.0703125,1.4262653694112812,1.5414242511413483,128
-5,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,90.715387105988,9.867618760369698,,False,square,5340.0703125,1.4262653694112812,1.5414242511413483,128
+0,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,243.38718362323803,32.549155134964714,,True,covariance,5060.59375,1.0458172242820511,1.513119239607128,128
+1,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,243.38718362323803,32.549155134964714,,False,covariance,5060.59375,1.0458172242820511,1.513119239607128,128
+2,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,234.3984524098798,35.201102255469216,,True,identity,5060.59375,1.0458172242820511,1.513119239607128,128
+3,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,173.5516565040703,28.264244196510894,,False,identity,5060.59375,1.0458172242820511,1.513119239607128,128
+4,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,109.24765628543071,22.47059189251587,,True,square,5060.59375,1.0458172242820511,1.513119239607128,128
+5,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,ICG_2_1,66.37832280633765,15.714639671338317,,False,square,5060.59375,1.0458172242820511,1.513119239607128,128

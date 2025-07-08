@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,banana,inf,,,True,identity,422715.15625,2.8284271247461894,2.1483200721313223,128
-1,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,banana,30859.62228935351,1145.223116209239,,False,identity,422715.15625,2.8284271247461894,2.1483200721313223,128
-2,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,banana,27079.920717246398,853.5056892604758,,True,square,422715.15625,2.8284271247461894,2.1483200721313223,128
-3,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,banana,13046.322863386522,2067.6472632197206,,False,square,422715.15625,2.8284271247461894,2.1483200721313223,128
-4,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,banana,inf,,,True,covariance,422715.15625,2.8284271247461894,2.1483200721313223,128
-5,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,banana,inf,,,False,covariance,422715.15625,2.8284271247461894,2.1483200721313223,128
+0,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,banana,50891.54231012295,924.4463789209193,,True,identity,41141.65625,1.0133360929806325,0.28946319842066204,128
+1,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,banana,16760.733773855285,759.1530330572355,,False,identity,41141.65625,1.0133360929806325,0.28946319842066204,128
+2,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,banana,24489.337198338948,1409.4365570681073,,True,square,41141.65625,1.0133360929806325,0.28946319842066204,128
+3,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,banana,15218.09835978669,1311.3722583614463,,False,square,41141.65625,1.0133360929806325,0.28946319842066204,128
+4,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,banana,inf,,,True,covariance,41141.65625,1.0133360929806325,0.28946319842066204,128
+5,adjusted_microcanonical_langevin_alba_mclachlan_precond:False,banana,inf,,,False,covariance,41141.65625,1.0133360929806325,0.28946319842066204,128

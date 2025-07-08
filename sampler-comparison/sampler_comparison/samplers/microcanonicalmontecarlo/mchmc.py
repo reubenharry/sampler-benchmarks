@@ -98,80 +98,6 @@ def unadjusted_mchmc_no_tuning(
     return s
 
 
-def unadjusted_mchmc_tuning(
-    initial_position,
-    num_steps,
-    rng_key,
-    logdensity_fn,
-    integrator_type,
-    diagonal_preconditioning,
-    num_tuning_steps=500,
-    stage3=True,
-    desired_energy_var=5e-4,
-    num_windows=1,
-):
-    """
-    Args:
-        initial_position: Initial position of the chain
-        num_steps: Number of steps to run the chain for
-        rng_key: Random number generator key
-        logdensity_fn: Log density function of the target distribution
-        integrator_type: Type of integrator to use (e.g. velocity verlet, mclachlan...)
-        diagonal_preconditioning: Whether to use diagonal preconditioning
-        num_tuning_steps: Number of tuning steps to use
-    Returns:
-        A tuple of the form (state, params) where state is the state of the chain after tuning and params are the hyperparameters of the chain (L, stepsize and inverse mass matrix)
-    """
-
-    tune_key, init_key = jax.random.split(rng_key, 2)
-
-    frac_tune1 = num_tuning_steps / (3 * num_steps)
-    frac_tune2 = num_tuning_steps / (3 * num_steps)
-    frac_tune3 = num_tuning_steps / (3 * num_steps) if stage3 else 0.0
-
-    initial_state = blackjax.mcmc.mchmc.init(
-        position=initial_position,
-        logdensity_fn=logdensity_fn,
-        random_generator_arg=init_key,
-    )
-
-    # kernel = lambda inverse_mass_matrix: blackjax.mcmc.mchmc.build_kernel(
-    #     logdensity_fn=logdensity_fn,
-    #     integrator=map_integrator_type_to_integrator["mclmc"][integrator_type],
-    #     inverse_mass_matrix=inverse_mass_matrix,
-    # )
-
-    kernel = lambda inverse_mass_matrix: lambda rng_key, state, L, step_size: blackjax.mcmc.mclmc.build_kernel(
-        integrator=map_integrator_type_to_integrator["mclmc"][integrator_type],
-    )(
-        rng_key=rng_key,
-        state=state,
-        step_size=step_size,
-        logdensity_fn=logdensity_fn,
-        inverse_mass_matrix=inverse_mass_matrix,
-        L=L,
-        # L_proposal_factor=L_proposal_factor,
-    )
-
-    dim = initial_position.shape[0]
-    params = MCLMCAdaptationState(
-        4 * jnp.sqrt(dim), jnp.sqrt(dim) , inverse_mass_matrix=jnp.ones((dim,))
-    )
-
-    return blackjax.mclmc_find_L_and_step_size(
-        mclmc_kernel=kernel,
-        num_steps=num_steps,
-        state=initial_state,
-        rng_key=tune_key,
-        diagonal_preconditioning=diagonal_preconditioning,
-        frac_tune3=frac_tune3,
-        frac_tune2=frac_tune2,
-        frac_tune1=frac_tune1,
-        params=params,
-        desired_energy_var=desired_energy_var,
-        num_windows=num_windows,
-    )
-
 
 def unadjusted_mchmc(
     diagonal_preconditioning=True,
@@ -181,40 +107,23 @@ def unadjusted_mchmc(
     desired_energy_var=5e-4,
     return_only_final=False,
     incremental_value_transform=None,
-    num_windows=1,
+    alba_factor=0.4,
 ):
     def s(model, num_steps, initial_position, key):
-
-        # logdensity_fn = lambda x : model.unnormalized_log_prob(make_transform(model)(x))
 
         logdensity_fn = make_log_density_fn(model)
 
         tune_key, run_key = jax.random.split(key, 2)
 
-        # (
-        #     blackjax_state_after_tuning,
-        #     blackjax_mchmc_sampler_params,
-        #     num_tuning_integrator_steps,
-        # ) = unadjusted_mchmc_tuning(
-        #     initial_position=initial_position,
-        #     num_steps=num_steps,
-        #     rng_key=tune_key,
-        #     logdensity_fn=logdensity_fn,
-        #     integrator_type=integrator_type,
-        #     diagonal_preconditioning=diagonal_preconditioning,
-        #     num_tuning_steps=num_tuning_steps,
-        #     desired_energy_var=desired_energy_var,
-        #     num_windows=num_windows,
-        # )
-
         num_alba_steps = num_tuning_steps // 3
         warmup = unadjusted_alba(
             algorithm=blackjax.mchmc, 
             logdensity_fn=logdensity_fn, integrator=map_integrator_type_to_integrator["mclmc"][integrator_type], 
-            target_eevpd=5e-4, 
+            target_eevpd=desired_energy_var, 
             v=1., 
             num_alba_steps=num_alba_steps,
-            preconditioning=diagonal_preconditioning
+            preconditioning=diagonal_preconditioning,
+            alba_factor=alba_factor,
             )
         
         (blackjax_state_after_tuning, blackjax_mchmc_sampler_params), adaptation_info = warmup.run(tune_key, initial_position, num_tuning_steps)

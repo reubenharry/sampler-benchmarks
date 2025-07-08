@@ -17,15 +17,8 @@ from sampler_comparison.util import (
     calls_per_integrator_step,
     map_integrator_type_to_integrator,
 )
-from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import (
-    unadjusted_mclmc_tuning,
-)
-from blackjax.adaptation.mclmc_adaptation import MCLMCAdaptationState
-from sampler_comparison.samplers.hamiltonianmontecarlo.nuts_tuning import da_adaptation
 from blackjax.adaptation.adjusted_abla import alba_adjusted
-from blackjax.mcmc.adjusted_mclmc_dynamic import rescale, make_random_trajectory_length_fn
-
-
+from blackjax.mcmc.adjusted_mclmc_dynamic import make_random_trajectory_length_fn
 
 def adjusted_mclmc_no_tuning(
     initial_state,
@@ -111,222 +104,18 @@ def adjusted_mclmc_no_tuning(
     return s
 
 
-def adjusted_mclmc_tuning(
-    initial_position,
-    num_steps,
-    rng_key,
-    logdensity_fn,
-    diagonal_preconditioning,
-    target_acc_rate,
-    random_trajectory_length,
-    integrator,
-    L_proposal_factor,
-    max="avg",
-    num_windows=1,
-    tuning_factor=1.0,
-    num_tuning_steps=5000,
-    L_factor_stage_3=0.3,
-    warmup='nuts',
-):
-    
-    # by default, we use NUTS to find a preconditioning matrix. One could use MAMS or unadjusted MCLMC also.
-
-    init_key, tune_key = jax.random.split(rng_key, 2)
-
-    initial_state = blackjax.mcmc.adjusted_mclmc_dynamic.init(
-        position=initial_position,
-        logdensity_fn=logdensity_fn,
-        random_generator_arg=init_key,
-    )
-
-    if random_trajectory_length:
-        integration_steps_fn = lambda avg_num_integration_steps: lambda k: jnp.ceil(
-            jax.random.uniform(k) * rescale(avg_num_integration_steps)
-        )
-    else:
-        integration_steps_fn = lambda avg_num_integration_steps: lambda _: jnp.ceil(
-            avg_num_integration_steps
-        )
-
-    kernel = lambda rng_key, state, avg_num_integration_steps, step_size, inverse_mass_matrix: blackjax.mcmc.adjusted_mclmc_dynamic.build_kernel(
-        integrator=integrator,
-    )(
-        rng_key=rng_key,
-        state=state,
-        step_size=step_size,
-        integration_steps_fn=integration_steps_fn(avg_num_integration_steps),
-        inverse_mass_matrix=inverse_mass_matrix,
-        logdensity_fn=logdensity_fn,
-        L_proposal_factor=L_proposal_factor,
-    )
-
-    total_tuning_integrator_steps = 0
-
-    warmup_key, re_init_key, tune_key, tune_key_2, stage3_key = (
-            jax.random.split(tune_key, 5)
-        )
-    dim = initial_position.shape[0]
-
-    if warmup=='unadjusted_mclmc':
-
-        for i in range(num_windows):
-            warmup_key = jax.random.fold_in(warmup_key, i)
-            
-            (
-                blackjax_state_after_tuning,
-                blackjax_mclmc_sampler_params,
-                num_tuning_integrator_steps,
-            ) = unadjusted_mclmc_tuning(
-                initial_position=initial_position,
-                num_steps=num_steps,
-                rng_key=warmup_key,
-                logdensity_fn=logdensity_fn,
-                integrator_type="velocity_verlet",
-                diagonal_preconditioning=diagonal_preconditioning,
-                num_tuning_steps=num_tuning_steps/num_windows,
-                stage3=False,
-            )
-            # jax.debug.print("num_tuning_steps/num_windows {x}", x=num_tuning_integrator_steps)
-            total_tuning_integrator_steps += num_tuning_integrator_steps
-
-        new_step_size = jnp.clip(blackjax_mclmc_sampler_params.step_size, max=blackjax_mclmc_sampler_params.L-0.01)
-        blackjax_mclmc_sampler_params = blackjax_mclmc_sampler_params._replace(
-            L=jnp.sqrt(dim),
-            step_size=new_step_size,
-        )
-
-    elif warmup=='nuts':
-
-    
-        if not diagonal_preconditioning:
-
-            sampler_params = MCLMCAdaptationState(
-                L=jnp.sqrt(dim),
-                step_size=jnp.sqrt(dim)*0.2,
-                inverse_mass_matrix=jnp.ones(dim),
-            )
-            blackjax_state_after_tuning = initial_state
-
-        else:
-
-            warmup = blackjax.window_adaptation(
-                        blackjax.nuts, logdensity_fn, 
-                        target_acceptance_rate = 0.8, 
-                        integrator=map_integrator_type_to_integrator["hmc"]['velocity_verlet'], 
-                    )
-            
-            (blackjax_state_after_tuning, nuts_params), adaptation_info = warmup.run(warmup_key, initial_position, num_tuning_steps)
-            adaptation_info = adaptation_info.info
-            total_tuning_integrator_steps += adaptation_info.num_integration_steps.sum()
-
-            sampler_params = MCLMCAdaptationState(
-                L=1.,
-                step_size=nuts_params["step_size"],
-                inverse_mass_matrix=nuts_params['inverse_mass_matrix'],
-            )
-        
-
-    state = blackjax.mcmc.adjusted_mclmc_dynamic.init(
-        position=blackjax_state_after_tuning.position,
-        logdensity_fn=logdensity_fn,
-        random_generator_arg=re_init_key,
-    )
-
-
-    if diagonal_preconditioning:
-        num_steps_stage_2 = 10000
-    else:
-        num_steps_stage_2 = 10000
-
-    (
-        blackjax_state_after_tuning,
-        blackjax_mclmc_sampler_params,
-        _,
-        num_tuning_integrator_steps,
-    ) = adjusted_mclmc_make_L_step_size_adaptation(
-        kernel=kernel,
-        dim=dim,
-        frac_tune1=20000 / num_steps,
-        frac_tune2=num_steps_stage_2 / num_steps,
-        target=target_acc_rate,
-        diagonal_preconditioning=True,
-        max=max,
-        tuning_factor=tuning_factor,
-        fix_L_first_da=True,
-    )(
-        state, sampler_params, num_steps, tune_key
-    )
-    blackjax_mclmc_sampler_params = blackjax_mclmc_sampler_params._replace(inverse_mass_matrix=sampler_params.inverse_mass_matrix)
-    total_tuning_integrator_steps += num_tuning_integrator_steps
-
-
-    alba_tuning = True
-    if alba_tuning:
-
-        (
-            blackjax_state_after_tuning,
-            blackjax_mclmc_sampler_params,
-            num_tuning_integrator_steps,
-        ) = adjusted_mclmc_make_adaptation_L(
-            kernel,
-            frac=10000 / num_steps,
-            Lfactor=L_factor_stage_3,
-            max="avg",
-            eigenvector=None,
-        )(
-            blackjax_state_after_tuning,
-            blackjax_mclmc_sampler_params,
-            num_steps,
-            stage3_key,
-        )
-
-        total_tuning_integrator_steps += num_tuning_integrator_steps
-
-        (
-            blackjax_state_after_tuning,
-            blackjax_mclmc_sampler_params,
-            _,
-            num_tuning_integrator_steps,
-        ) = adjusted_mclmc_make_L_step_size_adaptation(
-            kernel=kernel,
-            dim=dim,
-            frac_tune1=2000 / num_steps,
-            frac_tune2=0.0,
-            target=target_acc_rate,
-            diagonal_preconditioning=True,
-            max=max,
-            tuning_factor=tuning_factor,
-            fix_L_first_da=True,
-        )(
-            state, blackjax_mclmc_sampler_params, num_steps, tune_key_2
-        )
-        total_tuning_integrator_steps += num_tuning_integrator_steps
-
-    return (
-        blackjax_state_after_tuning,
-        blackjax_mclmc_sampler_params,
-        total_tuning_integrator_steps,
-    )
-
-
-
-
 def adjusted_mclmc(
     integrator_type="velocity_verlet",
     diagonal_preconditioning=True,
     L_proposal_factor=jnp.inf,
     target_acc_rate=0.9,
-    max="avg",
-    num_windows=1,
     random_trajectory_length=True,
-    tuning_factor=1.0,
     num_tuning_steps=20000,
-    L_factor_stage_3=0.3,
     return_samples=False,
     return_only_final=False,
-    warmup='nuts',
     progress_bar=False,
     incremental_value_transform=None,
+    alba_factor=0.3,
 ):
     """
     Args:
@@ -355,8 +144,6 @@ def adjusted_mclmc(
 
         integrator = map_integrator_type_to_integrator["mclmc"][integrator_type]
 
-        num_dimensions = initial_position.shape[0]
-
         num_alba_steps = num_tuning_steps // 3
 
         warmup = alba_adjusted(
@@ -369,37 +156,15 @@ def adjusted_mclmc(
             target_acceptance_rate=target_acc_rate,
             integrator=integrator,
             preconditioning=diagonal_preconditioning,
+            alba_factor=alba_factor,
+            L_proposal_factor=L_proposal_factor,
         )
 
         blackjax_state_after_tuning, blackjax_mclmc_sampler_params, adaptation_info = warmup.run(tune_key, initial_position, num_tuning_steps)
         
         num_tuning_integrator_steps = adaptation_info.num_integration_steps.sum()
 
-        # (
-        #     blackjax_state_after_tuning,
-        #     blackjax_mclmc_sampler_params,
-        #     num_tuning_integrator_steps,
-        # ) = adjusted_mclmc_tuning(
-        #     initial_position=initial_position,
-        #     num_steps=num_steps,
-        #     rng_key=tune_key,
-        #     logdensity_fn=logdensity_fn,
-        #     diagonal_preconditioning=diagonal_preconditioning,
-        #     target_acc_rate=target_acc_rate,
-        #     random_trajectory_length=random_trajectory_length,
-        #     integrator=integrator,
-        #     L_proposal_factor=L_proposal_factor,
-        #     max=max,
-        #     num_windows=num_windows,
-        #     tuning_factor=tuning_factor,
-        #     num_tuning_steps=num_tuning_steps,
-        #     L_factor_stage_3=L_factor_stage_3,
-        #     warmup=warmup,
-        # )
-
-        # jax.debug.print("initial state {x}",x=blackjax_state_after_tuning)
-
-
+    
         expectations, metadata = adjusted_mclmc_no_tuning(
             initial_state=blackjax_state_after_tuning,
             integrator_type=integrator_type,
@@ -413,10 +178,6 @@ def adjusted_mclmc(
             progress_bar=progress_bar,
             incremental_value_transform=incremental_value_transform,
         )(model, num_steps, initial_position, run_key)
-
-        # jax.debug.print("intermediate {x}",x=expectations[0,:])
-        # print("intermediate", expectations.shape)
-
 
 
         return expectations, metadata | {

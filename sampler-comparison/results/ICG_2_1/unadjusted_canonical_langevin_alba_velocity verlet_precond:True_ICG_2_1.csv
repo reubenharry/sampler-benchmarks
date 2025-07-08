@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,1813.0,219.29322834962326,,True,covariance,20000.0,0.9622080294656903,0.4021253257222437,128
-1,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,1813.0,219.29322834962326,,False,covariance,20000.0,0.9622080294656903,0.4021253257222437,128
-2,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,685.0,81.18419242685118,,True,identity,20000.0,0.9622080294656903,0.4021253257222437,128
-3,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,316.0,45.985731482711024,,False,identity,20000.0,0.9622080294656903,0.4021253257222437,128
-4,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,842.0,128.33005065065623,,True,square,20000.0,0.9622080294656903,0.4021253257222437,128
-5,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,413.0,71.99340525353693,,False,square,20000.0,0.9622080294656903,0.4021253257222437,128
+0,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,1754.0,189.98938786153295,,True,covariance,20000.0,0.9654825454296918,0.40013185162549847,128
+1,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,1754.0,189.98938786153295,,False,covariance,20000.0,0.9654825454296918,0.40013185162549847,128
+2,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,685.0,79.34021426741927,,True,identity,20000.0,0.9654825454296918,0.40013185162549847,128
+3,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,315.0,51.555325622092624,,False,identity,20000.0,0.9654825454296918,0.40013185162549847,128
+4,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,905.0,99.69246511146166,,True,square,20000.0,0.9654825454296918,0.40013185162549847,128
+5,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,397.0,74.58108607415153,,False,square,20000.0,0.9654825454296918,0.40013185162549847,128

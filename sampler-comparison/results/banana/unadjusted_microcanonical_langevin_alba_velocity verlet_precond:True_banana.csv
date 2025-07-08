@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,banana,8009.0,1467.3945033289444,,True,identity,22223.0,2.975947050580422,0.07871186838115898,128
-1,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,banana,5321.0,508.64250707151876,,False,identity,22223.0,2.975947050580422,0.07871186838115898,128
-2,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,banana,6972.0,1242.4879065407438,,True,square,22223.0,2.975947050580422,0.07871186838115898,128
-3,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,banana,4738.0,1165.1194318180433,,False,square,22223.0,2.975947050580422,0.07871186838115898,128
-4,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,banana,inf,,,True,covariance,22223.0,2.975947050580422,0.07871186838115898,128
-5,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,banana,inf,,,False,covariance,22223.0,2.975947050580422,0.07871186838115898,128
+0,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,banana,7505.0,1389.3483857909794,,True,identity,20000.0,2.536197826364702,0.07769788200951765,128
+1,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,banana,5319.0,446.6930681127702,,False,identity,20000.0,2.536197826364702,0.07769788200951765,128
+2,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,banana,6580.0,2017.367760498814,,True,square,20000.0,2.536197826364702,0.07769788200951765,128
+3,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,banana,5716.0,695.7018162258886,,False,square,20000.0,2.536197826364702,0.07769788200951765,128
+4,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,banana,inf,,,True,covariance,20000.0,2.536197826364702,0.07769788200951765,128
+5,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,banana,inf,,,False,covariance,20000.0,2.536197826364702,0.07769788200951765,128

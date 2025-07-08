@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,banana,40417.563084107,,,True,identity,417282.328125,2.8284271247461894,2.1336857010754056,128
-1,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,banana,23466.714397513842,1541.9500270436783,,False,identity,417282.328125,2.8284271247461894,2.1336857010754056,128
-2,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,banana,24733.095826600307,1251.0759712743268,,True,square,417282.328125,2.8284271247461894,2.1336857010754056,128
-3,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,banana,18630.47037148679,792.8136916073031,,False,square,417282.328125,2.8284271247461894,2.1336857010754056,128
-4,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,banana,inf,,,True,covariance,417282.328125,2.8284271247461894,2.1336857010754056,128
-5,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,banana,inf,,,False,covariance,417282.328125,2.8284271247461894,2.1336857010754056,128
+0,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,banana,29732.02169546673,223.082720083829,,True,identity,59411.421875,1.3217427299747377,0.2584826006864471,128
+1,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,banana,18178.943268964904,182.5355009306409,,False,identity,59411.421875,1.3217427299747377,0.2584826006864471,128
+2,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,banana,23646.12546495311,401.26172705604506,,True,square,59411.421875,1.3217427299747377,0.2584826006864471,128
+3,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,banana,17436.486427534404,308.7880274557289,,False,square,59411.421875,1.3217427299747377,0.2584826006864471,128
+4,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,banana,inf,,,True,covariance,59411.421875,1.3217427299747377,0.2584826006864471,128
+5,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,banana,inf,,,False,covariance,59411.421875,1.3217427299747377,0.2584826006864471,128
