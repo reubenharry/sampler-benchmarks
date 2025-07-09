@@ -153,18 +153,40 @@ def grid_search_unadjusted_mclmc(
     num_chains,
     integrator_type,
     grid_size=10,
-    opt="max",
+    opt=None,
     grid_iterations=2,
     num_tuning_steps=10000,
     return_samples=False,
     desired_energy_var=5e-4,
     diagonal_preconditioning=True,
     warmup_key=jax.random.key(0),
+    target_expectation=None,
+    grid_search_steps=None,
 ):
     
     def s(model, num_steps, initial_position, key):
-
         from sampler_comparison.samplers.grid_search.grid_search import grid_search_L
+        from sampler_comparison.experiments.utils import model_info
+        
+        # Get model-specific preferences if available
+        model_name = model.name
+        if model_name in model_info:
+            model_prefs = model_info[model_name]
+            # Use model-specific preferences if not explicitly provided
+            if target_expectation is None:
+                target_expectation = model_prefs.get('preferred_statistic', 'square')
+            if opt is None:
+                opt = "max" if model_prefs.get('max_over_parameters', True) else "avg"
+            if grid_search_steps is None:
+                grid_search_steps = model_prefs.get('grid_search_steps', num_steps // 10)
+        else:
+            # Fallback defaults if model not in model_info
+            if target_expectation is None:
+                target_expectation = 'square'
+            if opt is None:
+                opt = "max"
+            if grid_search_steps is None:
+                grid_search_steps = num_steps // 10
 
         alba_key, grid_key = jax.random.split(warmup_key, 2)
 
@@ -192,7 +214,7 @@ def grid_search_unadjusted_mclmc(
             blackjax_state_after_tuning,
         ) = grid_search_L(
             model=model,
-            num_steps=num_steps,
+            num_steps=grid_search_steps,  # Use model-specific grid search steps
             num_chains=num_chains,
             integrator_type=integrator_type,
             key=grid_key,
@@ -206,6 +228,7 @@ def grid_search_unadjusted_mclmc(
             diagonal_preconditioning=diagonal_preconditioning,
             initial_state=alba_state,
             initial_inverse_mass_matrix=alba_params['inverse_mass_matrix'],
+            target_expectation=target_expectation,
         )
 
         sampler=unadjusted_mclmc_no_tuning(
@@ -236,6 +259,9 @@ def grid_search_unadjusted_mclmc_new(
     desired_energy_var=5e-4,
     diagonal_preconditioning=True,
     alba_factor=0.4,
+    statistic=None,
+    max_over_parameters=None,
+    grid_search_steps=None,
 ):
     """
     New cleaner and more principled grid search for unadjusted MCLMC with ALBA warmup.
@@ -243,9 +269,6 @@ def grid_search_unadjusted_mclmc_new(
     Args:
         num_chains: Number of chains to run
         integrator_type: Type of integrator to use
-        initial_L: Initial value of L parameter
-        initial_inverse_mass_matrix: Initial inverse mass matrix (if None, will be set to ones)
-        epsilon: Fixed step size to use
         grid_size: Number of L values to try in each grid iteration
         grid_iterations: Number of grid search iterations
         num_tuning_steps: Number of tuning steps for ALBA warmup
@@ -253,6 +276,9 @@ def grid_search_unadjusted_mclmc_new(
         desired_energy_var: Desired energy variance for ALBA
         diagonal_preconditioning: Whether to use diagonal preconditioning
         alba_factor: Factor for ALBA adaptation
+        statistic: Which statistic to optimize ("square", "abs", "entropy", etc.) - if None, will use model-specific preference
+        max_over_parameters: Whether to use max_over_parameters (True) or avg_over_parameters (False) - if None, will use model-specific preference
+        grid_search_steps: Number of steps for grid search evaluation - if None, will use model-specific preference
     
     Returns:
         A sampler function that can be used with the benchmark framework
@@ -260,6 +286,27 @@ def grid_search_unadjusted_mclmc_new(
     
     def s(model, num_steps, initial_position, key):
         from sampler_comparison.samplers.grid_search.grid_search import grid_search_L_new
+        from sampler_comparison.experiments.utils import model_info
+        
+        # Get model-specific preferences if available
+        model_name = model.name
+        if model_name in model_info:
+            model_prefs = model_info[model_name]
+            # Use model-specific preferences if not explicitly provided
+            if statistic is None:
+                statistic = model_prefs.get('preferred_statistic', 'square')
+            if max_over_parameters is None:
+                max_over_parameters = model_prefs.get('max_over_parameters', True)
+            if grid_search_steps is None:
+                grid_search_steps = model_prefs.get('grid_search_steps', num_steps // 10)
+        else:
+            # Fallback defaults if model not in model_info
+            if statistic is None:
+                statistic = 'square'
+            if max_over_parameters is None:
+                max_over_parameters = True
+            if grid_search_steps is None:
+                grid_search_steps = num_steps // 10
         
         tune_key, grid_key, run_key = jax.random.split(key[0], 3)
         
@@ -291,33 +338,36 @@ def grid_search_unadjusted_mclmc_new(
         print(f"  ALBA L: {alba_params['L']:.4f}")
         print(f"  ALBA inverse mass matrix shape: {alba_params['inverse_mass_matrix'].shape}")
         
-
-        epsilon = 0.1
         # Run the new grid search with ALBA state and parameters
-        optimal_L, optimal_value, all_values, optimal_idx = grid_search_L_new(
+        optimal_L, optimal_step_size, optimal_value, all_values, optimal_idx = grid_search_L_new(
             model=model,
-            num_steps=num_steps,
+            num_steps=grid_search_steps,  # Use model-specific grid search steps
             num_chains=num_chains,
             integrator_type=integrator_type,
             key=grid_key,
             initial_L=alba_params['L'],
             initial_inverse_mass_matrix=alba_params['inverse_mass_matrix'],
-            epsilon=epsilon,
+            initial_step_size=alba_params['step_size'],
             initial_state=alba_state,
+            sampler_fn=unadjusted_mclmc_no_tuning,
+            statistic=statistic,  # Use model-specific statistic
+            max_over_parameters=max_over_parameters,  # Use model-specific parameter type
             grid_size=grid_size,
             grid_iterations=grid_iterations,
         )
         
         print(f"\n=== Final Sampling ===")
         print(f"Using optimal L: {optimal_L:.4f}")
-        print(f"Using fixed step size: {epsilon:.6f}")
+        print(f"Using optimal step_size: {optimal_step_size:.6f}")
         print(f"Using ALBA inverse mass matrix")
+        print(f"Using statistic: {statistic}")
+        print(f"Using {'max' if max_over_parameters else 'avg'} over parameters")
         
-        # Create the final sampler with the optimal L
+        # Create the final sampler with the optimal L and step_size
         sampler = unadjusted_mclmc_no_tuning(
             initial_state=alba_state,
             integrator_type=integrator_type,
-            step_size=epsilon,
+            step_size=optimal_step_size,
             L=optimal_L,
             inverse_mass_matrix=alba_params['inverse_mass_matrix'],
             return_samples=return_samples,

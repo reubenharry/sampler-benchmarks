@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,12488.0,555.3426627767761,,True,covariance,0.0,2.8244111184070975,0.10000000000000005,128
-1,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,12488.0,555.3426627767761,,False,covariance,0.0,2.8244111184070975,0.10000000000000005,128
-2,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,2468.0,239.65227539082537,,True,identity,0.0,2.8244111184070975,0.10000000000000005,128
-3,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,1572.0,48.819565749809776,,False,identity,0.0,2.8244111184070975,0.10000000000000005,128
-4,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,4564.0,270.2299761314425,,True,square,0.0,2.8244111184070975,0.10000000000000005,128
-5,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,3398.0,128.65403646990637,,False,square,0.0,2.8244111184070975,0.10000000000000005,128
+0,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,1262.0,71.50432923956423,,True,covariance,0.0,2.8244111184070975,0.9783961022498817,128
+1,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,1262.0,71.50432923956423,,False,covariance,0.0,2.8244111184070975,0.9783961022498817,128
+2,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,378.0,18.69065006895159,,True,identity,0.0,2.8244111184070975,0.9783961022498817,128
+3,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,268.0,17.518273316739865,,False,identity,0.0,2.8244111184070975,0.9783961022498817,128
+4,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,444.0,32.69935014644786,,True,square,0.0,2.8244111184070975,0.9783961022498817,128
+5,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,354.0,14.237640253918482,,False,square,0.0,2.8244111184070975,0.9783961022498817,128

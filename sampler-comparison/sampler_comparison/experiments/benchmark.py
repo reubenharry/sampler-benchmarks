@@ -123,11 +123,11 @@ if __name__ == "__main__":
         # banana(),
         # Rosenbrock(18),
         # stochastic_volatility_mams_paper,
-        IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log'),
+        # IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log'),
         # IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log', do_covariance=False),
         # IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log', do_covariance=False),
         # # item_response(),
-        # IllConditionedGaussian(ndims=10000, condition_number=100, eigenvalues='log', do_covariance=False),
+        IllConditionedGaussian(ndims=10000, condition_number=100, eigenvalues='log', do_covariance=False),
         # cauchy(ndims=100),
         # U1(Lt=16, Lx=16, beta=6)
         ]
@@ -142,22 +142,21 @@ if __name__ == "__main__":
                 mh_options = [False],
                 canonical_options = [False],
                 langevin_options = [True],
-                integrator_type_options = ['mclachlan'],
-                diagonal_preconditioning_options = [True],
+                integrator_type_options = ['velocity_verlet', 'mclachlan'],
+                diagonal_preconditioning_options = [True, False],
                 redo=True,  
                 # redo_bad_results=True
             )
             
-            # # Grid search run
             # run(
             #     key=jax.random.PRNGKey(5),
             #     models=[model],
-            #     tuning_options=['grid_search'],
-            #     mh_options = [False],
-            #     canonical_options = [False],
-            #     langevin_options = [True],
-            #     integrator_type_options = ['mclachlan'],
-            #     diagonal_preconditioning_options = [True],
+            #     tuning_options=['alba'],
+            #     mh_options = [True, False],
+            #     canonical_options = [True, False],
+            #     langevin_options = [True, False],
+            #     integrator_type_options = ['velocity_verlet', 'mclachlan'],
+            #     diagonal_preconditioning_options = [True, False],
             #     redo=True,
             # )
             

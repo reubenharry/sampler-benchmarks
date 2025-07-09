@@ -34,6 +34,7 @@ def grid_search_1D(
     objective_fn,
     coordinates,
     key,
+    coordinate_name="coordinate",
 ):
     """
     General 1D grid search that minimizes an arbitrary function over a 1D array of coordinates.
@@ -42,24 +43,25 @@ def grid_search_1D(
         objective_fn: Function that takes a coordinate and returns a scalar value to minimize
         coordinates: 1D array of coordinates to evaluate
         key: JAX random key
+        coordinate_name: Name of the coordinate being optimized (e.g., "L", "epsilon")
     
     Returns:
         Tuple of (optimal_coordinate, optimal_value, all_values, optimal_index)
     """
     values = jnp.zeros(len(coordinates))
     
-    print(f"  Evaluating {len(coordinates)} coordinates:")
+    print(f"    Evaluating {len(coordinates)} {coordinate_name} values:")
     for i, coord in enumerate(coordinates):
         eval_key = jax.random.fold_in(key, i)
         value = objective_fn(coord, eval_key)
         values = values.at[i].set(value)
-        print(f"    Coordinate {i+1}/{len(coordinates)}: {coord:.4f} -> {value:.4f}")
+        print(f"      {coordinate_name.capitalize()} {i+1}/{len(coordinates)}: {coord:.4f} -> {value:.4f}")
     
     optimal_idx = jnp.argmin(values)
     optimal_coordinate = coordinates[optimal_idx]
     optimal_value = values[optimal_idx]
     
-    print(f"  Optimal coordinate: {optimal_coordinate:.4f} (index {optimal_idx}) with value: {optimal_value:.4f}")
+    print(f"    Optimal {coordinate_name}: {optimal_coordinate:.4f} (index {optimal_idx}) with value: {optimal_value:.4f}")
     
     return optimal_coordinate, optimal_value, values, optimal_idx
 
@@ -71,13 +73,17 @@ def grid_search_L_new(
     key,
     initial_L,
     initial_inverse_mass_matrix,
-    epsilon,
+    initial_step_size,
     initial_state,
+    sampler_fn,
+    statistic="square",
+    max_over_parameters=True,
     grid_size=10,
     grid_iterations=2,
 ):
     """
-    Cleaner and more principled grid search for L parameter using unadjusted MCLMC sampler.
+    Cleaner and more principled grid search for L parameter using any sampler function.
+    Also optimizes step_size for each L value.
     
     Args:
         model: The model to sample from
@@ -87,54 +93,87 @@ def grid_search_L_new(
         key: JAX random key
         initial_L: Initial value of L parameter
         initial_inverse_mass_matrix: Initial inverse mass matrix
-        epsilon: Fixed step size to use
+        initial_step_size: Initial step size to use (from ALBA warmup)
         initial_state: Initial state for the sampler
+        sampler_fn: Function that creates a sampler (e.g., unadjusted_mclmc_no_tuning)
+        statistic: Which statistic to optimize ("square", "abs", etc.)
+        max_over_parameters: Whether to use max_over_parameters (True) or avg_over_parameters (False)
         grid_size: Number of L values to try in each grid iteration
         grid_iterations: Number of grid search iterations
     
     Returns:
-        Tuple of (optimal_L, optimal_value, all_values, optimal_index)
+        Tuple of (optimal_L, optimal_step_size, optimal_value, all_values, optimal_index)
     """
-    logdensity_fn = make_log_density_fn(model)
     
     def objective_fn(L, eval_key):
         """Objective function to minimize: number of gradient evaluations per effective sample"""
-        sampler = unadjusted_mclmc_no_tuning(
-            initial_state=initial_state,
-            integrator_type=integrator_type,
-            step_size=epsilon,
-            L=L,
-            inverse_mass_matrix=initial_inverse_mass_matrix,
-            return_samples=False,
-        )
-    
-        # eval_key = jax.random.split(eval_key, num_chains)
- 
-        (stats, sq_error) = sampler_grads_to_low_error(
-                model=model,
-                sampler=jax.pmap(
-            lambda key, pos: sampler(
-                model=model, num_steps=num_steps, initial_position=pos, key=key
-                )
-            ),
-                key=eval_key,
-                batch_size=num_chains,
+        
+        print(f"    Testing L = {L:.4f} (inner loop: optimizing step_size)...")
+        
+        # Define step_size range based on L/step_size ratio constraints
+        # We want 1 <= L/step_size <= 50
+        # So step_size should be in [L/50, L/1]
+        min_step_size = L / 50.0
+        max_step_size = L / 1.0
+        
+        # Ensure we don't go below a reasonable minimum step size
+        min_step_size = max(min_step_size, 0.001)
+        
+        step_size_range = jnp.linspace(min_step_size, max_step_size, 10)
+        
+        def step_size_objective_fn(step_size, step_size_eval_key):
+            """Inner objective function for step_size optimization"""
+            sampler = sampler_fn(
+                initial_state=initial_state,
+                integrator_type=integrator_type,
+                step_size=step_size,
+                L=L,
+                inverse_mass_matrix=initial_inverse_mass_matrix,
+                return_samples=False,
             )
+        
+            (stats, sq_error) = sampler_grads_to_low_error(
+                    model=model,
+                    sampler=jax.pmap(
+                lambda key, pos: sampler(
+                    model=model, num_steps=num_steps, initial_position=pos, key=key
+                    )
+                ),
+                    key=step_size_eval_key,
+                    batch_size=num_chains,
+                )
 
-        return stats["max_over_parameters"]['square']["grads_to_low_error"]
+            param_type = "max_over_parameters" if max_over_parameters else "avg_over_parameters"
+            return stats[param_type][statistic]["grads_to_low_error"]
+        
+        # Find optimal step_size for this L value
+        optimal_step_size, optimal_step_size_value, _, _ = grid_search_1D(
+            objective_fn=step_size_objective_fn,
+            coordinates=step_size_range,
+            key=eval_key,
+            coordinate_name="step_size",
+        )
+        
+        print(f"    L = {L:.4f} complete: optimal step_size = {optimal_step_size:.6f}, value = {optimal_step_size_value:.4f}")
+        
+        return optimal_step_size_value
     
     optimal_L = initial_L
+    optimal_step_size = initial_step_size
     optimal_value = None
     all_values = None
     optimal_idx = None
     
-    print(f"\n=== Grid Search for L Parameter ===")
+    param_type = "max_over_parameters" if max_over_parameters else "avg_over_parameters"
+    print(f"\n=== Grid Search for L Parameter (with step_size optimization) ===")
     print(f"Model: {model.name} (ndims={model.ndims})")
-    print(f"Fixed step size (epsilon): {epsilon:.4f}")
     print(f"Initial L: {initial_L:.4f}")
+    print(f"Initial step_size: {initial_step_size:.6f}")
     print(f"Grid size: {grid_size}, Grid iterations: {grid_iterations}")
     print(f"Number of chains: {num_chains}, Number of steps: {num_steps}")
     print(f"Integrator: {integrator_type}")
+    print(f"Statistic: {statistic}, Parameter type: {param_type}")
+    print(f"Step size range: L/50 to L/1 (ensuring 1 <= L/step_size <= 50)")
     
     for grid_iteration in range(grid_iterations):
         grid_key = jax.random.fold_in(key, grid_iteration + 2)
@@ -160,17 +199,25 @@ def grid_search_L_new(
                 print(f"\n--- Grid Iteration {grid_iteration + 1}/{grid_iterations} (Fallback Refinement) ---")
                 print(f"  L range: [{L_range[0]:.4f}, {L_range[-1]:.4f}]")
         
+        print(f"  Starting L grid search (outer loop)...")
         optimal_L, optimal_value, all_values, optimal_idx = grid_search_1D(
             objective_fn=objective_fn,
             coordinates=L_range,
             key=grid_key,
+            coordinate_name="L",
         )
+        print(f"  L grid search complete!")
     
     print(f"\n=== Grid Search Complete ===")
     print(f"Final optimal L: {optimal_L:.4f}")
-    print(f"Final objective value: {optimal_value:.4f}")
+    print(f"Final optimal value: {optimal_value:.4f}")
+    print(f"Note: Optimal step_size was found for each L value during optimization")
+    print(f"\nOptimization structure:")
+    print(f"  Outer loop: Grid search over L values ({grid_iterations} iterations)")
+    print(f"  Inner loop: For each L, grid search over step_size values (L/50 to L/1)")
+    print(f"  Objective: Minimize gradient evaluations to low error")
     
-    return optimal_L, optimal_value, all_values, optimal_idx
+    return optimal_L, optimal_step_size, optimal_value, all_values, optimal_idx
 
 def grid_search_step_size(state, params, num_steps, da_key_per_iter):
     return params
@@ -505,16 +552,38 @@ def grid_search_adjusted_mclmc(
     num_chains,
     integrator_type,
     grid_size=10,
-    opt="max",
+    opt=None,
     grid_iterations=2,
     num_tuning_steps=10000,
     return_samples=False,
-    target_expectation='square',
+    target_expectation=None,
     diagonal_preconditioning=True,
     acc_rate=0.99,
+    grid_search_steps=None,
 ):
     
     def s(model, num_steps, initial_position, key):
+        from sampler_comparison.experiments.utils import model_info
+        
+        # Get model-specific preferences if available
+        model_name = model.name
+        if model_name in model_info:
+            model_prefs = model_info[model_name]
+            # Use model-specific preferences if not explicitly provided
+            if target_expectation is None:
+                target_expectation = model_prefs.get('preferred_statistic', 'square')
+            if opt is None:
+                opt = "max" if model_prefs.get('max_over_parameters', True) else "avg"
+            if grid_search_steps is None:
+                grid_search_steps = model_prefs.get('grid_search_steps', num_steps // 10)
+        else:
+            # Fallback defaults if model not in model_info
+            if target_expectation is None:
+                target_expectation = 'square'
+            if opt is None:
+                opt = "max"
+            if grid_search_steps is None:
+                grid_search_steps = num_steps // 10
 
         (
             L,
@@ -526,7 +595,7 @@ def grid_search_adjusted_mclmc(
             blackjax_state_after_tuning,
         ) = grid_search_L(
             model=model,
-            num_steps=num_steps,
+            num_steps=grid_search_steps,  # Use model-specific grid search steps
             num_chains=num_chains,
             integrator_type=integrator_type,
             key=jax.random.key(0),
@@ -566,15 +635,38 @@ def grid_search_hmc(
     num_chains,
     integrator_type,
     grid_size=10,
-    opt="max",
+    opt=None,
     grid_iterations=2,
     num_tuning_steps=10000,
     return_samples=False,
     L_proposal_factor=jnp.inf,
     diagonal_preconditioning=True,
+    target_expectation=None,
+    grid_search_steps=None,
 ):
     
     def s(model, num_steps, initial_position, key):
+        from sampler_comparison.experiments.utils import model_info
+        
+        # Get model-specific preferences if available
+        model_name = model.name
+        if model_name in model_info:
+            model_prefs = model_info[model_name]
+            # Use model-specific preferences if not explicitly provided
+            if target_expectation is None:
+                target_expectation = model_prefs.get('preferred_statistic', 'square')
+            if opt is None:
+                opt = "max" if model_prefs.get('max_over_parameters', True) else "avg"
+            if grid_search_steps is None:
+                grid_search_steps = model_prefs.get('grid_search_steps', num_steps // 10)
+        else:
+            # Fallback defaults if model not in model_info
+            if target_expectation is None:
+                target_expectation = 'square'
+            if opt is None:
+                opt = "max"
+            if grid_search_steps is None:
+                grid_search_steps = num_steps // 10
 
         (
             L,
@@ -586,7 +678,7 @@ def grid_search_hmc(
             blackjax_state_after_tuning,
         ) = grid_search_L(
             model=model,
-            num_steps=num_steps,
+            num_steps=grid_search_steps,  # Use model-specific grid search steps
             num_chains=num_chains,
             integrator_type=integrator_type,
             key=jax.random.key(0),
@@ -598,6 +690,7 @@ def grid_search_hmc(
             euclidean=True,
             L_proposal_factor=L_proposal_factor,
             diagonal_preconditioning=diagonal_preconditioning,
+            target_expectation=target_expectation,
         )
 
         sampler=adjusted_hmc_no_tuning(
@@ -623,15 +716,38 @@ def grid_search_unadjusted_lmc(
     num_chains,
     integrator_type,
     grid_size=10,
-    opt="max",
+    opt=None,
     grid_iterations=2,
     num_tuning_steps=10000,
     return_samples=False,
     desired_energy_var=1e-4,
     diagonal_preconditioning=True,
+    target_expectation=None,
+    grid_search_steps=None,
 ):
     
     def s(model, num_steps, initial_position, key):
+        from sampler_comparison.experiments.utils import model_info
+        
+        # Get model-specific preferences if available
+        model_name = model.name
+        if model_name in model_info:
+            model_prefs = model_info[model_name]
+            # Use model-specific preferences if not explicitly provided
+            if target_expectation is None:
+                target_expectation = model_prefs.get('preferred_statistic', 'square')
+            if opt is None:
+                opt = "max" if model_prefs.get('max_over_parameters', True) else "avg"
+            if grid_search_steps is None:
+                grid_search_steps = model_prefs.get('grid_search_steps', num_steps // 10)
+        else:
+            # Fallback defaults if model not in model_info
+            if target_expectation is None:
+                target_expectation = 'square'
+            if opt is None:
+                opt = "max"
+            if grid_search_steps is None:
+                grid_search_steps = num_steps // 10
 
         (
             L,
@@ -643,7 +759,7 @@ def grid_search_unadjusted_lmc(
             blackjax_state_after_tuning,
         ) = grid_search_L(
             model=model,
-            num_steps=num_steps,
+            num_steps=grid_search_steps,  # Use model-specific grid search steps
             num_chains=num_chains,
             integrator_type=integrator_type,
             key=jax.random.key(0),
@@ -655,6 +771,7 @@ def grid_search_unadjusted_lmc(
             euclidean=True,
             desired_energy_var=desired_energy_var,
             diagonal_preconditioning=diagonal_preconditioning,
+            target_expectation=target_expectation,
         )
 
         sampler=unadjusted_lmc_no_tuning(
@@ -682,15 +799,38 @@ def grid_search_unadjusted_hmc(
     num_chains,
     integrator_type,
     grid_size=10,
-    opt="max",
+    opt=None,
     grid_iterations=2,
     num_tuning_steps=10000,
     return_samples=False,
     desired_energy_var=1e-4,
     diagonal_preconditioning=True,
+    target_expectation=None,
+    grid_search_steps=None,
 ):
     
     def s(model, num_steps, initial_position, key):
+        from sampler_comparison.experiments.utils import model_info
+        
+        # Get model-specific preferences if available
+        model_name = model.name
+        if model_name in model_info:
+            model_prefs = model_info[model_name]
+            # Use model-specific preferences if not explicitly provided
+            if target_expectation is None:
+                target_expectation = model_prefs.get('preferred_statistic', 'square')
+            if opt is None:
+                opt = "max" if model_prefs.get('max_over_parameters', True) else "avg"
+            if grid_search_steps is None:
+                grid_search_steps = model_prefs.get('grid_search_steps', num_steps // 10)
+        else:
+            # Fallback defaults if model not in model_info
+            if target_expectation is None:
+                target_expectation = 'square'
+            if opt is None:
+                opt = "max"
+            if grid_search_steps is None:
+                grid_search_steps = num_steps // 10
 
         (
             L,
@@ -702,7 +842,7 @@ def grid_search_unadjusted_hmc(
             blackjax_state_after_tuning,
         ) = grid_search_L(
             model=model,
-            num_steps=num_steps,
+            num_steps=grid_search_steps,  # Use model-specific grid search steps
             num_chains=num_chains,
             integrator_type=integrator_type,
             key=jax.random.key(0),
@@ -714,6 +854,7 @@ def grid_search_unadjusted_hmc(
             euclidean=True,
             desired_energy_var=desired_energy_var,
             diagonal_preconditioning=diagonal_preconditioning,
+            target_expectation=target_expectation,
         )
 
         sampler=unadjusted_hmc_no_tuning(

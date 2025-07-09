@@ -22,6 +22,7 @@ model = IllConditionedGaussian(ndims=10, condition_number=1, eigenvalues='log')
 
 # Example usage of the new grid search function
 print("Running new grid search for unadjusted MCLMC...")
+print("The function will automatically use model-specific preferences from model_info")
 
 run_benchmarks(
     models={model.name: model},
@@ -29,10 +30,12 @@ run_benchmarks(
         "grid_search_mclmc_new": grid_search_unadjusted_mclmc_new(
             num_chains=batch_size,
             integrator_type="mclachlan",
-            initial_L=5.0,
-            epsilon=0.1,
             grid_size=8,
             grid_iterations=2,
+            # The function will automatically use model-specific preferences:
+            # - statistic: from model_info['preferred_statistic']
+            # - max_over_parameters: from model_info['max_over_parameters'] 
+            # - grid_search_steps: from model_info['grid_search_steps']
         ),
     },
     batch_size=batch_size,
@@ -43,4 +46,5 @@ run_benchmarks(
     calculate_ess_corr=False,
 )
 
-print("Grid search completed! Check the results directory for output.") 
+print("Grid search completed! Check the results directory for output.")
+print("The function used model-specific preferences automatically.") 

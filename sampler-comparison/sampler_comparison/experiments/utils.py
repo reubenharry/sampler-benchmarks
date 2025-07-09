@@ -49,54 +49,89 @@ model_info = {
     IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log').name: {
         'pretty_name' : 'Ill-Conditioned Gaussian in 2D, with condition number 1',
         'batch_size' : 128,
-        'num_steps' : {True : 5000, False : 5000}},
+        'num_steps' : {True : 5000, False : 5000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : False,
+        'grid_search_steps' : 500},
             
     IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log').name: {
         'pretty_name' : 'Ill-Conditioned Gaussian in 100D, with condition number 1',
         'batch_size' : 64,
-        'num_steps' : {True : 5000, False : 10000}},
+        'num_steps' : {True : 5000, False : 10000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : False,
+        'grid_search_steps' : 1000},
     IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log').name: {
         'pretty_name' : 'Ill-Conditioned Gaussian in 100D, with condition number 1000',
         'batch_size' : 64,
-        'num_steps' : {True : 50000, False : 100000}},
+        'num_steps' : {True : 50000, False : 100000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : False,
+        'grid_search_steps' : 10000},
     IllConditionedGaussian(ndims=10000, condition_number=100, eigenvalues='log').name: {
         'pretty_name' : 'Ill-Conditioned Gaussian in 10000D, with condition number 100',
         'batch_size' : 16,
-        'num_steps' : {True : 50000, False : 100000}},
+        'num_steps' : {True : 50000, False : 100000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : False,
+        'grid_search_steps' : 10000},
             
     brownian_motion().name: {
         'pretty_name' : 'Brownian Motion',
         'batch_size' : 128,
-        'num_steps' : {True : 40000, False : 100000}},
+        'num_steps' : {True : 40000, False : 100000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : True,
+        'grid_search_steps' : 10000},
             
     german_credit().name: {
         'pretty_name' : 'German Credit',
         'batch_size' : 128,
-        'num_steps' : {True : 20000, False : 100000}},
+        'num_steps' : {True : 20000, False : 100000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : True,
+        'grid_search_steps' : 10000},
     item_response().name: {
         'pretty_name' : 'Item Response',
         'batch_size' : 64,
-        'num_steps' : {True : 80000, False : 200000}},
+        'num_steps' : {True : 80000, False : 200000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : True,
+        'grid_search_steps' : 20000},
     stochastic_volatility_mams_paper.name: {
         'pretty_name' : 'Stochastic Volatility',
         'batch_size' : 128,
-        'num_steps' : {True : 50000, False : 200000}},
+        'num_steps' : {True : 50000, False : 200000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : True,
+        'grid_search_steps' : 20000},
     Rosenbrock(18).name: {
         'pretty_name' : 'Rosenbrock',
         'batch_size' : 128,
-        'num_steps' : {True : 5000, False : 50000}},
+        'num_steps' : {True : 5000, False : 50000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : False,
+        'grid_search_steps' : 5000},
         
     U1(Lt=16, Lx=16, beta=6).name: {
         'pretty_name' : 'U1',
         'batch_size' : 32,
-        'num_steps' : {True : 5000, False : 200000}},
+        'num_steps' : {True : 5000, False : 200000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : True,
+        'grid_search_steps' : 20000},
 
     cauchy(ndims=100).name: {
         'pretty_name' : 'Cauchy',
         'batch_size' : 32,
-        'num_steps' : {True : 30000, False : 700000}},
+        'num_steps' : {True : 30000, False : 700000},
+        'preferred_statistic' : 'entropy',
+        'max_over_parameters' : False,
+        'grid_search_steps' : 70000},
     banana().name: {
         'pretty_name' : 'Banana',
         'batch_size' : 128,
-        'num_steps' : {True : 20000, False : 50000}}
-}
+        'num_steps' : {True : 20000, False : 50000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : True,
+        'grid_search_steps' : 5000}}
