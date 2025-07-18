@@ -14,7 +14,7 @@ from results.run_benchmarks import run_benchmarks
 import sampler_evaluation
 from sampler_comparison.samplers import samplers
 
-from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import grid_search_unadjusted_mclmc_new
+from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import grid_search_unadjusted_mclmc
 from sampler_evaluation.models.gaussian_mams_paper import IllConditionedGaussian
 
 # Create a simple model for testing
@@ -27,7 +27,7 @@ print("The function will automatically use model-specific preferences from model
 run_benchmarks(
     models={model.name: model},
     samplers={
-        "grid_search_mclmc_new": grid_search_unadjusted_mclmc_new(
+        "grid_search_mclmc_new": grid_search_unadjusted_mclmc(
             num_chains=batch_size,
             integrator_type="mclachlan",
             grid_size=8,

@@ -1,7 +1,0 @@
-,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_canonical_nolangevin_grid_search_velocity verlet_precond:True,vector_synthetic_item_response_theory,35296.24777386149,896.1554563244035,,True,identity,0.0,1.847736625514402,0.13856880422736054,64
-1,adjusted_canonical_nolangevin_grid_search_velocity verlet_precond:True,vector_synthetic_item_response_theory,3760.3104919640878,33.27563072279773,,False,identity,0.0,1.847736625514402,0.13856880422736054,64
-2,adjusted_canonical_nolangevin_grid_search_velocity verlet_precond:True,vector_synthetic_item_response_theory,53084.383221663236,505.30586568928726,,True,square,0.0,1.847736625514402,0.13856880422736054,64
-3,adjusted_canonical_nolangevin_grid_search_velocity verlet_precond:True,vector_synthetic_item_response_theory,4120.340219918096,34.279876020779305,,False,square,0.0,1.847736625514402,0.13856880422736054,64
-4,adjusted_canonical_nolangevin_grid_search_velocity verlet_precond:True,vector_synthetic_item_response_theory,inf,,,True,quartic,0.0,1.847736625514402,0.13856880422736054,64
-5,adjusted_canonical_nolangevin_grid_search_velocity verlet_precond:True,vector_synthetic_item_response_theory,inf,,,False,quartic,0.0,1.847736625514402,0.13856880422736054,64

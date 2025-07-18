@@ -1,0 +1,7 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
+0,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,True,identity,40000.0,81.8845153472632,1.6376903069452644,128,success
+1,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,False,identity,40000.0,81.8845153472632,1.6376903069452644,128,success
+2,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,True,square,40000.0,81.8845153472632,1.6376903069452644,128,success
+3,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,Stochastic_Volatility_MAMS_Paper,88054.0,1176.4310830218658,,False,square,40000.0,81.8845153472632,1.6376903069452644,128,success
+4,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,True,quartic,40000.0,81.8845153472632,1.6376903069452644,128,success
+5,unadjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,False,quartic,40000.0,81.8845153472632,1.6376903069452644,128,success

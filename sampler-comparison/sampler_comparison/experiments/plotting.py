@@ -393,7 +393,14 @@ def plot_grouped_bars(ax, plot_df, color_map, hatch_map, alpha_map):
             y = 0
             yerr = 0
             print(f"Plotting NUTS bar at x={x_center}: y={y}, yerr={yerr}, std_col=0 (no data)")
-        color = 'tab:green'
+        
+        # Check tuning outcome for NUTS bars
+        tuning_outcome = row_df['tuning_outcome'].values[0] if not row_df.empty and 'tuning_outcome' in row_df and not pd.isna(row_df['tuning_outcome'].values[0]) else "success"
+        if tuning_outcome != "success":
+            color = 'red'  # Red for failed tuning
+        else:
+            color = 'tab:green'  # Green for successful NUTS
+        
         zorder = -y
         bar = ax.bar(
             x_center, y, width=bar_width / n_hatch,
@@ -448,7 +455,14 @@ def plot_grouped_bars(ax, plot_df, color_map, hatch_map, alpha_map):
                         y = 0
                         yerr = 0
                         print(f"Plotting bar at x={x_dodged}: y={y}, yerr={yerr}, std_col=0 (no data)")
-                    color = color_map[canonical]
+                    
+                    # Check tuning outcome for regular bars
+                    tuning_outcome = row_df['tuning_outcome'].values[0] if not row_df.empty and 'tuning_outcome' in row_df and not pd.isna(row_df['tuning_outcome'].values[0]) else "success"
+                    if tuning_outcome != "success":
+                        color = 'red'  # Red for failed tuning
+                    else:
+                        color = color_map[canonical]  # Normal color for successful tuning
+                    
                     zorder = -y
                     bar = ax.bar(
                         x_dodged, y, width=single_bar_width,
@@ -519,12 +533,14 @@ def add_custom_legends(ax, tuning_option):
         legend_elements = [
             Patch(facecolor='tab:blue', edgecolor='black', label='canonical'),
             Patch(facecolor='tab:orange', edgecolor='black', label='microcanonical'),
-            Patch(facecolor='tab:green', edgecolor='black', label='NUTS')
+            Patch(facecolor='tab:green', edgecolor='black', label='NUTS'),
+            Patch(facecolor='red', edgecolor='black', label='Failed Tuning')
         ]
     else:
         legend_elements = [
             Patch(facecolor='tab:blue', edgecolor='black', label='canonical'),
-            Patch(facecolor='tab:orange', edgecolor='black', label='microcanonical')
+            Patch(facecolor='tab:orange', edgecolor='black', label='microcanonical'),
+            Patch(facecolor='red', edgecolor='black', label='Failed Tuning')
         ]
     
     hatch_elements = [
@@ -731,5 +747,296 @@ def plot_all_results():
     plot_grid_results()
 
 
+def plot_icg_dimension_scaling(tuning_option='alba', statistic='square', max_over_parameters=False):
+    """
+    Plot how num_grads_to_low_error scales with dimension for ICG_{d}_1 models.
+    
+    Args:
+        tuning_option: Which tuning method to use ('grid_search', 'alba', 'nuts')
+        statistic: Which statistic to plot ('square', 'identity', 'covariance')
+        max_over_parameters: Whether to use max (True) or avg (False) over parameters
+    """
+    import re
+    import glob
+    
+    print(f"\n=== PLOTTING ICG DIMENSION SCALING ===")
+    print(f"Tuning option: {tuning_option}")
+    print(f"Statistic: {statistic}")
+    print(f"Max over parameters: {max_over_parameters}")
+    
+    # Find all ICG_{d}_1 directories
+    results_dir = "./results"
+    icg_dirs = []
+    for item in os.listdir(results_dir):
+        if os.path.isdir(os.path.join(results_dir, item)) and item.startswith("ICG_"):
+            # Extract dimension from directory name (ICG_{d}_1)
+            match = re.match(r"ICG_(\d+)_1", item)
+            if match:
+                dimension = int(match.group(1))
+                icg_dirs.append((dimension, item))
+    
+    # Sort by dimension
+    icg_dirs.sort(key=lambda x: x[0])
+    
+    print(f"Found ICG directories: {[f'ICG_{d}_1' for d, _ in icg_dirs]}")
+    
+    if not icg_dirs:
+        print("No ICG_{d}_1 directories found!")
+        return
+    
+    # Load results for each dimension
+    all_results = []
+    for dimension, dir_name in icg_dirs:
+        print(f"\nLoading results for dimension {dimension} ({dir_name})...")
+        
+        # Find all CSV files in this directory that match our criteria
+        dir_path = os.path.join(results_dir, dir_name)
+        csv_files = glob.glob(os.path.join(dir_path, "*.csv"))
+        
+        for csv_file in csv_files:
+            try:
+                df = pd.read_csv(csv_file)
+                
+                # Filter for our criteria
+                filtered_df = df[
+                    (df['statistic'] == statistic) & 
+                    (df['max'] == max_over_parameters)
+                ].copy()
+                
+                if not filtered_df.empty:
+                    # Extract sampler information from filename
+                    filename = os.path.basename(csv_file)
+                    sampler_name = filename.replace(f'_{dir_name}.csv', '')
+                    
+                    # Parse sampler name to extract components
+                    # Format: {mh}_{canonical}_{langevin}_{tuning}_{integrator}_precond:{precond}_{model}
+                    parts = sampler_name.split('_')
+                    
+                    # Extract the first 3 parts (mh, canonical, langevin)
+                    if len(parts) >= 3:
+                        mh = parts[0]  # adjusted/unadjusted
+                        canonical = parts[1]  # canonical/microcanonical
+                        langevin = parts[2]  # langevin/nolangevin
+                        
+                        # Find the tuning method - it's after langevin and before the integrator
+                        # Look for known tuning methods
+                        tuning = None
+                        for part in parts[3:]:
+                            if part in ['grid_search', 'alba', 'nuts']:
+                                tuning = part
+                                break
+                        
+                        if tuning is None:
+                            print(f"Warning: Could not find tuning method in {sampler_name}")
+                            continue
+                        
+                        # Extract integrator and preconditioning
+                        integrator_type = "unknown"
+                        diagonal_preconditioning = "unknown"
+                        
+                        # Look for integrator and preconditioning in the name
+                        if 'velocity verlet' in sampler_name:
+                            integrator_type = 'velocity_verlet'
+                        elif 'mclachlan' in sampler_name:
+                            integrator_type = 'mclachlan'
+                        elif 'omelyan' in sampler_name:
+                            integrator_type = 'omelyan'
+                            
+                        if 'precond:True' in sampler_name:
+                            diagonal_preconditioning = True
+                        elif 'precond:False' in sampler_name:
+                            diagonal_preconditioning = False
+                        
+                        # Only include no precond results
+                        if diagonal_preconditioning != False:
+                            continue
+                        
+                        # Add dimension and parsed information
+                        filtered_df['dimension'] = dimension
+                        filtered_df['mh'] = mh
+                        filtered_df['canonical'] = canonical
+                        filtered_df['langevin'] = langevin
+                        filtered_df['tuning'] = tuning
+                        filtered_df['integrator_type'] = integrator_type
+                        filtered_df['diagonal_preconditioning'] = diagonal_preconditioning
+                        
+                        all_results.append(filtered_df)
+                        
+                        print(f"  Parsed: {mh}_{canonical}_{langevin}_{tuning}_{integrator_type}_{diagonal_preconditioning}")
+                    else:
+                        print(f"Warning: Could not parse sampler name {sampler_name} (not enough parts)")
+                        continue
+                        
+            except Exception as e:
+                print(f"Error loading {csv_file}: {e}")
+                continue
+    
+    if not all_results:
+        print("No results found matching criteria!")
+        return
+    
+    # Combine all results
+    combined_df = pd.concat(all_results, ignore_index=True)
+    print(f"\nCombined results shape: {combined_df.shape}")
+    print(f"Available columns: {list(combined_df.columns)}")
+    
+    # Filter for the specific tuning option
+    combined_df = combined_df[combined_df['tuning'] == tuning_option]
+    
+    if combined_df.empty:
+        print(f"No results found for tuning option: {tuning_option}")
+        return
+    
+    print(f"Results after filtering for {tuning_option}: {len(combined_df)} rows")
+    
+    # Create separate plots for canonical and microcanonical
+    canonical_types = ['canonical', 'microcanonical']
+    
+    for canonical_type in canonical_types:
+        # Filter for this canonical type
+        type_df = combined_df[combined_df['canonical'] == canonical_type]
+        
+        if type_df.empty:
+            print(f"No results found for {canonical_type}")
+            continue
+        
+        # Create the plot
+        fig, ax = plt.subplots(figsize=(10, 8))
+        
+        # Aggregate: mean for each (dimension, mh, langevin, integrator_type)
+        agg_df = type_df.groupby(['dimension', 'mh', 'langevin', 'integrator_type'], as_index=False)['num_grads_to_low_error'].mean()
+        
+        # Define colors, line styles, and markers
+        color_map = {
+            'velocity_verlet': 'tab:blue',
+            'mclachlan': 'tab:orange',
+            'omelyan': 'tab:green'
+        }
+        line_style_map = {
+            'adjusted': '-',
+            'unadjusted': '--'
+        }
+        marker_map = {
+            'langevin': 'o',
+            'nolangevin': 's'
+        }
+        
+        # Plot lines
+        for (mh, langevin, integrator_type), group in agg_df.groupby(['mh', 'langevin', 'integrator_type']):
+            if len(group) < 2:
+                continue
+            group = group.sort_values('dimension')
+            color = color_map.get(integrator_type, 'gray')
+            line_style = line_style_map.get(mh, '-')
+            marker = marker_map.get(langevin, 'o')
+            label = None  # No label for default legend
+            ax.plot(
+                group['dimension'],
+                group['num_grads_to_low_error'],
+                color=color,
+                linestyle=line_style,
+                marker=marker,
+                label=label,
+                linewidth=2,
+                markersize=6,
+                alpha=0.8
+            )
+        
+        # Add 1/4 power reference lines (unchanged)
+        dimensions = agg_df['dimension'].unique()
+        if len(dimensions) > 1:
+            min_dim = min(dimensions)
+            max_dim = max(dimensions)
+            typical_value = agg_df['num_grads_to_low_error'].median()
+            if np.isnan(typical_value) or typical_value <= 0:
+                typical_value = 1000
+            scale_factor = typical_value / (min_dim ** 0.25)
+            ref_dims = np.logspace(np.log10(min_dim), np.log10(max_dim), 100)
+            ref_values = scale_factor * (ref_dims ** 0.25)
+            ax.plot(ref_dims, ref_values, 'k--', alpha=0.5, linewidth=1, label='d^0.25 reference')
+        
+        # Custom legend
+        from matplotlib.lines import Line2D
+        legend_elements = [
+            Line2D([0], [0], color='tab:blue', lw=2, label='velocity_verlet'),
+            Line2D([0], [0], color='tab:orange', lw=2, label='mclachlan'),
+            Line2D([0], [0], color='tab:green', lw=2, label='omelyan'),
+            Line2D([0], [0], color='black', lw=2, linestyle='-', label='adjusted'),
+            Line2D([0], [0], color='black', lw=2, linestyle='--', label='unadjusted'),
+            Line2D([0], [0], color='black', marker='o', linestyle='None', markersize=8, label='langevin'),
+            Line2D([0], [0], color='black', marker='s', linestyle='None', markersize=8, label='nolangevin'),
+            Line2D([0], [0], color='k', lw=1, linestyle='--', label='d^0.25 reference')
+        ]
+        ax.legend(handles=legend_elements, fontsize=10, loc='upper left', ncol=2, frameon=True)
+
+        # Customize plot
+        ax.set_xlabel('Dimension', fontsize=14)
+        ax.set_ylabel('num_grads_to_low_error', fontsize=14)
+        ax.set_title(f'ICG Dimension Scaling - {canonical_type.capitalize()} ({tuning_option.upper()})\n'
+                    f'Statistic: {statistic}, {"Max" if max_over_parameters else "Avg"} over parameters, No Preconditioning', 
+                    fontsize=16)
+        
+        # Use log scale for both axes
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+        
+        # Add grid
+        ax.grid(True, alpha=0.3)
+        
+        # Add legend
+        # ax.legend(fontsize=10, loc='upper left') # This line is now handled by the custom legend_elements
+        
+        # Adjust layout
+        plt.tight_layout()
+        
+        # Save plot
+        os.makedirs("results/figures", exist_ok=True)
+        output_file = f"results/figures/icg_dimension_scaling_{canonical_type}_{tuning_option}_{statistic}_{'max' if max_over_parameters else 'avg'}.png"
+        plt.savefig(output_file, dpi=300, bbox_inches='tight')
+        print(f"\nPlot saved to: {output_file}")
+        
+        # Show plot
+        plt.show()
+    
+    return combined_df
+
+
+def plot_all_icg_scaling():
+    """Plot ICG dimension scaling for all combinations of tuning, statistic, and max/avg."""
+    tuning_options = ['grid_search', 'alba']
+    statistics = ['square', 'identity']
+    max_options = [False, True]  # False = avg, True = max
+    
+    for tuning in tuning_options:
+        for statistic in statistics:
+            for max_over_parameters in max_options:
+                print(f"\n{'='*60}")
+                print(f"Plotting: {tuning}, {statistic}, {'max' if max_over_parameters else 'avg'}")
+                print(f"{'='*60}")
+                
+                try:
+                    plot_icg_dimension_scaling(
+                        tuning_option=tuning,
+                        statistic=statistic,
+                        max_over_parameters=max_over_parameters
+                    )
+                except Exception as e:
+                    print(f"Error plotting {tuning}, {statistic}, {'max' if max_over_parameters else 'avg'}: {e}")
+                    continue
+
+
 if __name__ == "__main__":
+    # Example usage of the new ICG dimension scaling plot
+    print("Generating ICG dimension scaling plots...")
+    
+    # Plot the specific combination you requested (avg, square) for ALBA
+    plot_icg_dimension_scaling(
+        tuning_option='alba',
+        statistic='square', 
+        max_over_parameters=False  # False = avg over parameters
+    )
+
     plot_all_results()
+    
+    # Uncomment the line below to generate all combinations
+    # plot_all_icg_scaling()

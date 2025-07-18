@@ -1,7 +1,7 @@
-,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,unadjusted_canonical_langevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,inf,,,True,covariance,0.0,0.33333333333333337,0.025784116305957144,128
-1,unadjusted_canonical_langevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,inf,,,False,covariance,0.0,0.33333333333333337,0.025784116305957144,128
-2,unadjusted_canonical_langevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,inf,,,True,identity,0.0,0.33333333333333337,0.025784116305957144,128
-3,unadjusted_canonical_langevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,57257.0,2281.33146322493,,False,identity,0.0,0.33333333333333337,0.025784116305957144,128
-4,unadjusted_canonical_langevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,inf,,,True,square,0.0,0.33333333333333337,0.025784116305957144,128
-5,unadjusted_canonical_langevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,68589.0,2365.0802950217144,,False,square,0.0,0.33333333333333337,0.025784116305957144,128
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
+0,unadjusted_canonical_langevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,inf,,,True,covariance,0.0,3.625467781800925,0.03393072829068232,64,success
+1,unadjusted_canonical_langevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,inf,,,False,covariance,0.0,3.625467781800925,0.03393072829068232,64,success
+2,unadjusted_canonical_langevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,124117.0,,,True,identity,0.0,3.625467781800925,0.03393072829068232,64,success
+3,unadjusted_canonical_langevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,18890.0,999.0282610617179,,False,identity,0.0,3.625467781800925,0.03393072829068232,64,success
+4,unadjusted_canonical_langevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,131243.0,,,True,square,0.0,3.625467781800925,0.03393072829068232,64,success
+5,unadjusted_canonical_langevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,25695.0,1795.4337029252847,,False,square,0.0,3.625467781800925,0.03393072829068232,64,success

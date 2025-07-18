@@ -58,9 +58,9 @@ from sampler_evaluation.models.cauchy import cauchy
 if __name__ == "__main__":
 
     models = [
-        # brownian_motion(),
         # Rosenbrock(18),
-        # german_credit(),
+        brownian_motion(),
+        german_credit(),
         # # IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log'),
         # IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log', do_covariance=False),
         # IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
@@ -82,6 +82,22 @@ if __name__ == "__main__":
         integrator_type_options = ['velocity_verlet', 'mclachlan'],
         diagonal_preconditioning_options = [True, False],
         redo=True,
+        key=jax.random.PRNGKey(4),
+        # mh_options = [False],
+        # diagonal_preconditioning_options = [False],
+        # redo_bad_results=True
+    )
+    
+    run(
+        models=models,
+        tuning_options=['nuts'],
+        mh_options = [True],
+        canonical_options = [True],
+        langevin_options = [False],
+        integrator_type_options = ['velocity_verlet', 'mclachlan'],
+        diagonal_preconditioning_options = [True, False],
+        redo=True,
+        key=jax.random.PRNGKey(4),
         # mh_options = [False],
         # diagonal_preconditioning_options = [False],
         # redo_bad_results=True

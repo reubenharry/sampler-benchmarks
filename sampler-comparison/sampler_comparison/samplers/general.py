@@ -123,7 +123,6 @@ def sampler_grads_to_low_error(
     calculate_ess_corr=False,
 ):
 
-    # jax.debug.print("sampler_grads_to_low_error {x}", x=1)
 
 
     keys = jax.random.split(key, batch_size)
@@ -139,6 +138,7 @@ def sampler_grads_to_low_error(
 
     # initial_position = jnp.ones((batch_size, model.ndims,))
 
+    # jax.debug.print("sampler_grads_to_low_error {x}", x=key)
     samples, metadata = sampler(
         keys,
         initial_position,
@@ -226,7 +226,6 @@ def sampler_grads_to_low_error(
 
     # jax.debug.print("\n\nsquared_errors\n\n {x}", x=contract_fn(np.array(squared_errors['square']['avg'])).shape)
 
-    
 
     return (
         {

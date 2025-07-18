@@ -1,7 +1,7 @@
-,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,inf,,,True,identity,2634782.203125,98.56977224281293,20.0984673084008,512
-1,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,inf,,,False,identity,2634782.203125,98.56977224281293,20.0984673084008,512
-2,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,inf,,,True,square,2634782.203125,98.56977224281293,20.0984673084008,512
-3,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,150480.50354568375,138.491866548184,,False,square,2634782.203125,98.56977224281293,20.0984673084008,512
-4,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,inf,,,True,quartic,2634782.203125,98.56977224281293,20.0984673084008,512
-5,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,inf,,,False,quartic,2634782.203125,98.56977224281293,20.0984673084008,512
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
+0,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,inf,,,True,identity,387221.5625,137.43663226425173,3.666929762091012,128,success
+1,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,inf,,,False,identity,387221.5625,137.43663226425173,3.666929762091012,128,success
+2,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,648580.8608663839,255.00168842578276,,True,square,387221.5625,137.43663226425173,3.666929762091012,128,success
+3,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,43621.100486475436,18.688327908082094,,False,square,387221.5625,137.43663226425173,3.666929762091012,128,success
+4,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,inf,,,True,quartic,387221.5625,137.43663226425173,3.666929762091012,128,success
+5,adjusted_microcanonical_langevin_alba_mclachlan_precond:True,Stochastic_Volatility_MAMS_Paper,inf,,,False,quartic,387221.5625,137.43663226425173,3.666929762091012,128,success

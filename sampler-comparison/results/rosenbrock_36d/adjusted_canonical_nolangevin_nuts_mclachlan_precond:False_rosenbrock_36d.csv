@@ -1,7 +1,7 @@
-,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_canonical_nolangevin_nuts_mclachlan_precond:False,rosenbrock_36d,inf,,,True,covariance,771087.546875,7.961727282064871,0.11664439178201577,128
-1,adjusted_canonical_nolangevin_nuts_mclachlan_precond:False,rosenbrock_36d,inf,,,False,covariance,771087.546875,7.961727282064871,0.11664439178201577,128
-2,adjusted_canonical_nolangevin_nuts_mclachlan_precond:False,rosenbrock_36d,inf,,,True,identity,771087.546875,7.961727282064871,0.11664439178201577,128
-3,adjusted_canonical_nolangevin_nuts_mclachlan_precond:False,rosenbrock_36d,89854.15026875,86.56577788017617,,False,identity,771087.546875,7.961727282064871,0.11664439178201577,128
-4,adjusted_canonical_nolangevin_nuts_mclachlan_precond:False,rosenbrock_36d,inf,,,True,square,771087.546875,7.961727282064871,0.11664439178201577,128
-5,adjusted_canonical_nolangevin_nuts_mclachlan_precond:False,rosenbrock_36d,136283.34645625,369.8779955606984,,False,square,771087.546875,7.961727282064871,0.11664439178201577,128
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
+0,adjusted_canonical_nolangevin_nuts_mclachlan_precond:False,rosenbrock_36d,inf,,,True,covariance,1027637.75,9.347108934928443,0.07164348464819596,128,success
+1,adjusted_canonical_nolangevin_nuts_mclachlan_precond:False,rosenbrock_36d,inf,,,False,covariance,1027637.75,9.347108934928443,0.07164348464819596,128,success
+2,adjusted_canonical_nolangevin_nuts_mclachlan_precond:False,rosenbrock_36d,445631.0691125001,90.84063573093268,,True,identity,1027637.75,9.347108934928443,0.07164348464819596,128,success
+3,adjusted_canonical_nolangevin_nuts_mclachlan_precond:False,rosenbrock_36d,89870.70486875002,12.769353938238222,,False,identity,1027637.75,9.347108934928443,0.07164348464819596,128,success
+4,adjusted_canonical_nolangevin_nuts_mclachlan_precond:False,rosenbrock_36d,621118.2443000001,124.37140507367438,,True,square,1027637.75,9.347108934928443,0.07164348464819596,128,success
+5,adjusted_canonical_nolangevin_nuts_mclachlan_precond:False,rosenbrock_36d,106355.86375000002,15.529971023797824,,False,square,1027637.75,9.347108934928443,0.07164348464819596,128,success

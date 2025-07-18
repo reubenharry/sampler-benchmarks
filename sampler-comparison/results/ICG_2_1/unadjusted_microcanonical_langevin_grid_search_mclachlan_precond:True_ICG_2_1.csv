@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,1262.0,71.50432923956423,,True,covariance,0.0,2.8244111184070975,0.9783961022498817,128
-1,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,1262.0,71.50432923956423,,False,covariance,0.0,2.8244111184070975,0.9783961022498817,128
-2,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,378.0,18.69065006895159,,True,identity,0.0,2.8244111184070975,0.9783961022498817,128
-3,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,268.0,17.518273316739865,,False,identity,0.0,2.8244111184070975,0.9783961022498817,128
-4,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,444.0,32.69935014644786,,True,square,0.0,2.8244111184070975,0.9783961022498817,128
-5,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,354.0,14.237640253918482,,False,square,0.0,2.8244111184070975,0.9783961022498817,128
+0,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,1084.0,62.92431247141283,,True,covariance,0.0,1.7852409899365609,0.9783961022498817,128
+1,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,1084.0,62.92431247141283,,False,covariance,0.0,1.7852409899365609,0.9783961022498817,128
+2,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,620.0,54.203029435632104,,True,identity,0.0,1.7852409899365609,0.9783961022498817,128
+3,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,386.0,15.608571363196567,,False,identity,0.0,1.7852409899365609,0.9783961022498817,128
+4,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,512.0,31.55367490483478,,True,square,0.0,1.7852409899365609,0.9783961022498817,128
+5,unadjusted_microcanonical_langevin_grid_search_mclachlan_precond:True,ICG_2_1,312.0,19.002828736796005,,False,square,0.0,1.7852409899365609,0.9783961022498817,128

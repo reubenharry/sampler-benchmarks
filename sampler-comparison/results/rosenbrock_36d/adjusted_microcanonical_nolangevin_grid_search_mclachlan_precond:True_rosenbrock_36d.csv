@@ -1,7 +1,7 @@
-,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_microcanonical_nolangevin_grid_search_mclachlan_precond:True,rosenbrock_36d,715246.2777776709,91.18417132375554,,True,covariance,0.0,13.456790123456797,0.34249378852909423,128
-1,adjusted_microcanonical_nolangevin_grid_search_mclachlan_precond:True,rosenbrock_36d,715246.2777776709,91.18417132375554,,False,covariance,0.0,13.456790123456797,0.34249378852909423,128
-2,adjusted_microcanonical_nolangevin_grid_search_mclachlan_precond:True,rosenbrock_36d,108363.50440072601,67.50807359123797,,True,identity,0.0,13.456790123456797,0.34249378852909423,128
-3,adjusted_microcanonical_nolangevin_grid_search_mclachlan_precond:True,rosenbrock_36d,14223.201085229448,6.088053876239927,,False,identity,0.0,13.456790123456797,0.34249378852909423,128
-4,adjusted_microcanonical_nolangevin_grid_search_mclachlan_precond:True,rosenbrock_36d,120936.49983518299,114.59393134018922,,True,square,0.0,13.456790123456797,0.34249378852909423,128
-5,adjusted_microcanonical_nolangevin_grid_search_mclachlan_precond:True,rosenbrock_36d,22867.135446418615,11.594563381171367,,False,square,0.0,13.456790123456797,0.34249378852909423,128
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
+0,adjusted_microcanonical_nolangevin_grid_search_mclachlan_precond:True,rosenbrock_36d,631957.1083086432,406.7838792282703,,True,covariance,0.0,12.258262120096676,0.49928652249162964,64,success
+1,adjusted_microcanonical_nolangevin_grid_search_mclachlan_precond:True,rosenbrock_36d,631957.1083086432,406.7838792282703,,False,covariance,0.0,12.258262120096676,0.49928652249162964,64,success
+2,adjusted_microcanonical_nolangevin_grid_search_mclachlan_precond:True,rosenbrock_36d,94818.11780450582,136.27064063840018,,True,identity,0.0,12.258262120096676,0.49928652249162964,64,success
+3,adjusted_microcanonical_nolangevin_grid_search_mclachlan_precond:True,rosenbrock_36d,15663.89413756466,7.810627375569776,,False,identity,0.0,12.258262120096676,0.49928652249162964,64,success
+4,adjusted_microcanonical_nolangevin_grid_search_mclachlan_precond:True,rosenbrock_36d,125654.87491544816,287.7968596076059,,True,square,0.0,12.258262120096676,0.49928652249162964,64,success
+5,adjusted_microcanonical_nolangevin_grid_search_mclachlan_precond:True,rosenbrock_36d,18511.874889849143,21.76478577886766,,False,square,0.0,12.258262120096676,0.49928652249162964,64,success

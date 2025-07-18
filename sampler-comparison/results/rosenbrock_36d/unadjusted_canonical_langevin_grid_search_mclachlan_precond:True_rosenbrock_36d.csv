@@ -1,7 +1,7 @@
-,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,unadjusted_canonical_langevin_grid_search_mclachlan_precond:True,rosenbrock_36d,347194.0,2127.5683832958225,,True,covariance,0.0,2.934156378600822,0.0711089036752239,128
-1,unadjusted_canonical_langevin_grid_search_mclachlan_precond:True,rosenbrock_36d,347194.0,2127.5683832958225,,False,covariance,0.0,2.934156378600822,0.0711089036752239,128
-2,unadjusted_canonical_langevin_grid_search_mclachlan_precond:True,rosenbrock_36d,58074.0,1022.7307076645347,,True,identity,0.0,2.934156378600822,0.0711089036752239,128
-3,unadjusted_canonical_langevin_grid_search_mclachlan_precond:True,rosenbrock_36d,9168.0,177.07900948446712,,False,identity,0.0,2.934156378600822,0.0711089036752239,128
-4,unadjusted_canonical_langevin_grid_search_mclachlan_precond:True,rosenbrock_36d,69930.0,1722.4334783961906,,True,square,0.0,2.934156378600822,0.0711089036752239,128
-5,unadjusted_canonical_langevin_grid_search_mclachlan_precond:True,rosenbrock_36d,13158.0,234.41606514912752,,False,square,0.0,2.934156378600822,0.0711089036752239,128
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
+0,unadjusted_canonical_langevin_grid_search_mclachlan_precond:True,rosenbrock_36d,inf,,,True,covariance,0.0,3.121315949454329,0.09249712911031203,64,success
+1,unadjusted_canonical_langevin_grid_search_mclachlan_precond:True,rosenbrock_36d,inf,,,False,covariance,0.0,3.121315949454329,0.09249712911031203,64,success
+2,unadjusted_canonical_langevin_grid_search_mclachlan_precond:True,rosenbrock_36d,inf,,,True,identity,0.0,3.121315949454329,0.09249712911031203,64,success
+3,unadjusted_canonical_langevin_grid_search_mclachlan_precond:True,rosenbrock_36d,inf,,,False,identity,0.0,3.121315949454329,0.09249712911031203,64,success
+4,unadjusted_canonical_langevin_grid_search_mclachlan_precond:True,rosenbrock_36d,inf,,,True,square,0.0,3.121315949454329,0.09249712911031203,64,success
+5,unadjusted_canonical_langevin_grid_search_mclachlan_precond:True,rosenbrock_36d,inf,,,False,square,0.0,3.121315949454329,0.09249712911031203,64,success

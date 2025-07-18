@@ -152,119 +152,19 @@ def unadjusted_mclmc(
 def grid_search_unadjusted_mclmc(
     num_chains,
     integrator_type,
-    grid_size=10,
-    opt=None,
-    grid_iterations=2,
-    num_tuning_steps=10000,
-    return_samples=False,
-    desired_energy_var=5e-4,
-    diagonal_preconditioning=True,
-    warmup_key=jax.random.key(0),
-    target_expectation=None,
-    grid_search_steps=None,
-):
-    
-    def s(model, num_steps, initial_position, key):
-        from sampler_comparison.samplers.grid_search.grid_search import grid_search_L
-        from sampler_comparison.experiments.utils import model_info
-        
-        # Get model-specific preferences if available
-        model_name = model.name
-        if model_name in model_info:
-            model_prefs = model_info[model_name]
-            # Use model-specific preferences if not explicitly provided
-            if target_expectation is None:
-                target_expectation = model_prefs.get('preferred_statistic', 'square')
-            if opt is None:
-                opt = "max" if model_prefs.get('max_over_parameters', True) else "avg"
-            if grid_search_steps is None:
-                grid_search_steps = model_prefs.get('grid_search_steps', num_steps // 10)
-        else:
-            # Fallback defaults if model not in model_info
-            if target_expectation is None:
-                target_expectation = 'square'
-            if opt is None:
-                opt = "max"
-            if grid_search_steps is None:
-                grid_search_steps = num_steps // 10
-
-        alba_key, grid_key = jax.random.split(warmup_key, 2)
-
-        num_alba_steps = num_tuning_steps // 3
-        warmup = unadjusted_alba(
-            algorithm=blackjax.mclmc, 
-            logdensity_fn=make_log_density_fn(model), integrator=map_integrator_type_to_integrator["mclmc"][integrator_type], 
-            target_eevpd=desired_energy_var, 
-            v=1., 
-            num_alba_steps=num_alba_steps,
-            preconditioning=diagonal_preconditioning,
-            alba_factor=0.3,
-            )
-        
-        (alba_state, alba_params), adaptation_info = warmup.run(alba_key, initial_position[0], num_tuning_steps)
-
-
-        (
-            L,
-            step_size,
-            num_grads,
-            num_grads_avg,
-            edge,
-            inverse_mass_matrix,
-            blackjax_state_after_tuning,
-        ) = grid_search_L(
-            model=model,
-            num_steps=grid_search_steps,  # Use model-specific grid search steps
-            num_chains=num_chains,
-            integrator_type=integrator_type,
-            key=grid_key,
-            grid_size=grid_size,
-            opt=opt,
-            grid_iterations=grid_iterations,
-            num_tuning_steps=num_tuning_steps,
-            sampler_type='unadjusted_mclmc',
-            euclidean=False,
-            desired_energy_var=desired_energy_var,
-            diagonal_preconditioning=diagonal_preconditioning,
-            initial_state=alba_state,
-            initial_inverse_mass_matrix=alba_params['inverse_mass_matrix'],
-            target_expectation=target_expectation,
-        )
-
-        sampler=unadjusted_mclmc_no_tuning(
-                    initial_state=blackjax_state_after_tuning,
-                    integrator_type=integrator_type,
-                    inverse_mass_matrix=inverse_mass_matrix,
-                    L=L,
-                    step_size=step_size,
-                    return_samples=return_samples,
-                )
-
-
-        return jax.pmap(
-            lambda key, pos: sampler(
-                model=model, num_steps=num_steps*4, initial_position=pos, key=key
-                )
-            )(key, initial_position)
-        
-    return s
-
-def grid_search_unadjusted_mclmc_new(
-    num_chains,
-    integrator_type,
-    grid_size=10,
+    grid_size=6,
     grid_iterations=2,
     num_tuning_steps=10000,
     return_samples=False,
     desired_energy_var=5e-4,
     diagonal_preconditioning=True,
     alba_factor=0.4,
-    statistic=None,
-    max_over_parameters=None,
-    grid_search_steps=None,
+    preferred_statistic=None,
+    preferred_max_over_parameters=None,
+    preferred_grid_search_steps=None,
 ):
     """
-    New cleaner and more principled grid search for unadjusted MCLMC with ALBA warmup.
+    Cleaner and more principled grid search for unadjusted MCLMC with ALBA warmup.
     
     Args:
         num_chains: Number of chains to run
@@ -276,37 +176,22 @@ def grid_search_unadjusted_mclmc_new(
         desired_energy_var: Desired energy variance for ALBA
         diagonal_preconditioning: Whether to use diagonal preconditioning
         alba_factor: Factor for ALBA adaptation
-        statistic: Which statistic to optimize ("square", "abs", "entropy", etc.) - if None, will use model-specific preference
-        max_over_parameters: Whether to use max_over_parameters (True) or avg_over_parameters (False) - if None, will use model-specific preference
-        grid_search_steps: Number of steps for grid search evaluation - if None, will use model-specific preference
+        preferred_statistic: Which statistic to optimize ("square", "abs", "entropy", etc.) - if None, will use model-specific preference
+        preferred_max_over_parameters: Whether to use max_over_parameters (True) or avg_over_parameters (False) - if None, will use model-specific preference
+        preferred_grid_search_steps: Number of steps for grid search evaluation - if None, will use model-specific preference
     
     Returns:
         A sampler function that can be used with the benchmark framework
     """
     
     def s(model, num_steps, initial_position, key):
-        from sampler_comparison.samplers.grid_search.grid_search import grid_search_L_new
-        from sampler_comparison.experiments.utils import model_info
+        from sampler_comparison.samplers.grid_search.grid_search import grid_search_L
+        from sampler_comparison.experiments.utils import get_model_specific_preferences
         
-        # Get model-specific preferences if available
-        model_name = model.name
-        if model_name in model_info:
-            model_prefs = model_info[model_name]
-            # Use model-specific preferences if not explicitly provided
-            if statistic is None:
-                statistic = model_prefs.get('preferred_statistic', 'square')
-            if max_over_parameters is None:
-                max_over_parameters = model_prefs.get('max_over_parameters', True)
-            if grid_search_steps is None:
-                grid_search_steps = model_prefs.get('grid_search_steps', num_steps // 10)
-        else:
-            # Fallback defaults if model not in model_info
-            if statistic is None:
-                statistic = 'square'
-            if max_over_parameters is None:
-                max_over_parameters = True
-            if grid_search_steps is None:
-                grid_search_steps = num_steps // 10
+        # Get model-specific preferences
+        statistic, max_over_parameters, grid_search_steps = get_model_specific_preferences(
+            model, False, preferred_statistic, preferred_max_over_parameters, preferred_grid_search_steps, num_steps
+        )
         
         tune_key, grid_key, run_key = jax.random.split(key[0], 3)
         
@@ -339,9 +224,9 @@ def grid_search_unadjusted_mclmc_new(
         print(f"  ALBA inverse mass matrix shape: {alba_params['inverse_mass_matrix'].shape}")
         
         # Run the new grid search with ALBA state and parameters
-        optimal_L, optimal_step_size, optimal_value, all_values, optimal_idx = grid_search_L_new(
+        optimal_L, optimal_step_size, optimal_value, all_values, optimal_idx, tuning_outcome = grid_search_L(
             model=model,
-            num_steps=grid_search_steps,  # Use model-specific grid search steps
+            num_gradient_calls=grid_search_steps,  # Use model-specific grid search steps as gradient calls
             num_chains=num_chains,
             integrator_type=integrator_type,
             key=grid_key,
@@ -350,10 +235,14 @@ def grid_search_unadjusted_mclmc_new(
             initial_step_size=alba_params['step_size'],
             initial_state=alba_state,
             sampler_fn=unadjusted_mclmc_no_tuning,
+            algorithm=blackjax.mclmc,  # Pass algorithm directly
+            integrator=map_integrator_type_to_integrator["mclmc"][integrator_type],  # Pass integrator directly
             statistic=statistic,  # Use model-specific statistic
             max_over_parameters=max_over_parameters,  # Use model-specific parameter type
             grid_size=grid_size,
             grid_iterations=grid_iterations,
+            is_adjusted_sampler=False,  # This is an unadjusted sampler
+            desired_energy_var=desired_energy_var,  # For robnik_step_size_tuning
         )
         
         print(f"\n=== Final Sampling ===")
@@ -362,6 +251,7 @@ def grid_search_unadjusted_mclmc_new(
         print(f"Using ALBA inverse mass matrix")
         print(f"Using statistic: {statistic}")
         print(f"Using {'max' if max_over_parameters else 'avg'} over parameters")
+        print(f"Tuning outcome: {tuning_outcome}")
         
         # Create the final sampler with the optimal L and step_size
         sampler = unadjusted_mclmc_no_tuning(
@@ -373,8 +263,15 @@ def grid_search_unadjusted_mclmc_new(
             return_samples=return_samples,
         )
         
+        # Create a wrapper that adds tuning outcome to metadata
+        def sampler_with_tuning_outcome(model, num_steps, initial_position, key):
+            expectations, metadata = sampler(model, num_steps, initial_position, key)
+            # Add tuning outcome to metadata
+            metadata = metadata | {"tuning_outcome": tuning_outcome}
+            return expectations, metadata
+        
         return jax.pmap(
-            lambda key, pos: sampler(
+            lambda key, pos: sampler_with_tuning_outcome(
                 model=model, num_steps=num_steps*4, initial_position=pos, key=key
                 )
             )(jax.random.split(run_key, num_chains), initial_position)
