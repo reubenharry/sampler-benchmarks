@@ -11,7 +11,7 @@ from sampler_evaluation.evaluation.ess import samples_to_low_error
 
 import numpy as np
 import matplotlib.pyplot as plt
-plt.style.use('sampler_comparison/img/style.mplstyle')
+plt.style.use('style.mplstyle')
 plt.rcParams['xtick.labelsize'] = 14
 plt.rcParams['ytick.labelsize'] = 14
 plt.rcParams['font.size'] = 16
@@ -149,17 +149,15 @@ def plot_trace(info, model, settings_info, dir):
     #plt.yscale('log')
     plt.xlabel('# gradient evaluations')
     
-    
     plt.tight_layout()
     plt.savefig(dir + model.name + '.png')
-    print(f"Saved {model.name}.png to {dir}")
     plt.close()
 
 
 
 
 def parallel_microcanonical(num_steps1, num_steps2, num_chains, mesh, early_stop=True,
-                            diagonal_preconditioning=True, superchain_size= None,
+                            diagonal_preconditioning=True, superchain_size= 1,
                             ):
 
     def s(model):

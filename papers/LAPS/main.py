@@ -12,35 +12,51 @@ print(num_cores)
 
 
 import os, sys
-current_path = os.getcwd()
-sys.path.append(current_path + '/../../blackjax/')
-sys.path.append(current_path + '/../sampler-evaluation/')
-# sys.path.append(current_path + '/src/inference-gym/')
+sys.path.append('../blackjax/')
+sys.path.append('sampler-evaluation/')
+sys.path.append('sampler-comparison/')
+sys.path.append('../probability/spinoffs/inference_gym')
+sys.path.append('../probability/spinoffs/fun_mc')
 
-#from sampler_evaluation.models.german_credit import german_credit
-#from sampler_evaluation.models.banana_mams_paper import banana_mams_paper
-# from sampler_evaluation.models.stochastic_volatility import stochastic_volatility
-from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
-from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.laps import parallel_microcanonical
-from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.laps import plot_trace
+#from sampler_evaluation.models.banana import banana
+from sampler_evaluation.models.banana_mams_paper import banana_mams_paper
 # from sampler_evaluation.models.gaussian_mams_paper import IllConditionedGaussian
-from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unadjusted_mclmc
+from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
+from sampler_evaluation.models.brownian import brownian_motion
+from sampler_evaluation.models.item_response import item_response
+from sampler_evaluation.models.german_credit import german_credit
+
+from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.laps import parallel_microcanonical
+from sampler_comparison.samplers.parallel.hamiltonianmontecarlo.meads import meads_with_adam
+from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.laps import plot_trace
 from sampler_comparison.samplers.general import initialize_model
-# from sampler_evaluation.models.banana import banana
-import time
 
 batch_size = 4096
 mesh = jax.sharding.Mesh(jax.devices()[:1], 'chains')
 
 print('Number of devices: ', len(jax.devices()))
 
-model = stochastic_volatility_mams_paper # IllConditionedGaussian(ndims=2, condition_number=1)
+m = [(banana_mams_paper, 100,
+       50, 500),
+     #(Gaussian(ndims=100, eigenvalues='Gamma', numpy_seed= rng_inference_gym_icg), 500, 500])
+     (german_credit(), 500, 400, 2000),      
+     (brownian_motion(), 500, 500, 2000),
+     (item_response(), 500, 500, 2000), #500],
+     (stochastic_volatility_mams_paper, 800, 1500, 5000)] # change to 3000 for M dependence plot
+    
 
-samples, info, settings_info = parallel_microcanonical(num_steps1= 800, 
-                                                       num_steps2= 1500, 
-                                                       num_chains= batch_size, mesh= mesh, superchain_size= 64)(model=model)
+model, n1, n2, n_meads = m[0]
+# samples, info, settings_info = parallel_microcanonical(num_steps1= n1, 
+#                                                        num_steps2= n2, 
+#                                                        num_chains= batch_size, mesh= mesh, superchain_size= 1)(model=model)
 
-plot_trace(info, model, settings_info, 'sampler_comparison/img/laps/trace/')
+
+meads_results = meads_with_adam(model.logdensity_fn, model.ndims, n_meads, batch_size)
+
+print(meads_results)
 
 
-#shifter --image=reubenharry/cosmo:1.0 python3 -m sampler_comparison.experiments.laps_experiment
+#plot_trace(info, model, settings_info, 'papers/LAPS/img/trace/')
+
+
+#shifter --image=jrobnik/sampling:1.0 python3 -m papers.LAPS.main
