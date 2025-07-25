@@ -78,11 +78,11 @@ model_info = {
             
     brownian_motion().name: {
         'pretty_name' : 'Brownian Motion',
-        'batch_size' : 128,
+        'batch_size' : 64,
         'num_steps' : {True : 40000, False : 100000},
         'preferred_statistic' : 'square',
         'max_over_parameters' : True,
-        'grid_search_steps' : {True : 10000, False : 20000}},
+        'grid_search_steps' : {True : 30000, False : 30000}},
             
     german_credit().name: {
         'pretty_name' : 'German Credit',

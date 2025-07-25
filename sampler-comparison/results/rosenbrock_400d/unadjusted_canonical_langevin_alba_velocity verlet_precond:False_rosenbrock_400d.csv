@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
+0,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,rosenbrock_400d,inf,,,True,identity,20000.0,3.83348796673171,0.03183550087042885,6,success
+1,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,rosenbrock_400d,23972.0,,,False,identity,20000.0,3.83348796673171,0.03183550087042885,6,success
+2,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,rosenbrock_400d,inf,,,True,square,20000.0,3.83348796673171,0.03183550087042885,6,success
+3,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,rosenbrock_400d,33146.0,,,False,square,20000.0,3.83348796673171,0.03183550087042885,6,success

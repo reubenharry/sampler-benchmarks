@@ -10,9 +10,9 @@ num_cores = jax.local_device_count()
 
 # print(os.listdir("../../../sampler-comparison"))
 
-# os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"  # Disable preallocation
-# os.environ["XLA_PYTHON_CLIENT_ALLOCATOR"] = "platform"  # Use platform allocator
-# os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"  # Allow GPU memory growth
+os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"  # Disable preallocation
+os.environ["XLA_PYTHON_CLIENT_ALLOCATOR"] = "platform"  # Use platform allocator
+os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"  # Allow GPU memory growth
 
 sys.path.append("../sampler-comparison")
 sys.path.append("../sampler-evaluation")
@@ -76,8 +76,8 @@ def run(models, key, mh_options=[True, False], canonical_options=[True, False], 
         else:
             # Fallback values for models not in model_info
             print(f"Warning: Model {model.name} not found in model_info, using fallback values")
-            model_num_steps = (5000)*np.ceil(model.ndims**0.25).astype(int) if mh else 5000  # Default steps based on adjusted/unadjusted
-            model_batch_size = 4  # Default batch size
+            model_num_steps = (40000)*np.ceil(model.ndims**0.25).astype(int) if mh else 40000  # Default steps based on adjusted/unadjusted
+            model_batch_size = min(4 + 1000 // (model.ndims), batch_size)  # Default batch size
         
         results = lookup_results(
             model=model, 
@@ -112,8 +112,8 @@ if __name__ == "__main__":
 
 
     models = [
-        # brownian_motion(),
-        Rosenbrock(18),
+        brownian_motion(),
+        # Rosenbrock(18),
         # german_credit(),
         # banana(),
         # stochastic_volatility_mams_paper,
