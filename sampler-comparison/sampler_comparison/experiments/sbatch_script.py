@@ -58,13 +58,13 @@ from sampler_evaluation.models.cauchy import cauchy
 if __name__ == "__main__":
 
     models = [
-        brownian_motion(),
-        Rosenbrock(18),
-        german_credit(),
+        # brownian_motion(),
+        # Rosenbrock(18),
+        # german_credit(),
         # # IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log'),
-        IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log', do_covariance=False),
+        # IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log', do_covariance=False),
         # IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
-        # IllConditionedGaussian(ndims=10000, condition_number=100, eigenvalues='log', do_covariance=False),
+        IllConditionedGaussian(ndims=10000, condition_number=100, eigenvalues='log', do_covariance=False),
         # item_response(),
         # stochastic_volatility_mams_paper,
         # # U1(Lt=16, Lx=16, beta=6)
@@ -75,13 +75,14 @@ if __name__ == "__main__":
 
     run(
         models=models,
-        tuning_options=['grid_search'],
+        tuning_options=['alba'],
         mh_options = [True, False],
         canonical_options = [True, False],
         langevin_options = [True, False],
         integrator_type_options = ['velocity_verlet', 'mclachlan'],
         diagonal_preconditioning_options = [True, False],
         redo=False,
+        compute_missing=True,
         key=jax.random.key(0),
         # mh_options = [False],
         # diagonal_preconditioning_options = [False],

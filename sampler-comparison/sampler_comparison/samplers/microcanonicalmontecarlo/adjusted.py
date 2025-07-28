@@ -94,8 +94,8 @@ def adjusted_mclmc_no_tuning(
                 "L": L,
                 "step_size": step_size,
                 "acc_rate": info.acceptance_rate.mean(),
-                "num_grads_per_proposal": L
-                / step_size
+                "num_grads_per_proposal": jnp.clip(L
+                / step_size, min=1)
                 * calls_per_integrator_step(integrator_type),
                 "num_tuning_grads": 0,
             },

@@ -45,15 +45,16 @@ if __name__ == "__main__":
     
 
 
+    dims = np.concatenate([np.ceil(np.logspace(2,5, 10)).astype(int)])[:]
+    models = [IllConditionedGaussian(ndims=dim, condition_number=1, eigenvalues='log', do_covariance=False) for dim in dims]
 
 
-    dims = 2*np.concatenate([np.ceil(np.logspace(2,5, 10)).astype(int)])[:]
     # print(dims)
     # raise Exception("Stop here")
 
 
-    # models = [IllConditionedGaussian(ndims=dim, condition_number=1, eigenvalues='log', do_covariance=False) for dim in dims]
-    models = [Rosenbrock(D=dim) for dim in dims]
+    # dims = 2*np.concatenate([np.ceil(np.logspace(2,5, 10)).astype(int)])[:]
+    # models = [Rosenbrock(D=dim) for dim in dims]
     
     for model in models:
         
@@ -75,7 +76,7 @@ if __name__ == "__main__":
                 key=jax.random.PRNGKey(4),
                 models=[model],
                 tuning_options=['alba'],
-                mh_options = [True, False],
+                mh_options = [True],
                 canonical_options = [True, False],
                 langevin_options = [True, False],
                 integrator_type_options = ['velocity_verlet', 'mclachlan', 'omelyan'],

@@ -112,14 +112,14 @@ if __name__ == "__main__":
 
 
     models = [
-        brownian_motion(),
+        # brownian_motion(),
         # Rosenbrock(18),
         # german_credit(),
         # banana(),
         # stochastic_volatility_mams_paper,
         # IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log'),
         # IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log', do_covariance=False),
-        # IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
+        IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
         # item_response(),
         # IllConditionedGaussian(ndims=10000, condition_number=100, eigenvalues='log', do_covariance=False),
         # cauchy(ndims=100),
@@ -146,8 +146,8 @@ if __name__ == "__main__":
             run(
                 key=jax.random.PRNGKey(4),
                 models=[model],
-                tuning_options=['grid_search'],
-                mh_options = [True, False],
+                tuning_options=['alba'],
+                mh_options = [True],
                 canonical_options = [True, False],
                 langevin_options = [True, False],
                 integrator_type_options = ['mclachlan', 'velocity_verlet'],

@@ -581,6 +581,37 @@ def plot_model_grid(model, full_results, tuning_option):
     
     fig, axes = plt.subplots(2, 2, figsize=(18, 12))
     
+    # Store y-axis limits for sharing between rows
+    y_limits = {'avg': None, 'max': None}
+    
+    # First pass: collect all data to determine global y-axis limits
+    all_data = {'avg': [], 'max': []}
+    for row, precond in enumerate(precond_options):
+        results_model_precond = results_model[results_model['precond'] == precond]
+        square_results_avg = results_model_precond[(results_model_precond['statistic'] == statistic) & (results_model_precond['max'] == False)]
+        square_results_max = results_model_precond[(results_model_precond['statistic'] == statistic) & (results_model_precond['max'] == True)]
+        
+        if not square_results_avg.empty:
+            all_data['avg'].extend(square_results_avg['num_grads_to_low_error'].values)
+        if not square_results_max.empty:
+            all_data['max'].extend(square_results_max['num_grads_to_low_error'].values)
+    
+    # Calculate global y-axis limits for each column
+    for plot_label in ['avg', 'max']:
+        if all_data[plot_label]:
+            finite_values = [v for v in all_data[plot_label] if not np.isinf(v)]
+            if finite_values:
+                min_val = min(finite_values)
+                max_val = max(finite_values)
+                # Add some padding to the top (20% more space)
+                y_limits[plot_label] = (min_val * 0.8, max_val * 1.2)
+            else:
+                # All values are infinite, use default range
+                y_limits[plot_label] = (1, 1000)
+        else:
+            # No data, use default range
+            y_limits[plot_label] = (1, 1000)
+    
     for row, precond in enumerate(precond_options):
         results_model_precond = results_model[results_model['precond'] == precond]
         print(f"  {row_labels[row]}: {len(results_model_precond)} rows")
@@ -619,6 +650,13 @@ def plot_model_grid(model, full_results, tuning_option):
                 # Remove x-tick labels since we have bracket labels
                 ax.set_xticklabels([])
                 ax.margins(y=0.15)  # Add some space at the bottom for the bracket/label
+                
+                # Set log scale for y-axis
+                ax.set_yscale('log')
+                
+                # Set the global y-axis limits
+                if y_limits[plot_label] is not None:
+                    ax.set_ylim(y_limits[plot_label])
             
             # Always set axis labels and title, even if axis is empty
             ax.set_title(f"{row_labels[row]}, {plot_label.capitalize()}")
@@ -630,6 +668,13 @@ def plot_model_grid(model, full_results, tuning_option):
                 ax.set_xlabel('Sampler', fontsize=16, fontweight='bold', labelpad=40)
             else:
                 ax.set_xlabel('')
+    
+    # Share y-axis limits between top and bottom rows
+    for col, plot_label in enumerate(['avg', 'max']):
+        if y_limits[plot_label] is not None:
+            # Set the same y-axis limits for both rows
+            axes[0, col].set_ylim(y_limits[plot_label])
+            axes[1, col].set_ylim(y_limits[plot_label])
     
     # Add legends only to the bottom right axis
     add_custom_legends(axes[1, 1], tuning_option)
@@ -1025,16 +1070,206 @@ def plot_all_icg_scaling():
                     continue
 
 
+def plot_rosenbrock_dimension_scaling(tuning_option='alba', statistic='square', max_over_parameters=False):
+    """
+    Plot how num_grads_to_low_error scales with dimension for Rosenbrock models.
+    Args:
+        tuning_option: Which tuning method to use ('grid_search', 'alba', 'nuts')
+        statistic: Which statistic to plot ('square', 'identity', 'covariance')
+        max_over_parameters: Whether to use max (True) or avg (False) over parameters
+    """
+    import re
+    import glob
+    import numpy as np
+    import pandas as pd
+    import os
+    import matplotlib.pyplot as plt
+
+    print(f"\n=== PLOTTING ROSENBROCK DIMENSION SCALING ===")
+    print(f"Tuning option: {tuning_option}")
+    print(f"Statistic: {statistic}")
+    print(f"Max over parameters: {max_over_parameters}")
+
+    # Find all rosenbrock_{d}d directories
+    results_dir = "./results"
+    rosen_dirs = []
+    for item in os.listdir(results_dir):
+        if os.path.isdir(os.path.join(results_dir, item)) and item.startswith("rosenbrock_"):
+            match = re.match(r"rosenbrock_(\d+)d", item)
+            if match:
+                dimension = int(match.group(1))
+                rosen_dirs.append((dimension, item))
+    rosen_dirs.sort(key=lambda x: x[0])
+    print(f"Found Rosenbrock directories: {[f'rosenbrock_{d}d' for d, _ in rosen_dirs]}")
+    if not rosen_dirs:
+        print("No rosenbrock_{d}d directories found!")
+        return
+
+    # Load results for each dimension
+    all_results = []
+    for dimension, dir_name in rosen_dirs:
+        print(f"\nLoading results for dimension {dimension} ({dir_name})...")
+        dir_path = os.path.join(results_dir, dir_name)
+        csv_files = glob.glob(os.path.join(dir_path, "*.csv"))
+        for csv_file in csv_files:
+            try:
+                df = pd.read_csv(csv_file)
+                # Filter for our criteria
+                filtered_df = df[
+                    (df['statistic'] == statistic) & 
+                    (df['max'] == max_over_parameters)
+                ].copy() if 'max' in df.columns else df[df['statistic'] == statistic].copy()
+                if not filtered_df.empty:
+                    filename = os.path.basename(csv_file)
+                    sampler_name = filename.replace(f'_{dir_name}.csv', '')
+                    parts = sampler_name.split('_')
+                    if len(parts) >= 3:
+                        mh = parts[0]  # adjusted/unadjusted
+                        canonical = parts[1]  # canonical/microcanonical
+                        langevin = parts[2]  # langevin/nolangevin
+                        tuning = None
+                        for part in parts[3:]:
+                            if part in ['grid_search', 'alba', 'nuts']:
+                                tuning = part
+                                break
+                        if tuning is None:
+                            print(f"Warning: Could not find tuning method in {sampler_name}")
+                            continue
+                        integrator_type = "unknown"
+                        diagonal_preconditioning = "unknown"
+                        if 'velocity verlet' in sampler_name:
+                            integrator_type = 'velocity_verlet'
+                        elif 'mclachlan' in sampler_name:
+                            integrator_type = 'mclachlan'
+                        elif 'omelyan' in sampler_name:
+                            integrator_type = 'omelyan'
+                        if 'precond:True' in sampler_name:
+                            diagonal_preconditioning = True
+                        elif 'precond:False' in sampler_name:
+                            diagonal_preconditioning = False
+                        if diagonal_preconditioning != False:
+                            continue
+                        filtered_df['dimension'] = dimension
+                        filtered_df['mh'] = mh
+                        filtered_df['canonical'] = canonical
+                        filtered_df['langevin'] = langevin
+                        filtered_df['tuning'] = tuning
+                        filtered_df['integrator_type'] = integrator_type
+                        filtered_df['diagonal_preconditioning'] = diagonal_preconditioning
+                        all_results.append(filtered_df)
+                        print(f"  Parsed: {mh}_{canonical}_{langevin}_{tuning}_{integrator_type}_{diagonal_preconditioning}")
+                    else:
+                        print(f"Warning: Could not parse sampler name {sampler_name} (not enough parts)")
+                        continue
+            except Exception as e:
+                print(f"Error loading {csv_file}: {e}")
+                continue
+    if not all_results:
+        print("No results found matching criteria!")
+        return
+    combined_df = pd.concat(all_results, ignore_index=True)
+    print(f"\nCombined results shape: {combined_df.shape}")
+    print(f"Available columns: {list(combined_df.columns)}")
+    combined_df = combined_df[combined_df['tuning'] == tuning_option]
+    if combined_df.empty:
+        print(f"No results found for tuning option: {tuning_option}")
+        return
+    print(f"Results after filtering for {tuning_option}: {len(combined_df)} rows")
+    canonical_types = ['canonical', 'microcanonical']
+    for canonical_type in canonical_types:
+        type_df = combined_df[combined_df['canonical'] == canonical_type]
+        if type_df.empty:
+            print(f"No results found for {canonical_type}")
+            continue
+        fig, ax = plt.subplots(figsize=(10, 8))
+        agg_df = type_df.groupby(['dimension', 'mh', 'langevin', 'integrator_type'], as_index=False)['num_grads_to_low_error'].mean()
+        color_map = {
+            'velocity_verlet': 'tab:blue',
+            'mclachlan': 'tab:orange',
+            'omelyan': 'tab:green'
+        }
+        line_style_map = {
+            'adjusted': '-',
+            'unadjusted': '--'
+        }
+        marker_map = {
+            'langevin': 'o',
+            'nolangevin': 's'
+        }
+        for (mh, langevin, integrator_type), group in agg_df.groupby(['mh', 'langevin', 'integrator_type']):
+            if len(group) < 2:
+                continue
+            group = group.sort_values('dimension')
+            color = color_map.get(integrator_type, 'gray')
+            line_style = line_style_map.get(mh, '-')
+            marker = marker_map.get(langevin, 'o')
+            label = None
+            ax.plot(
+                group['dimension'],
+                group['num_grads_to_low_error'],
+                color=color,
+                linestyle=line_style,
+                marker=marker,
+                label=label,
+                linewidth=2,
+                markersize=6,
+                alpha=0.8
+            )
+        dimensions = agg_df['dimension'].unique()
+        if len(dimensions) > 1:
+            min_dim = min(dimensions)
+            max_dim = max(dimensions)
+            typical_value = agg_df['num_grads_to_low_error'].median()
+            if np.isnan(typical_value) or typical_value <= 0:
+                typical_value = 1000
+            scale_factor = typical_value / (min_dim ** 0.25)
+            ref_dims = np.logspace(np.log10(min_dim), np.log10(max_dim), 100)
+            ref_values = scale_factor * (ref_dims ** 0.25)
+            ax.plot(ref_dims, ref_values, 'k--', alpha=0.5, linewidth=1, label='d^0.25 reference')
+        from matplotlib.lines import Line2D
+        legend_elements = [
+            Line2D([0], [0], color='tab:blue', lw=2, label='velocity_verlet'),
+            Line2D([0], [0], color='tab:orange', lw=2, label='mclachlan'),
+            Line2D([0], [0], color='tab:green', lw=2, label='omelyan'),
+            Line2D([0], [0], color='black', lw=2, linestyle='-', label='adjusted'),
+            Line2D([0], [0], color='black', lw=2, linestyle='--', label='unadjusted'),
+            Line2D([0], [0], color='black', marker='o', linestyle='None', markersize=8, label='langevin'),
+            Line2D([0], [0], color='black', marker='s', linestyle='None', markersize=8, label='nolangevin'),
+            Line2D([0], [0], color='k', lw=1, linestyle='--', label='d^0.25 reference')
+        ]
+        ax.legend(handles=legend_elements, fontsize=10, loc='upper left', ncol=2, frameon=True)
+        ax.set_xlabel('Dimension', fontsize=14)
+        ax.set_ylabel('num_grads_to_low_error', fontsize=14)
+        ax.set_title("", 
+                    fontsize=16)
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+        ax.grid(True, alpha=0.3)
+        plt.tight_layout()
+        os.makedirs("results/figures", exist_ok=True)
+        output_file = f"results/figures/rosenbrock_dimension_scaling_{canonical_type}_{tuning_option}_{statistic}_{'max' if max_over_parameters else 'avg'}.png"
+        plt.savefig(output_file, dpi=300, bbox_inches='tight')
+        print(f"\nPlot saved to: {output_file}")
+        plt.show()
+    return combined_df
+
+
 if __name__ == "__main__":
     # Example usage of the new ICG dimension scaling plot
     print("Generating ICG dimension scaling plots...")
     
     # Plot the specific combination you requested (avg, square) for ALBA
-    plot_icg_dimension_scaling(
-        tuning_option='alba',
-        statistic='square', 
-        max_over_parameters=False  # False = avg over parameters
-    )
+    # plot_icg_dimension_scaling(
+    #     tuning_option='alba',
+    #     statistic='square', 
+    #     max_over_parameters=False  # False = avg over parameters
+    # )
+
+    # plot_rosenbrock_dimension_scaling(
+    #     tuning_option='alba',
+    #     statistic='square', 
+    #     max_over_parameters=False  # False = avg over parameters
+    # )
 
     plot_all_results()
     
