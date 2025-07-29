@@ -95,6 +95,7 @@ def unadjusted_lmc_no_tuning(
                 "acc_rate": jnp.nan,
                 "num_tuning_grads": 0,
                 "num_grads_per_proposal": calls_per_integrator_step(integrator_type),
+                "info": info,
             },
         )
     return s

@@ -98,6 +98,7 @@ def adjusted_mclmc_no_tuning(
                 / step_size, min=1)
                 * calls_per_integrator_step(integrator_type),
                 "num_tuning_grads": 0,
+                "info": info,
             },
         )
 

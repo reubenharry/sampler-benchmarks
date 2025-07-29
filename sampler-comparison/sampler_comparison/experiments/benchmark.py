@@ -119,10 +119,10 @@ if __name__ == "__main__":
         # stochastic_volatility_mams_paper,
         # IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log'),
         # IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log', do_covariance=False),
-        IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
+        # IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
         # item_response(),
         # IllConditionedGaussian(ndims=10000, condition_number=100, eigenvalues='log', do_covariance=False),
-        # cauchy(ndims=100),
+        cauchy(ndims=100),
         # U1(Lt=16, Lx=16, beta=6)
         ]
     

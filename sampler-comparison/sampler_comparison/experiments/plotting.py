@@ -482,6 +482,127 @@ def plot_grouped_bars(ax, plot_df, color_map, hatch_map, alpha_map):
     return group_xs
 
 
+def plot_individual_bars_no_errors(ax, plot_df, color_map, hatch_map, alpha_map):
+    """Plot grouped bars for individual plots without error bars."""
+    if plot_df.empty:
+        print("Plot DataFrame is empty!")
+        ax.axis('off')
+        return {}
+    
+    # Fixed orders for all categorical variables
+    mh_order = ['adjusted', 'unadjusted']
+    canonical_order = ['canonical', 'microcanonical']
+    integrator_order = ['velocity verlet', 'mclachlan']
+    langevin_order = ['langevin', 'nolangevin']
+    
+    # Group labels: add NUTS explicitly
+    group_labels = [get_group_label(mh) for mh in mh_order] + ['NUTS']
+    
+    bar_width = 0.35
+    n_hue = len(canonical_order)
+    n_hatch = len(integrator_order)
+    n_langevin = len(langevin_order)
+    
+    group_xs = {label: [] for label in group_labels}
+    
+    # Plot NUTS bars - always plot both integrators, using tuning == 'nuts'
+    i_nuts = len(mh_order)  # index for NUTS group
+    group_label = 'NUTS'
+    group_x_centers = set()
+    for k, integrator in enumerate(integrator_order):
+        x_center = i_nuts + (k - n_hatch/2) * bar_width / n_hatch
+        row_df = plot_df[
+            (plot_df['tuning'] == 'nuts') &
+            (plot_df['integrator_type'] == integrator)
+        ]
+        if not row_df.empty and not pd.isna(row_df['num_grads_to_low_error'].values[0]):
+            y = row_df['num_grads_to_low_error'].values[0]
+            print(f"Plotting NUTS bar at x={x_center}: y={y}")
+            y_new, _ = handle_infinite_values(y, plot_df)
+            if np.isinf(y_new):
+                y = y_new
+            else:
+                y = y_new
+        else:
+            y = 0
+            print(f"Plotting NUTS bar at x={x_center}: y={y} (no data)")
+        
+        # Check tuning outcome for NUTS bars
+        tuning_outcome = row_df['tuning_outcome'].values[0] if not row_df.empty and 'tuning_outcome' in row_df and not pd.isna(row_df['tuning_outcome'].values[0]) else "success"
+        if tuning_outcome != "success":
+            color = 'red'  # Red for failed tuning
+        else:
+            color = 'tab:green'  # Green for successful NUTS
+        
+        zorder = -y
+        bar = ax.bar(
+            x_center, y, width=bar_width / n_hatch,
+            color=color,
+            hatch=hatch_map[integrator],
+            edgecolor='black',
+            alpha=1.0,
+            zorder=zorder
+        )
+        if not row_df.empty and np.isinf(row_df['num_grads_to_low_error'].values[0]):
+            ax.text(x_center, y, '∞', ha='center', va='bottom', fontweight='bold', fontsize=12)
+        group_x_centers.add(x_center)
+    group_xs[group_label] = sorted(group_x_centers)
+    
+    # Plot regular bars for adjusted/unadjusted
+    for i, mh in enumerate(mh_order):
+        if mh not in plot_df['mh'].unique():
+            continue
+        group_label = get_group_label(mh)
+        group_x_centers = set()
+        bar_group_width = bar_width / n_hatch
+        single_bar_width = bar_group_width / n_langevin
+        for j, canonical in enumerate(canonical_order):
+            for k, integrator in enumerate(integrator_order):
+                for l, langevin in enumerate(langevin_order):
+                    x_center = i + (j - n_hue/2) * bar_width + (k - n_hatch/2) * bar_group_width
+                    dodge = (l - (n_langevin - 1) / 2) * single_bar_width
+                    x_dodged = x_center + dodge
+                    row_df = plot_df[
+                        (plot_df['mh'] == mh) &
+                        (plot_df['canonical'] == canonical) &
+                        (plot_df['integrator_type'] == integrator) &
+                        (plot_df['langevin'] == langevin)
+                    ]
+                    if not row_df.empty and not pd.isna(row_df['num_grads_to_low_error'].values[0]):
+                        y = row_df['num_grads_to_low_error'].values[0]
+                        print(f"Plotting bar at x={x_dodged}: y={y}")
+                        y_new, _ = handle_infinite_values(y, plot_df)
+                        if np.isinf(y_new):
+                            y = y_new
+                        else:
+                            y = y_new
+                    else:
+                        y = 0
+                        print(f"Plotting bar at x={x_dodged}: y={y} (no data)")
+                    
+                    # Check tuning outcome for regular bars
+                    tuning_outcome = row_df['tuning_outcome'].values[0] if not row_df.empty and 'tuning_outcome' in row_df and not pd.isna(row_df['tuning_outcome'].values[0]) else "success"
+                    if tuning_outcome != "success":
+                        color = 'red'  # Red for failed tuning
+                    else:
+                        color = color_map[canonical]  # Normal color for successful tuning
+                    
+                    zorder = -y
+                    bar = ax.bar(
+                        x_dodged, y, width=single_bar_width,
+                        color=color,
+                        hatch=hatch_map[integrator],
+                        edgecolor='black',
+                        alpha=alpha_map[langevin],
+                        zorder=zorder
+                    )
+                    if not row_df.empty and np.isinf(row_df['num_grads_to_low_error'].values[0]):
+                        ax.text(x_dodged, y, '∞', ha='center', va='bottom', fontweight='bold', fontsize=12)
+                    group_x_centers.add(x_center)
+        group_xs[group_label] = sorted(group_x_centers)
+    return group_xs
+
+
 def draw_group_brackets(ax, group_xs, bar_width, n_hatch):
     """Draw group brackets and labels below the x-axis."""
     # Find the maximum bar top (including error bars) for this axis
@@ -533,14 +654,12 @@ def add_custom_legends(ax, tuning_option):
         legend_elements = [
             Patch(facecolor='tab:blue', edgecolor='black', label='canonical'),
             Patch(facecolor='tab:orange', edgecolor='black', label='microcanonical'),
-            Patch(facecolor='tab:green', edgecolor='black', label='NUTS'),
-            Patch(facecolor='red', edgecolor='black', label='Failed Tuning')
+            Patch(facecolor='tab:green', edgecolor='black', label='NUTS')
         ]
     else:
         legend_elements = [
             Patch(facecolor='tab:blue', edgecolor='black', label='canonical'),
-            Patch(facecolor='tab:orange', edgecolor='black', label='microcanonical'),
-            Patch(facecolor='red', edgecolor='black', label='Failed Tuning')
+            Patch(facecolor='tab:orange', edgecolor='black', label='microcanonical')
         ]
     
     hatch_elements = [
@@ -562,7 +681,7 @@ def add_custom_legends(ax, tuning_option):
     ax.add_artist(legend3)
 
 
-def plot_model_grid(model, full_results, tuning_option):
+def plot_model_grid(model, full_results, tuning_option, save_individual=False):
     """Create a 2x2 grid plot for a single model."""
     print(f"\n=== PLOTTING MODEL GRID FOR {model.name} ===")
     print(f"Full results shape: {full_results.shape}")
@@ -687,6 +806,76 @@ def plot_model_grid(model, full_results, tuning_option):
     plt.savefig(f'results/figures/{model.name}_{tuning_option}_grid.png')
     print(f"Saved figure to results/figures/{model.name}_{tuning_option}_grid.png")
     plt.close()
+    
+    # Save individual plots for each subplot (only if requested)
+    if save_individual:
+        save_individual_plots(model, full_results, tuning_option, y_limits, statistic)
+
+
+def save_individual_plots(model, full_results, tuning_option, y_limits, statistic):
+    """Save individual plots for each of the 4 subplots in the grid."""
+    print(f"\n=== SAVING INDIVIDUAL PLOTS FOR {model.name} ===")
+    
+    color_map, hatch_map, alpha_map = get_visualization_maps().values()
+    
+    precond_options = ['precond:True', 'precond:False']
+    row_labels = ['Preconditioned', 'Not Preconditioned']
+    
+    results_model = full_results[full_results['Model'] == model.name]
+    
+    for row, precond in enumerate(precond_options):
+        results_model_precond = results_model[results_model['precond'] == precond]
+        
+        square_results_avg = results_model_precond[(results_model_precond['statistic'] == statistic) & (results_model_precond['max'] == False)]
+        square_results_max = results_model_precond[(results_model_precond['statistic'] == statistic) & (results_model_precond['max'] == True)]
+        
+        for col, (plot_label, plot_df) in enumerate(zip(['avg', 'max'], [square_results_avg, square_results_max])):
+            # Create individual figure with reasonable size
+            fig, ax = plt.subplots(figsize=(10, 6))
+            
+            # Plot grouped bars without error bars for individual plots
+            group_xs = plot_individual_bars_no_errors(ax, plot_df, color_map, hatch_map, alpha_map)
+            
+            if not plot_df.empty:
+                # Draw brackets
+                draw_group_brackets(ax, group_xs, bar_width=0.35, n_hatch=len(plot_df['integrator_type'].unique()))
+                
+                # Remove x-tick labels since we have bracket labels
+                ax.set_xticklabels([])
+                ax.margins(y=0.15)  # Add some space at the bottom for the bracket/label
+                
+                # Set log scale for y-axis (individual plots)
+                ax.set_yscale('log')
+                
+                # Set the global y-axis limits
+                if y_limits[plot_label] is not None:
+                    ax.set_ylim(y_limits[plot_label])
+                
+                # Add more y-axis ticks for better readability
+                import matplotlib.ticker as mticker
+                ax.yaxis.set_major_locator(mticker.LogLocator(base=10, numticks=10))
+                ax.yaxis.set_minor_locator(mticker.LogLocator(base=10, subs=np.arange(2, 10) * 0.1, numticks=10))
+                ax.grid(True, which='major', alpha=0.3)
+                ax.grid(True, which='minor', alpha=0.1)
+            
+            # Set axis labels and title
+            model_pretty_name = model_info[model.name]['pretty_name'] if model.name in model_info else model.name
+            ax.set_title(f"{model_pretty_name}: {row_labels[row]}, {plot_label.capitalize()}", fontsize=16, fontweight='bold', pad=20)
+            ax.set_ylabel('Number of gradients to $b_{\\mathit{avg}}(x^2) < 0.1$', fontsize=14, fontweight='bold')
+            ax.set_xlabel('Sampler', fontsize=14, fontweight='bold', labelpad=20)
+            
+            # Add legend
+            add_custom_legends(ax, tuning_option)
+            
+            # Adjust layout to minimize whitespace and add space for legend
+            plt.subplots_adjust(left=0.1, right=0.95, top=0.85, bottom=0.2)
+            
+            # Save individual plot
+            plot_suffix = f"{row_labels[row].lower().replace(' ', '_')}_{plot_label}"
+            filename = f'results/figures/{model.name}_{tuning_option}_{plot_suffix}.png'
+            plt.savefig(filename, dpi=100)
+            print(f"Saved individual plot to {filename}")
+            plt.close()
 
 
 def plot_alba_results():
@@ -728,7 +917,7 @@ def plot_alba_results():
     # Plot for each model
     models = get_model_list()
     for model in models:
-        plot_model_grid(model, full_results, 'alba')
+        plot_model_grid(model, full_results, 'alba', save_individual=False)
 
 
 def plot_grid_results():
@@ -773,7 +962,7 @@ def plot_grid_results():
     # Plot for each model using the same system as ALBA
     models = get_model_list()
     for model in models:
-        plot_model_grid(model, full_results, 'grid_search')
+        plot_model_grid(model, full_results, 'grid_search', save_individual=False)
 
 
 def plot_results(tuning_option='alba'):
@@ -790,6 +979,57 @@ def plot_all_results():
     """Plot results for both alba and grid_search tuning options."""
     plot_alba_results()
     plot_grid_results()
+
+
+def generate_individual_plots(tuning_option='alba'):
+    """Generate individual plots for all models with a specific tuning option."""
+    print(f"Generating individual plots for {tuning_option}...")
+    
+    # Prepare full results
+    full_results = prepare_full_results(tuning_option)
+    
+    if full_results.empty:
+        print(f"No results found for {tuning_option} tuning option. Skipping individual plot generation.")
+        return
+    
+    # Calculate global y-axis limits first
+    models = get_model_list()
+    # models = models[:1]
+    for model in models:
+        print(f"\nGenerating individual plots for {model.name}...")
+        
+        color_map, hatch_map, alpha_map = get_visualization_maps().values()
+        precond_options = ['precond:True', 'precond:False']
+        results_model = full_results[full_results['Model'] == model.name]
+        statistic = get_model_statistic(model.name)
+        
+        # Calculate y-axis limits
+        all_data = {'avg': [], 'max': []}
+        for precond in precond_options:
+            results_model_precond = results_model[results_model['precond'] == precond]
+            square_results_avg = results_model_precond[(results_model_precond['statistic'] == statistic) & (results_model_precond['max'] == False)]
+            square_results_max = results_model_precond[(results_model_precond['statistic'] == statistic) & (results_model_precond['max'] == True)]
+            
+            if not square_results_avg.empty:
+                all_data['avg'].extend(square_results_avg['num_grads_to_low_error'].values)
+            if not square_results_max.empty:
+                all_data['max'].extend(square_results_max['num_grads_to_low_error'].values)
+        
+        y_limits = {'avg': None, 'max': None}
+        for plot_label in ['avg', 'max']:
+            if all_data[plot_label]:
+                finite_values = [v for v in all_data[plot_label] if not np.isinf(v)]
+                if finite_values:
+                    min_val = min(finite_values)
+                    max_val = max(finite_values)
+                    y_limits[plot_label] = (min_val * 0.8, max_val * 1.2)
+                else:
+                    y_limits[plot_label] = (1, 1000)
+            else:
+                y_limits[plot_label] = (1, 1000)
+        
+        # Generate individual plots
+        save_individual_plots(model, full_results, tuning_option, y_limits, statistic)
 
 
 def plot_icg_dimension_scaling(tuning_option='alba', statistic='square', max_over_parameters=False):
@@ -1256,22 +1496,14 @@ def plot_rosenbrock_dimension_scaling(tuning_option='alba', statistic='square', 
 
 if __name__ == "__main__":
     # Example usage of the new ICG dimension scaling plot
-    print("Generating ICG dimension scaling plots...")
+    print("Generating plots...")
     
-    # Plot the specific combination you requested (avg, square) for ALBA
-    # plot_icg_dimension_scaling(
-    #     tuning_option='alba',
-    #     statistic='square', 
-    #     max_over_parameters=False  # False = avg over parameters
-    # )
-
-    # plot_rosenbrock_dimension_scaling(
-    #     tuning_option='alba',
-    #     statistic='square', 
-    #     max_over_parameters=False  # False = avg over parameters
-    # )
-
-    plot_all_results()
+    # Generate main grid plots (fast)
+    # plot_all_results()
+    
+    # Uncomment the lines below to generate individual plots (slower but useful for papers)
+    generate_individual_plots('alba')
+    # generate_individual_plots('grid_search')
     
     # Uncomment the line below to generate all combinations
     # plot_all_icg_scaling()
