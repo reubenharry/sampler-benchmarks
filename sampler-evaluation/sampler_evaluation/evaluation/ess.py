@@ -42,23 +42,6 @@ def samples_to_low_error(err_t, low_error=0.01):
     return crossing * (1 / cutoff_reached)
 
 
-# def calculate_ess(err_t, n_eff=100):
-
-#     print("calculating ess")
-
-#     grads_to_low, cutoff_reached = samples_to_low_error(
-#         err_t, grad_evals_per_step, 1.0 / n_eff
-#     )
-
-#     full_grads_to_low = grads_to_low
-
-#     return (
-#         (n_eff / full_grads_to_low) * cutoff_reached,
-#         full_grads_to_low * (1 / cutoff_reached),
-#         cutoff_reached,
-#     )
-
-
 def find_crossing(array, cutoff):
     """the smallest M such that array[m] < cutoff for all m > M"""
 

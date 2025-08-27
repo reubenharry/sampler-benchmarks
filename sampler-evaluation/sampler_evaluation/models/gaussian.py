@@ -16,7 +16,7 @@ from sampler_evaluation.models.model import SampleTransformation, make_model
 
 def gaussian(ndims):
     return make_model(
-    logdensity_fn=lambda x: -jnp.sum(x**2),
+    logdensity_fn=lambda x: -jnp.sum(x**2)/2,
     ndims=ndims,
     default_event_space_bijector=lambda x: x,
     sample_transformations = {

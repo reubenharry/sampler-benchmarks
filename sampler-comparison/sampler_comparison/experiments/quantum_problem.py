@@ -2,11 +2,14 @@ import functools
 import time
 import matplotlib.pyplot as plt
 # from sampling_algorithms import da_adaptation
+import sys
+sys.path.append("/global/u1/r/reubenh/blackjax")
+sys.path.append("/global/u1/r/reubenh/sampler-benchmarks/sampler-comparison")
 import jax
-import blackjax
+# import blackjax
 import numpy as np
 import jax.numpy as jnp
-from blackjax.adaptation.ensemble_mclmc import emaus
+from blackjax.adaptation.ensemble_mclmc import laps
 from blackjax.mcmc.integrators import mclachlan_coefficients
 import jax.scipy.stats as stats
 from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
@@ -18,7 +21,7 @@ from sampler_evaluation.evaluation.ess import samples_to_low_error, get_standard
 
 im = 0 + 1j
 
-def run_emaus(
+def run_laps(
         sample_init,
         logdensity_fn,
         ndims,
@@ -33,7 +36,7 @@ def run_emaus(
 
         integrator_coefficients = mclachlan_coefficients
 
-        info, grads_per_step, _acc_prob, final_state = emaus(
+        info, grads_per_step, _acc_prob, final_state = laps(
             logdensity_fn=logdensity_fn,
             sample_init=sample_init,
             # transform=transform,
@@ -185,7 +188,7 @@ def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKe
         # else:
         #     sample_init = lambda init_key: previous_samples
 
-        raw_samples = run_emaus(
+        raw_samples = run_laps(
             sample_init=sample_init,
             logdensity_fn=logdensity_fn,
             transform=lambda x: x,

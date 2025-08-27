@@ -121,7 +121,7 @@ def unadjusted_mclmc(
             algorithm=blackjax.mclmc, 
             logdensity_fn=logdensity_fn, integrator=map_integrator_type_to_integrator["mclmc"][integrator_type], 
             target_eevpd=desired_energy_var, 
-            v=1., 
+            v=jnp.sqrt(model.ndims), 
             num_alba_steps=num_alba_steps,
             preconditioning=diagonal_preconditioning,
             alba_factor=alba_factor,

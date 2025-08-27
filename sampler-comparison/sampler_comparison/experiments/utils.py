@@ -108,7 +108,7 @@ model_info = {
     Rosenbrock(18).name: {
         'pretty_name' : 'Rosenbrock',
         'batch_size' : 64,
-        'num_steps' : {True : 50000, False : 50000},
+        'num_steps' : {True : 50000, False : 150000},
         'preferred_statistic' : 'square',
         'max_over_parameters' : False,
         'grid_search_steps' : {True : 40000, False : 40000}},

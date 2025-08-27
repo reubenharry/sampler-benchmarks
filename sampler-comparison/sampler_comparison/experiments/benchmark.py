@@ -113,7 +113,7 @@ if __name__ == "__main__":
 
     models = [
         # brownian_motion(),
-        # Rosenbrock(18),
+        Rosenbrock(18),
         # german_credit(),
         # banana(),
         # stochastic_volatility_mams_paper,
@@ -122,7 +122,7 @@ if __name__ == "__main__":
         # IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
         # item_response(),
         # IllConditionedGaussian(ndims=10000, condition_number=100, eigenvalues='log', do_covariance=False),
-        cauchy(ndims=100),
+        # cauchy(ndims=100),
         # U1(Lt=16, Lx=16, beta=6)
         ]
     
@@ -147,12 +147,12 @@ if __name__ == "__main__":
                 key=jax.random.PRNGKey(4),
                 models=[model],
                 tuning_options=['alba'],
-                mh_options = [True],
-                canonical_options = [True, False],
-                langevin_options = [True, False],
-                integrator_type_options = ['mclachlan', 'velocity_verlet'],
-                diagonal_preconditioning_options = [True, False],
-                redo=False,
+                mh_options = [False],
+                canonical_options = [True],
+                langevin_options = [False],
+                integrator_type_options = ['mclachlan'],
+                diagonal_preconditioning_options = [True],
+                redo=True,
                 compute_missing=True,
                 # redo_bad_results=True
             )
