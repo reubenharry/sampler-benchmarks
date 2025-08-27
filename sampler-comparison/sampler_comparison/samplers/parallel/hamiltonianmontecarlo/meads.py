@@ -250,8 +250,6 @@ def run_meads(initial_pos,
      
 
 def meads_with_adam(
-              target_log_prob_fn,
-              ndims,
               num_steps,
               num_chains,
               num_folds= 4,
@@ -264,7 +262,7 @@ def meads_with_adam(
         logdensity_fn = make_log_density_fn(model)
 
 
-        initial_state = adam_initialize(jnp.zeros(ndims),
+        initial_state = adam_initialize(jnp.zeros(model.ndims),
                                     lambda x: logdensity_fn(x)[0])
         
         result = run_meads(initial_state,
@@ -282,14 +280,5 @@ def meads_with_adam(
 
     
     return s
-
-
-
-
-
-
-
-    
-    return result
      
 
