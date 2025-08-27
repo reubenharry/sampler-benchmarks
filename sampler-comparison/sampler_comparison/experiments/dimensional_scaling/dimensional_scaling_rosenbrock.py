@@ -24,10 +24,11 @@ from sampler_evaluation.models.rosenbrock import Rosenbrock
 from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unadjusted_mclmc
 import numpy as np
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_adjusted_mclmc
-from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc
+from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import grid_search_unadjusted_mclmc
 from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import adjusted_hmc
 from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_langevin import unadjusted_lmc, unadjusted_lmc_no_tuning
 import jax.numpy as jnp
+from sampler_comparison.samplers.grid_search.grid_search import grid_search_hmc
 
 Ds = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,4, 10)).astype(int)])[:]
 

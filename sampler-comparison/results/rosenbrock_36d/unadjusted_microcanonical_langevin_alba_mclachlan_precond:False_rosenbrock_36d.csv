@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,unadjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,covariance,40002.0,30.154307674675636,0.6033663084413251,128
-1,unadjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,False,covariance,40002.0,30.154307674675636,0.6033663084413251,128
-2,unadjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,identity,40002.0,30.154307674675636,0.6033663084413251,128
-3,unadjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,17342.0,299.07682892527805,,False,identity,40002.0,30.154307674675636,0.6033663084413251,128
-4,unadjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,square,40002.0,30.154307674675636,0.6033663084413251,128
-5,unadjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,19600.0,455.66394415182776,,False,square,40002.0,30.154307674675636,0.6033663084413251,128
+0,unadjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,covariance,40000.0,10.7480125168162,0.6047350573986603,128
+1,unadjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,False,covariance,40000.0,10.7480125168162,0.6047350573986603,128
+2,unadjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,85712.0,,,True,identity,40000.0,10.7480125168162,0.6047350573986603,128
+3,unadjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,9058.0,279.40677443469406,,False,identity,40000.0,10.7480125168162,0.6047350573986603,128
+4,unadjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,inf,,,True,square,40000.0,10.7480125168162,0.6047350573986603,128
+5,unadjusted_microcanonical_langevin_alba_mclachlan_precond:False,rosenbrock_36d,11874.0,254.19411853935569,,False,square,40000.0,10.7480125168162,0.6047350573986603,128

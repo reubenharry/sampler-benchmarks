@@ -21,7 +21,8 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unad
 from functools import partial
 from sampler_comparison.samplers.hamiltonianmontecarlo.hmc import adjusted_hmc, adjusted_hmc_no_tuning
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_adjusted_mclmc
-from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc, grid_search_hmc
+from sampler_comparison.samplers.grid_search.grid_search import grid_search_hmc
+from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import grid_search_unadjusted_mclmc
 from sampler_comparison.samplers import samplers
 from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_langevin import unadjusted_lmc
 import jax.numpy as jnp

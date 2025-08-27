@@ -1,7 +1,7 @@
-,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_canonical_langevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,44137.75267539654,171.7169869290747,,True,identity,391956.8125,1.9472104145942897,0.29273931769315287,64
-1,adjusted_canonical_langevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,4761.6926379330425,32.779072592128045,,False,identity,391956.8125,1.9472104145942897,0.29273931769315287,64
-2,adjusted_canonical_langevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,45365.6963356085,137.9804102037677,,True,square,391956.8125,1.9472104145942897,0.29273931769315287,64
-3,adjusted_canonical_langevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,4366.0219029758555,32.494614938478655,,False,square,391956.8125,1.9472104145942897,0.29273931769315287,64
-4,adjusted_canonical_langevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,inf,,,True,quartic,391956.8125,1.9472104145942897,0.29273931769315287,64
-5,adjusted_canonical_langevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,inf,,,False,quartic,391956.8125,1.9472104145942897,0.29273931769315287,64
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
+0,adjusted_canonical_langevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,201993.479840125,2488.287169339584,,True,identity,112435.03125,2.6709199338743628,0.26138778584226174,64,success
+1,adjusted_canonical_langevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,23909.9388383355,167.05234239602868,,False,identity,112435.03125,2.6709199338743628,0.26138778584226174,64,success
+2,adjusted_canonical_langevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,237734.28806905556,2424.4342029430286,,True,square,112435.03125,2.6709199338743628,0.26138778584226174,64,success
+3,adjusted_canonical_langevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,18635.687623996786,197.24596928708075,,False,square,112435.03125,2.6709199338743628,0.26138778584226174,64,success
+4,adjusted_canonical_langevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,inf,,,True,quartic,112435.03125,2.6709199338743628,0.26138778584226174,64,success
+5,adjusted_canonical_langevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,inf,,,False,quartic,112435.03125,2.6709199338743628,0.26138778584226174,64,success

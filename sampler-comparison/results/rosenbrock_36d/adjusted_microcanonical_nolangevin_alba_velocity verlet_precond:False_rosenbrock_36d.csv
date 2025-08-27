@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,inf,,,True,covariance,1310775.90625,12.0,0.30543973486004306,128
-1,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,inf,,,False,covariance,1310775.90625,12.0,0.30543973486004306,128
-2,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,inf,,,True,identity,1310775.90625,12.0,0.30543973486004306,128
-3,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,43258.63145750893,31.426630427075693,,False,identity,1310775.90625,12.0,0.30543973486004306,128
-4,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,inf,,,True,square,1310775.90625,12.0,0.30543973486004306,128
-5,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,52421.59612078127,38.340968949675755,,False,square,1310775.90625,12.0,0.30543973486004306,128
+0,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,inf,,,True,covariance,135544.6015625,7.1255661765585545,0.27089159118689077,128
+1,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,inf,,,False,covariance,135544.6015625,7.1255661765585545,0.27089159118689077,128
+2,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,inf,,,True,identity,135544.6015625,7.1255661765585545,0.27089159118689077,128
+3,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,21454.789138147604,30.951536310819858,,False,identity,135544.6015625,7.1255661765585545,0.27089159118689077,128
+4,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,inf,,,True,square,135544.6015625,7.1255661765585545,0.27089159118689077,128
+5,adjusted_microcanonical_nolangevin_alba_velocity verlet_precond:False,rosenbrock_36d,26693.44317310634,53.29630756440825,,False,square,135544.6015625,7.1255661765585545,0.27089159118689077,128

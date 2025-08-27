@@ -1,0 +1,7 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
+0,adjusted_canonical_nolangevin_grid_search_mclachlan_precond:False,rosenbrock_36d,1072753.7690237407,2837.5277722693745,,True,covariance,0.0,2.7203975610872715,0.07886652705663134,64,success
+1,adjusted_canonical_nolangevin_grid_search_mclachlan_precond:False,rosenbrock_36d,1072753.7690237407,2837.5277722693745,,False,covariance,0.0,2.7203975610872715,0.07886652705663134,64,success
+2,adjusted_canonical_nolangevin_grid_search_mclachlan_precond:False,rosenbrock_36d,109344.99832171248,141.01636642602872,,True,identity,0.0,2.7203975610872715,0.07886652705663134,64,success
+3,adjusted_canonical_nolangevin_grid_search_mclachlan_precond:False,rosenbrock_36d,15315.198503104208,9.477230608147087,,False,identity,0.0,2.7203975610872715,0.07886652705663134,64,success
+4,adjusted_canonical_nolangevin_grid_search_mclachlan_precond:False,rosenbrock_36d,148253.8810052745,411.00954684775877,,True,square,0.0,2.7203975610872715,0.07886652705663134,64,success
+5,adjusted_canonical_nolangevin_grid_search_mclachlan_precond:False,rosenbrock_36d,19730.390864359477,22.510477560460593,,False,square,0.0,2.7203975610872715,0.07886652705663134,64,success

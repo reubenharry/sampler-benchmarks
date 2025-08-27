@@ -1,7 +1,6 @@
 import jax
 from blackjax.util import run_inference_algorithm
 import blackjax
-from sampler_comparison.samplers.hamiltonianmontecarlo.nuts_tuning import da_adaptation
 from sampler_comparison.samplers.general import (
     with_only_statistics,
     make_log_density_fn,
@@ -17,7 +16,6 @@ def nuts(
     num_tuning_steps=5000,
     return_only_final=False,
     target_acc_rate=0.8,
-    # cos_angle_termination=0.,
     progress_bar=False,
 ):
 
@@ -28,52 +26,22 @@ def nuts(
 
         rng_key, warmup_key = jax.random.split(key, 2)
 
-        if not diagonal_preconditioning:
-            state, params, adaptation_info = da_adaptation(
-                rng_key=warmup_key,
-                initial_position=initial_position,
-                algorithm=blackjax.nuts,
-                integrator=integrator,
-                logdensity_fn=logdensity_fn,
-                num_steps=num_tuning_steps,
+        warmup = blackjax.window_adaptation(
+                blackjax.nuts, logdensity_fn, integrator=integrator, 
+                preconditioning=diagonal_preconditioning,
                 target_acceptance_rate=target_acc_rate,
-                # cos_angle_termination=cos_angle_termination,
             )
-
-        else:
-            warmup = blackjax.window_adaptation(
-                blackjax.nuts, logdensity_fn, integrator=integrator, target_acceptance_rate=target_acc_rate,
-                #  cos_angle_termination=cos_angle_termination
-            )
-            (state, params), adaptation_info = warmup.run(
+        (state, params), adaptation_info = warmup.run(
                 warmup_key, initial_position, num_tuning_steps
             )
 
-            # state, params, adaptation_info = da_adaptation(
-            #     rng_key=warmup_key,
-            #     initial_position=initial_position,
-            #     algorithm=blackjax.nuts,
-            #     integrator=integrator,
-            #     logdensity_fn=logdensity_fn,
-            #     num_steps=num_tuning_steps,
-            #     target_acceptance_rate=target_acc_rate,
-            #     # cos_angle_termination=cos_angle_termination,
-            # )
-
-            adaptation_info = adaptation_info.info
-
-        # jax.debug.print("acc_rate: {x}", x=(adaptation_info.acceptance_rate.mean(), params['step_size']))
-            
-
-        # jax.debug.print("params: {params}", params=params)
-        # raise Exception("stop")
+        adaptation_info = adaptation_info.info
 
         alg = blackjax.nuts(
             logdensity_fn=logdensity_fn,
             step_size=params["step_size"],
             inverse_mass_matrix=params["inverse_mass_matrix"],
             integrator=integrator,
-            # cos_angle_termination=cos_angle_termination,
         )
 
         if return_samples:
@@ -110,7 +78,6 @@ def nuts(
 
         (expectations, info) = history
 
-        # jax.debug.print("x {x}", x=info.acceptance_rate.mean())
 
         return (
             expectations,

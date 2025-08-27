@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,inf,,,True,covariance,22223.0,1.4250179574184123,0.6114665779094052,128
-1,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,inf,,,False,covariance,22223.0,1.4250179574184123,0.6114665779094052,128
-2,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,493.0,,,True,identity,22223.0,1.4250179574184123,0.6114665779094052,128
-3,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,320.0,50.019671130466264,,False,identity,22223.0,1.4250179574184123,0.6114665779094052,128
-4,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,inf,,,True,square,22223.0,1.4250179574184123,0.6114665779094052,128
-5,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,255.0,45.8717985258917,,False,square,22223.0,1.4250179574184123,0.6114665779094052,128
+0,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,1195.0,111.37982716811874,,True,covariance,20000.0,1.4114636235881681,0.5997014684327876,128
+1,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,1195.0,111.37982716811874,,False,covariance,20000.0,1.4114636235881681,0.5997014684327876,128
+2,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,552.0,70.49825813450997,,True,identity,20000.0,1.4114636235881681,0.5997014684327876,128
+3,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,305.0,49.041264257765626,,False,identity,20000.0,1.4114636235881681,0.5997014684327876,128
+4,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,544.0,62.193262496833206,,True,square,20000.0,1.4114636235881681,0.5997014684327876,128
+5,unadjusted_microcanonical_langevin_alba_velocity verlet_precond:True,ICG_2_1,331.0,40.38524978256294,,False,square,20000.0,1.4114636235881681,0.5997014684327876,128

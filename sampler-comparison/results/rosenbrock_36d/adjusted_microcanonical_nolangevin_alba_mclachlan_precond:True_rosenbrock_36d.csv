@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,inf,,,True,covariance,1900738.453125,12.0,0.5130811861551308,128
-1,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,inf,,,False,covariance,1900738.453125,12.0,0.5130811861551308,128
-2,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,78240.12265410558,101.58991091638973,,True,identity,1900738.453125,12.0,0.5130811861551308,128
-3,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,13008.824221196981,13.05540501095236,,False,identity,1900738.453125,12.0,0.5130811861551308,128
-4,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,103415.4731253429,151.6174132479512,,True,square,1900738.453125,12.0,0.5130811861551308,128
-5,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,17828.640389482192,19.7148269076855,,False,square,1900738.453125,12.0,0.5130811861551308,128
+0,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,inf,,,True,covariance,186847.796875,9.371536966370195,0.5297569260660888,128
+1,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,inf,,,False,covariance,186847.796875,9.371536966370195,0.5297569260660888,128
+2,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,102421.55172417435,164.02526969951916,,True,identity,186847.796875,9.371536966370195,0.5297569260660888,128
+3,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,16833.992065391976,16.938193528236713,,False,identity,186847.796875,9.371536966370195,0.5297569260660888,128
+4,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,134778.2564730225,277.83059784696144,,True,square,186847.796875,9.371536966370195,0.5297569260660888,128
+5,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:True,rosenbrock_36d,19846.39064551475,30.13292385414997,,False,square,186847.796875,9.371536966370195,0.5297569260660888,128

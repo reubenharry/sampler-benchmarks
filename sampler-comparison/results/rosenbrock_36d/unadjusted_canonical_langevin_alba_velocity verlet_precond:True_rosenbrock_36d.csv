@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,True,covariance,115556.0,2.380279270078533,0.03250128812932571,128
-1,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,False,covariance,115556.0,2.380279270078533,0.03250128812932571,128
-2,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,True,identity,115556.0,2.380279270078533,0.03250128812932571,128
-3,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,12764.0,687.3318482363522,,False,identity,115556.0,2.380279270078533,0.03250128812932571,128
-4,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,True,square,115556.0,2.380279270078533,0.03250128812932571,128
-5,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,16714.0,472.70243610542144,,False,square,115556.0,2.380279270078533,0.03250128812932571,128
+0,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,True,covariance,20000.0,1.4402925478753104,0.028805850957506207,128
+1,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,False,covariance,20000.0,1.4402925478753104,0.028805850957506207,128
+2,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,True,identity,20000.0,1.4402925478753104,0.028805850957506207,128
+3,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,22007.0,1085.270433164011,,False,identity,20000.0,1.4402925478753104,0.028805850957506207,128
+4,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,inf,,,True,square,20000.0,1.4402925478753104,0.028805850957506207,128
+5,unadjusted_canonical_langevin_alba_velocity verlet_precond:True,rosenbrock_36d,26269.0,1709.3507259775565,,False,square,20000.0,1.4402925478753104,0.028805850957506207,128

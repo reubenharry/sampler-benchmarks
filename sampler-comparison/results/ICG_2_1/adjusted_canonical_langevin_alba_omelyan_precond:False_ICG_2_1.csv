@@ -1,0 +1,5 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
+0,adjusted_canonical_langevin_alba_omelyan_precond:False,ICG_2_1,22.448382592889477,11.502173707608488,,True,identity,25000.0,0.21213436737968433,6.4383502907709325,128,success
+1,adjusted_canonical_langevin_alba_omelyan_precond:False,ICG_2_1,13.865177483843501,9.915765225135173,,False,identity,25000.0,0.21213436737968433,6.4383502907709325,128,success
+2,adjusted_canonical_langevin_alba_omelyan_precond:False,ICG_2_1,24.429122233438548,15.10423450559478,,True,square,25000.0,0.21213436737968433,6.4383502907709325,128,success
+3,adjusted_canonical_langevin_alba_omelyan_precond:False,ICG_2_1,13.204930936993811,9.149967213056012,,False,square,25000.0,0.21213436737968433,6.4383502907709325,128,success

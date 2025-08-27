@@ -1,5 +1,5 @@
-,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,ICG_100_1,5231.6000000217255,97.79020605357164,,True,identity,136366.625,10.583323717935944,9.62120337990173,64
-1,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,ICG_100_1,664.400000002759,11.794303709842305,,False,identity,136366.625,10.583323717935944,9.62120337990173,64
-2,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,ICG_100_1,3302.200000013713,78.08837045296822,,True,square,136366.625,10.583323717935944,9.62120337990173,64
-3,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,ICG_100_1,444.40000000184546,4.303486958270002,,False,square,136366.625,10.583323717935944,9.62120337990173,64
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
+0,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,ICG_100_1,3766.0,85.36798638834115,,True,identity,10015.9375,6.263872103964465,12.65929014334348,64,success
+1,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,ICG_100_1,474.0,5.088968461289576,,False,identity,10015.9375,6.263872103964465,12.65929014334348,64,success
+2,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,ICG_100_1,2304.0,64.43981688366286,,True,square,10015.9375,6.263872103964465,12.65929014334348,64,success
+3,adjusted_microcanonical_nolangevin_alba_mclachlan_precond:False,ICG_100_1,326.0,5.382044221297331,,False,square,10015.9375,6.263872103964465,12.65929014334348,64,success

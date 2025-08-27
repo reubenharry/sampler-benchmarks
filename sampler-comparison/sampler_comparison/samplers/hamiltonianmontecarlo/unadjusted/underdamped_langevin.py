@@ -10,8 +10,7 @@ from sampler_comparison.util import (
     calls_per_integrator_step,
     map_integrator_type_to_integrator,
 )
-from blackjax.adaptation.mclmc_adaptation import MCLMCAdaptationState, make_L_step_size_adaptation
-
+from blackjax.adaptation.unadjusted_alba import unadjusted_alba
 
 
 def unadjusted_lmc_no_tuning(
@@ -24,7 +23,7 @@ def unadjusted_lmc_no_tuning(
     incremental_value_transform=None,
     return_only_final=False,
     desired_energy_var=5e-4,
-    desired_energy_var_max_ratio=jnp.inf,
+    desired_energy_var_max_ratio=1e3,
 ):
     """
     Args:
@@ -88,8 +87,6 @@ def unadjusted_lmc_no_tuning(
 
         (expectations, info) = history
 
-        # jax.debug.print("EEVPD {x}", x=jnp.var(info.energy_change)/model.ndims)
-
         return (
             expectations,
             {
@@ -98,118 +95,11 @@ def unadjusted_lmc_no_tuning(
                 "acc_rate": jnp.nan,
                 "num_tuning_grads": 0,
                 "num_grads_per_proposal": calls_per_integrator_step(integrator_type),
+                "info": info,
             },
         )
-
     return s
 
-
-def unadjusted_lmc_tuning(
-    initial_position,
-    num_steps,
-    rng_key,
-    logdensity_fn,
-    integrator_type,
-    diagonal_preconditioning,
-    num_tuning_steps=500,
-    stage3=True,
-    desired_energy_var=5e-4,
-    desired_energy_var_max_ratio=jnp.inf,
-    num_windows=1,
-    params=None,
-):
-    """
-    Args:
-        initial_position: Initial position of the chain
-        num_steps: Number of steps to run the chain for
-        rng_key: Random number generator key
-        logdensity_fn: Log density function of the target distribution
-        integrator_type: Type of integrator to use (e.g. velocity verlet, mclachlan...)
-        diagonal_preconditioning: Whether to use diagonal preconditioning
-        num_tuning_steps: Number of tuning steps to use
-    Returns:
-        A tuple of the form (state, params) where state is the state of the chain after tuning and params are the hyperparameters of the chain (L, stepsize and inverse mass matrix)
-    """
-
-    tune_key, init_key, nuts_key = jax.random.split(rng_key, 3)
-
-    frac_tune1 = num_tuning_steps / (3 * num_steps)
-    frac_tune2 = num_tuning_steps / (3 * num_steps)
-    frac_tune3 = num_tuning_steps / (3 * num_steps) if stage3 else 0.0
-
-    initial_state = blackjax.langevin.init(
-        position=initial_position,
-        logdensity_fn=logdensity_fn,
-        rng_key=init_key,
-        metric=blackjax.mcmc.metrics.default_metric(jnp.ones(initial_position.shape[0]))
-    )
-
-    kernel = lambda inverse_mass_matrix: blackjax.langevin.build_kernel(
-        logdensity_fn=logdensity_fn,
-        integrator=map_integrator_type_to_integrator["hmc"][integrator_type],
-        inverse_mass_matrix=inverse_mass_matrix,
-        desired_energy_var=desired_energy_var,
-        desired_energy_var_max_ratio=desired_energy_var_max_ratio,
-        # (1/desired_energy_var)*10000,
-    )
-
-    do_nuts_warmup=True
-    if do_nuts_warmup:
-
-        
-
-        warmup = blackjax.window_adaptation(
-                    blackjax.nuts, logdensity_fn, 
-                    target_acceptance_rate = 0.8, 
-                    integrator=map_integrator_type_to_integrator["hmc"]['velocity_verlet'], 
-                )
-        
-        (_, nuts_params), inf = warmup.run(nuts_key, initial_position, num_tuning_steps)
-
-        inverse_mass_matrix = nuts_params['inverse_mass_matrix']
-    
-    else:
-        inverse_mass_matrix = jnp.ones((initial_position.shape[0],))
-
-    if params is None:
-
-        params = MCLMCAdaptationState(
-            1., 0.25 , inverse_mass_matrix=inverse_mass_matrix
-        )
-        # jax.debug.print("params {x}", x=params)
-
-    # jax.debug.print("frac_tune1 {x}", x=frac_tune1)
-    return blackjax.mclmc_find_L_and_step_size(
-        mclmc_kernel=kernel,
-        num_steps=num_steps,
-        state=initial_state,
-        rng_key=tune_key,
-        diagonal_preconditioning=diagonal_preconditioning,
-        frac_tune1=2.0,
-        frac_tune2=frac_tune2,
-        frac_tune3=frac_tune3,
-        # frac_tune2=0.0,
-        # frac_tune3=0.0,
-        params=params,
-        desired_energy_var=desired_energy_var,
-        num_windows=num_windows,
-        euclidean=True,
-    )
-
-    # jax.debug.print("frac_tune1 {x}", x=frac_tune1)
-
-    # (blackjax_state_after_tuning, params) = make_L_step_size_adaptation(
-    #                         kernel=kernel,
-    #                         dim=initial_position.shape[0],
-    #                         frac_tune1=1.0,
-    #                         frac_tune2=0.0,
-    #                         # target=0.9,
-    #                         diagonal_preconditioning=False,
-    #                         euclidean=True,
-    #                         desired_energy_var=1e-1,
-    #                     )(initial_state, params, num_steps, tune_key)
-    
-    # return (blackjax_state_after_tuning, params, jnp.inf)
 
 
 def unadjusted_lmc(
@@ -218,48 +108,39 @@ def unadjusted_lmc(
     num_tuning_steps=20000,
     return_samples=False,
     desired_energy_var=3e-4,
-    desired_energy_var_max_ratio=jnp.inf,
+    desired_energy_var_max_ratio=1e3,
     return_only_final=False,
-    num_windows=1,
-    params=None,
-    stage3=True,
     incremental_value_transform=None,
+    alba_factor=0.4,
 ):
     def s(model, num_steps, initial_position, key):
 
-        # logdensity_fn = lambda x : model.unnormalized_log_prob(make_transform(model)(x))
 
         logdensity_fn = make_log_density_fn(model)
-
         tune_key, run_key = jax.random.split(key, 2)
+        num_dimensions = initial_position.shape[0]
 
-        (
-            blackjax_state_after_tuning,
-            blackjax_mclmc_sampler_params,
-            num_tuning_integrator_steps,
-        ) = unadjusted_lmc_tuning(
-            initial_position=initial_position,
-            num_steps=num_steps,
-            rng_key=tune_key,
-            logdensity_fn=logdensity_fn,
-            integrator_type=integrator_type,
-            diagonal_preconditioning=diagonal_preconditioning,
-            num_tuning_steps=num_tuning_steps,
-            desired_energy_var=desired_energy_var,
-            desired_energy_var_max_ratio=desired_energy_var_max_ratio,
-            num_windows=num_windows,
-            params=params,
-            stage3=stage3,
+        num_alba_steps = num_tuning_steps // 3
+        warmup = unadjusted_alba(
+            algorithm=blackjax.langevin, 
+            logdensity_fn=logdensity_fn, 
+            integrator=map_integrator_type_to_integrator["hmc"][integrator_type], 
+            target_eevpd=desired_energy_var, 
+            v=jnp.sqrt(num_dimensions), num_alba_steps=num_alba_steps,
+            preconditioning=diagonal_preconditioning,
+            alba_factor=alba_factor,
+            )
         
-        )
-        # jax.debug.print("params {x}", x=(blackjax_mclmc_sampler_params))
+        (blackjax_state_after_tuning, blackjax_mclmc_sampler_params), adaptation_info = warmup.run(tune_key, initial_position, num_tuning_steps)
+
+        num_tuning_integrator_steps = num_tuning_steps
 
         expectations, metadata = unadjusted_lmc_no_tuning(
             initial_state=blackjax_state_after_tuning,
             integrator_type=integrator_type,
-            step_size=blackjax_mclmc_sampler_params.step_size,
-            L=blackjax_mclmc_sampler_params.L,
-            inverse_mass_matrix=blackjax_mclmc_sampler_params.inverse_mass_matrix,
+            step_size=blackjax_mclmc_sampler_params['step_size'],
+            L=blackjax_mclmc_sampler_params['L'],
+            inverse_mass_matrix=blackjax_mclmc_sampler_params['inverse_mass_matrix'],
             return_samples=return_samples,
             return_only_final=return_only_final,
             desired_energy_var=desired_energy_var,
@@ -272,4 +153,139 @@ def unadjusted_lmc(
             * calls_per_integrator_step(integrator_type)
         }
 
+    return s
+
+
+def grid_search_unadjusted_lmc(
+    num_chains,
+    integrator_type,
+    grid_size=6,
+    grid_iterations=2,
+    num_tuning_steps=10000,
+    return_samples=False,
+    desired_energy_var=3e-4,
+    diagonal_preconditioning=True,
+    alba_factor=0.4,
+    preferred_statistic=None,
+    preferred_max_over_parameters=None,
+    preferred_grid_search_steps=None,
+    desired_energy_var_max_ratio=1e3,
+):
+    """
+    Cleaner and more principled grid search for unadjusted LMC with ALBA warmup.
+    
+    Args:
+        num_chains: Number of chains to run
+        integrator_type: Type of integrator to use
+        grid_size: Number of L values to try in each grid iteration
+        grid_iterations: Number of grid search iterations
+        num_tuning_steps: Number of tuning steps for ALBA warmup
+        return_samples: Whether to return samples
+        desired_energy_var: Desired energy variance for ALBA
+        diagonal_preconditioning: Whether to use diagonal preconditioning
+        alba_factor: Factor for ALBA adaptation
+        preferred_statistic: Which statistic to optimize ("square", "abs", "entropy", etc.) - if None, will use model-specific preference
+        preferred_max_over_parameters: Whether to use max_over_parameters (True) or avg_over_parameters (False) - if None, will use model-specific preference
+        preferred_grid_search_steps: Number of steps for grid search evaluation - if None, will use model-specific preference
+        desired_energy_var_max_ratio: Maximum ratio for desired energy variance
+    
+    Returns:
+        A sampler function that can be used with the benchmark framework
+    """
+    
+    def s(model, num_steps, initial_position, key):
+        from sampler_comparison.samplers.grid_search.grid_search import grid_search_L
+        from sampler_comparison.experiments.utils import get_model_specific_preferences
+        
+        # Get model-specific preferences
+        statistic, max_over_parameters, grid_search_steps = get_model_specific_preferences(
+            model, False, preferred_statistic, preferred_max_over_parameters, preferred_grid_search_steps, num_steps
+        )
+        
+        tune_key, grid_key, run_key = jax.random.split(key[0], 3)
+        
+        print(f"\n=== ALBA Warmup (Unadjusted LMC) ===")
+        print(f"Model: {model.name} (ndims={model.ndims})")
+        print(f"Number of tuning steps: {num_tuning_steps}")
+        print(f"Desired energy variance: {desired_energy_var}")
+        print(f"Diagonal preconditioning: {diagonal_preconditioning}")
+        print(f"ALBA factor: {alba_factor}")
+        
+        # ALBA warmup
+        logdensity_fn = make_log_density_fn(model)
+        num_dimensions = initial_position[0].shape[0]
+        num_alba_steps = num_tuning_steps // 3
+        warmup = unadjusted_alba(
+            algorithm=blackjax.langevin, 
+            logdensity_fn=logdensity_fn, 
+            integrator=map_integrator_type_to_integrator["hmc"][integrator_type], 
+            target_eevpd=desired_energy_var, 
+            v=jnp.sqrt(num_dimensions), 
+            num_alba_steps=num_alba_steps,
+            preconditioning=diagonal_preconditioning,
+            alba_factor=alba_factor,
+        )
+        
+        (alba_state, alba_params), adaptation_info = warmup.run(tune_key, initial_position[0], num_tuning_steps)
+        
+        print(f"ALBA warmup complete!")
+        print(f"  ALBA step size: {alba_params['step_size']:.6f}")
+        print(f"  ALBA L: {alba_params['L']:.4f}")
+        print(f"  ALBA inverse mass matrix shape: {alba_params['inverse_mass_matrix'].shape}")
+        
+        # Run the new grid search with ALBA state and parameters
+        optimal_L, optimal_step_size, optimal_value, all_values, optimal_idx, tuning_outcome = grid_search_L(
+            model=model,
+            num_gradient_calls=grid_search_steps,  # Use model-specific grid search steps as gradient calls
+            num_chains=num_chains,
+            integrator_type=integrator_type,
+            key=grid_key,
+            initial_L=alba_params['L'],
+            initial_inverse_mass_matrix=alba_params['inverse_mass_matrix'],
+            initial_step_size=alba_params['step_size'],
+            initial_state=alba_state,
+            sampler_fn=unadjusted_lmc_no_tuning,
+            algorithm=blackjax.langevin,  # Pass algorithm directly
+            integrator=map_integrator_type_to_integrator["hmc"][integrator_type],  # Pass integrator directly
+            statistic=statistic,  # Use model-specific statistic
+            max_over_parameters=max_over_parameters,  # Use model-specific parameter type
+            grid_size=grid_size,
+            grid_iterations=grid_iterations,
+            is_adjusted_sampler=False,  # This is an unadjusted sampler
+            desired_energy_var=desired_energy_var,  # For robnik_step_size_tuning
+        )
+        
+        print(f"\n=== Final Sampling (Unadjusted LMC) ===")
+        print(f"Using optimal L: {optimal_L:.4f}")
+        print(f"Using optimal step_size: {optimal_step_size:.6f}")
+        print(f"Using ALBA inverse mass matrix")
+        print(f"Using statistic: {statistic}")
+        print(f"Using {'max' if max_over_parameters else 'avg'} over parameters")
+        print(f"Tuning outcome: {tuning_outcome}")
+        
+        # Create the final sampler with the optimal L and step_size
+        sampler = unadjusted_lmc_no_tuning(
+            initial_state=alba_state,
+            integrator_type=integrator_type,
+            step_size=optimal_step_size,
+            L=optimal_L,
+            inverse_mass_matrix=alba_params['inverse_mass_matrix'],
+            return_samples=return_samples,
+            desired_energy_var=desired_energy_var,
+            desired_energy_var_max_ratio=desired_energy_var_max_ratio,
+        )
+        
+        # Create a wrapper that adds tuning outcome to metadata
+        def sampler_with_tuning_outcome(model, num_steps, initial_position, key):
+            expectations, metadata = sampler(model, num_steps, initial_position, key)
+            # Add tuning outcome to metadata
+            metadata = metadata | {"tuning_outcome": tuning_outcome}
+            return expectations, metadata
+        
+        return jax.pmap(
+            lambda key, pos: sampler_with_tuning_outcome(
+                model=model, num_steps=num_steps*4, initial_position=pos, key=key
+                )
+            )(jax.random.split(run_key, num_chains), initial_position)
+    
     return s

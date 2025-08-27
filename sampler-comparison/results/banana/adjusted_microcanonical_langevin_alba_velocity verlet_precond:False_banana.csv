@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_microcanonical_langevin_alba_velocity verlet_precond:False,banana,43708.24556204707,,,True,identity,321530.3046875,2.8284271247461894,1.1755395962412543,128
-1,adjusted_microcanonical_langevin_alba_velocity verlet_precond:False,banana,24267.328115194257,1591.3732458163295,,False,identity,321530.3046875,2.8284271247461894,1.1755395962412543,128
-2,adjusted_microcanonical_langevin_alba_velocity verlet_precond:False,banana,21837.213434337657,1623.0818826849124,,True,square,321530.3046875,2.8284271247461894,1.1755395962412543,128
-3,adjusted_microcanonical_langevin_alba_velocity verlet_precond:False,banana,14805.340833966316,1714.961722488289,,False,square,321530.3046875,2.8284271247461894,1.1755395962412543,128
-4,adjusted_microcanonical_langevin_alba_velocity verlet_precond:False,banana,inf,,,True,covariance,321530.3046875,2.8284271247461894,1.1755395962412543,128
-5,adjusted_microcanonical_langevin_alba_velocity verlet_precond:False,banana,inf,,,False,covariance,321530.3046875,2.8284271247461894,1.1755395962412543,128
+0,adjusted_microcanonical_langevin_alba_velocity verlet_precond:False,banana,45256.2144287272,1688.087807994596,,True,identity,24542.8359375,0.7412686738331941,0.18298958545101995,128
+1,adjusted_microcanonical_langevin_alba_velocity verlet_precond:False,banana,23927.295439443733,1538.400146223342,,False,identity,24542.8359375,0.7412686738331941,0.18298958545101995,128
+2,adjusted_microcanonical_langevin_alba_velocity verlet_precond:False,banana,46645.72055180756,2355.195113170032,,True,square,24542.8359375,0.7412686738331941,0.18298958545101995,128
+3,adjusted_microcanonical_langevin_alba_velocity verlet_precond:False,banana,28938.780856686884,2507.740827996386,,False,square,24542.8359375,0.7412686738331941,0.18298958545101995,128
+4,adjusted_microcanonical_langevin_alba_velocity verlet_precond:False,banana,inf,,,True,covariance,24542.8359375,0.7412686738331941,0.18298958545101995,128
+5,adjusted_microcanonical_langevin_alba_velocity verlet_precond:False,banana,inf,,,False,covariance,24542.8359375,0.7412686738331941,0.18298958545101995,128

@@ -22,11 +22,11 @@ def benchmark_grid_search(model):
     L, step_size, num_grads, num_grads_avg, edge, inverse_mass_matrix, initial_state = (
         grid_search_L(
             model=model,
-            num_steps=40000,
+            num_gradient_calls=40000,  # Use gradient calls instead of steps
             num_chains=64,
             integrator_type="velocity_verlet",
             key=jax.random.key(0),
-            grid_size=10,
+            grid_size=6,
             grid_iterations=2,
             opt="max",
         )

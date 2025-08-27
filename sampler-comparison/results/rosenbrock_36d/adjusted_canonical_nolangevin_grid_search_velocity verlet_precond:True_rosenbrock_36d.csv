@@ -1,7 +1,7 @@
-,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_canonical_nolangevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,477195.46883560484,161.33550725119377,,True,covariance,0.0,1.5843621399176946,0.04611361003701763,128
-1,adjusted_canonical_nolangevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,477195.46883560484,161.33550725119377,,False,covariance,0.0,1.5843621399176946,0.04611361003701763,128
-2,adjusted_canonical_nolangevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,80569.03840589627,111.85065891625315,,True,identity,0.0,1.5843621399176946,0.04611361003701763,128
-3,adjusted_canonical_nolangevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,13330.82597078369,11.369890061034011,,False,identity,0.0,1.5843621399176946,0.04611361003701763,128
-4,adjusted_canonical_nolangevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,94483.9469578741,199.57721588397808,,True,square,0.0,1.5843621399176946,0.04611361003701763,128
-5,adjusted_canonical_nolangevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,16938.39485462979,26.963679274164345,,False,square,0.0,1.5843621399176946,0.04611361003701763,128
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
+0,adjusted_canonical_nolangevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,613005.6199734069,274.94666319124514,,True,covariance,0.0,2.4587422531007106,0.04518348703292648,64,success
+1,adjusted_canonical_nolangevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,613005.6199734069,274.94666319124514,,False,covariance,0.0,2.4587422531007106,0.04518348703292648,64,success
+2,adjusted_canonical_nolangevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,96753.12847871438,64.606639751654,,True,identity,0.0,2.4587422531007106,0.04518348703292648,64,success
+3,adjusted_canonical_nolangevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,16760.384460879657,18.858886499472867,,False,identity,0.0,2.4587422531007106,0.04518348703292648,64,success
+4,adjusted_canonical_nolangevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,107037.90985243599,104.93358089763258,,True,square,0.0,2.4587422531007106,0.04518348703292648,64,success
+5,adjusted_canonical_nolangevin_grid_search_velocity verlet_precond:True,rosenbrock_36d,22419.7350580598,22.013475418479473,,False,square,0.0,2.4587422531007106,0.04518348703292648,64,success

@@ -24,8 +24,8 @@ from sampler_evaluation.models.rosenbrock import Rosenbrock
 from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unadjusted_mclmc
 import numpy as np
 from sampler_comparison.samplers.grid_search.grid_search import grid_search_adjusted_mclmc
-from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc
-from sampler_comparison.samplers.grid_search.grid_search import grid_search_unadjusted_mclmc, grid_search_hmc, grid_search_unadjusted_lmc
+from sampler_comparison.samplers.grid_search.grid_search import grid_search_hmc, grid_search_unadjusted_lmc
+from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import grid_search_unadjusted_mclmc
 
 
 Ds = np.concatenate([np.arange(2,10), np.ceil(np.logspace(2,4, 5)).astype(int)])[9:]

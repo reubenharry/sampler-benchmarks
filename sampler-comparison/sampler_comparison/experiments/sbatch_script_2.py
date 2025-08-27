@@ -51,38 +51,99 @@ from sampler_comparison.experiments.utils import model_info
 from sampler_comparison.experiments.plotting import plot_results
 from sampler_evaluation.models.u1 import U1
 import time 
-from sampler_comparison.experiments.benchmark import run
+from sampler_comparison.experiments.benchmark import clear_jax_cache, run
 from sampler_evaluation.models.cauchy import cauchy
 
 
 if __name__ == "__main__":
 
-    models = [
-        # brownian_motion(),
-        # Rosenbrock(18),
-        # german_credit(),
-        # # IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log'),
-        # IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log', do_covariance=False),
-        # IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
-        # IllConditionedGaussian(ndims=10000, condition_number=100, eigenvalues='log', do_covariance=False),
-        # item_response(),
-        stochastic_volatility_mams_paper,
-        # U1(Lt=16, Lx=16, beta=6)
-        # cauchy(ndims=100),
-        # banana(),
-        ]
-  
+    
 
-    run(
-        models=models,
-        tuning_options=['alba'],
-        mh_options = [True, False],
-        canonical_options = [True, False],
-        langevin_options = [True, False],
-        integrator_type_options = ['velocity_verlet', 'mclachlan'],
-        diagonal_preconditioning_options = [True, False],
-        redo=False,
-        # mh_options = [False],
-        # diagonal_preconditioning_options = [False],
-        # redo_bad_results=True
-    )
+
+    dims = np.concatenate([np.ceil(np.logspace(6,7, 4)).astype(int)])[:]
+    models = [IllConditionedGaussian(ndims=dim, condition_number=1, eigenvalues='log', do_covariance=False) for dim in dims]
+
+
+    # print(dims)
+    # raise Exception("Stop here")
+
+
+    # dims = 2*np.concatenate([np.ceil(np.logspace(2,5, 10)).astype(int)])[:]
+    # models = [Rosenbrock(D=dim) for dim in dims]
+    
+    for model in models:
+        
+
+            # run(
+            #     key=jax.random.PRNGKey(4),
+            #     models=[model],
+            #     tuning_options=['nuts'],
+            #     mh_options = [True],
+            #     canonical_options = [True],
+            #     langevin_options = [False],
+            #     integrator_type_options = ['velocity_verlet', 'mclachlan'],
+            #     diagonal_preconditioning_options = [False],
+            #     redo=True,
+            #     # redo_bad_results=True
+            # )
+
+            run(
+                key=jax.random.PRNGKey(4),
+                models=[model],
+                tuning_options=['alba'],
+                mh_options = [True, False],
+                canonical_options = [True, False],
+                langevin_options = [True, False],
+                integrator_type_options = ['velocity_verlet', 'mclachlan', 'omelyan'],
+                diagonal_preconditioning_options = [False],
+                redo=False,
+                compute_missing=True,
+                # redo_bad_results=True
+            )
+            
+            # Clear cache after each model to prevent memory accumulation
+            print(f"\n=== Completed model: {model.name} ===")
+            print("Clearing JAX cache after model completion...")
+            clear_jax_cache()
+            
+            # run(
+            #     key=jax.random.PRNGKey(5),
+            #     models=[model],
+            #     tuning_options=['alba'],
+            #     mh_options = [True, False],
+            #     canonical_options = [True, False],
+            #     langevin_options = [True, False],
+            #     integrator_type_options = ['velocity_verlet', 'mclachlan'],
+            #     diagonal_preconditioning_options = [True, False],
+            #     redo=False,
+            #     compute_missing=True,
+            # )
+            
+            # run(
+            #     key=jax.random.PRNGKey(4),
+            #     models=[model],
+            #     tuning_options=['nuts'],
+            #     mh_options = [True],
+            #     canonical_options = [True],
+            #     langevin_options = [False],
+            #     integrator_type_options = ['velocity_verlet', 'mclachlan'],
+            #     diagonal_preconditioning_options = [True, False],
+            #     redo=True,
+            #     # redo_bad_results=True
+            # )
+
+        # run(
+        #     models=models,
+        #     tuning_options=['grid_search'],
+        #     mh_options = [False],
+        #     canonical_options = [True],
+        #     langevin_options = [True, False],
+        #     integrator_type_options = ['mclachlan'],
+        #     diagonal_preconditioning_options = [True],
+        #     redo=False,
+        #     # mh_options = [False],
+        #     # diagonal_preconditioning_options = [False],
+        #     # redo_bad_results=True
+        # )
+
+      

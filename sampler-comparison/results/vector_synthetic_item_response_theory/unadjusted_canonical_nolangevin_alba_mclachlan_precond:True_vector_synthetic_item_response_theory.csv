@@ -1,7 +1,7 @@
-,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,unadjusted_canonical_nolangevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,28612.0,2105.917530460298,,True,identity,191112.0,3.2638889786223744,0.3022095476955335,128
-1,unadjusted_canonical_nolangevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,2568.0,164.60518673480493,,False,identity,191112.0,3.2638889786223744,0.3022095476955335,128
-2,unadjusted_canonical_nolangevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,inf,,,True,square,191112.0,3.2638889786223744,0.3022095476955335,128
-3,unadjusted_canonical_nolangevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,5898.0,911.7992577316567,,False,square,191112.0,3.2638889786223744,0.3022095476955335,128
-4,unadjusted_canonical_nolangevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,inf,,,True,quartic,191112.0,3.2638889786223744,0.3022095476955335,128
-5,unadjusted_canonical_nolangevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,inf,,,False,quartic,191112.0,3.2638889786223744,0.3022095476955335,128
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
+0,unadjusted_canonical_nolangevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,20128.0,1666.348228282432,,True,identity,40000.0,4.2570276232472555,0.28152933221459203,64,success
+1,unadjusted_canonical_nolangevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,2482.0,206.69528877069257,,False,identity,40000.0,4.2570276232472555,0.28152933221459203,64,success
+2,unadjusted_canonical_nolangevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,33828.0,1061.2304846733343,,True,square,40000.0,4.2570276232472555,0.28152933221459203,64,success
+3,unadjusted_canonical_nolangevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,2622.0,100.52492228298412,,False,square,40000.0,4.2570276232472555,0.28152933221459203,64,success
+4,unadjusted_canonical_nolangevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,inf,,,True,quartic,40000.0,4.2570276232472555,0.28152933221459203,64,success
+5,unadjusted_canonical_nolangevin_alba_mclachlan_precond:True,vector_synthetic_item_response_theory,inf,,,False,quartic,40000.0,4.2570276232472555,0.28152933221459203,64,success

@@ -32,7 +32,8 @@ import blackjax.mcmc.metrics as metrics
 from results.run_benchmarks import run_benchmarks
 import sampler_evaluation
 from sampler_comparison.samplers import samplers
-from sampler_comparison.samplers.grid_search.grid_search import grid_search_hmc, grid_search_unadjusted_lmc, grid_search_unadjusted_mclmc
+from sampler_comparison.samplers.grid_search.grid_search import grid_search_hmc, grid_search_unadjusted_lmc
+from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import grid_search_unadjusted_mclmc
 from sampler_evaluation.models.german_credit import german_credit
 
 model = german_credit()

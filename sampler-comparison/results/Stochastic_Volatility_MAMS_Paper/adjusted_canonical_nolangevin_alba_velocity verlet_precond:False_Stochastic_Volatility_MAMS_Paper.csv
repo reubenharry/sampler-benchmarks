@@ -1,7 +1,7 @@
-,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,True,identity,507911.375,0.3788551719808657,0.011351939291184877,32
-1,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,False,identity,507911.375,0.3788551719808657,0.011351939291184877,32
-2,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,441417.7856289869,1407.4447696446211,,True,square,507911.375,0.3788551719808657,0.011351939291184877,32
-3,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,28123.66346318015,40.39010274807431,,False,square,507911.375,0.3788551719808657,0.011351939291184877,32
-4,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,True,quartic,507911.375,0.3788551719808657,0.011351939291184877,32
-5,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,False,quartic,507911.375,0.3788551719808657,0.011351939291184877,32
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
+0,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,True,identity,80717.4140625,0.316390290842014,0.022444114149686393,128,success
+1,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,False,identity,80717.4140625,0.316390290842014,0.022444114149686393,128,success
+2,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,True,square,80717.4140625,0.316390290842014,0.022444114149686393,128,success
+3,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,184501.01234159764,949.2912916486699,,False,square,80717.4140625,0.316390290842014,0.022444114149686393,128,success
+4,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,True,quartic,80717.4140625,0.316390290842014,0.022444114149686393,128,success
+5,adjusted_canonical_nolangevin_alba_velocity verlet_precond:False,Stochastic_Volatility_MAMS_Paper,inf,,,False,quartic,80717.4140625,0.316390290842014,0.022444114149686393,128,success

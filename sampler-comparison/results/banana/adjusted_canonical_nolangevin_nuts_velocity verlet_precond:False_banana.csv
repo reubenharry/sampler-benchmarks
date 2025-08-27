@@ -1,7 +1,7 @@
-,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size
-0,adjusted_canonical_nolangevin_nuts_velocity verlet_precond:False,banana,27708.65947265625,658.0929855271214,,True,identity,52262.1171875,12.523793025798915,1.243315872117697,128
-1,adjusted_canonical_nolangevin_nuts_velocity verlet_precond:False,banana,9924.738029296876,233.74796341358783,,False,identity,52262.1171875,12.523793025798915,1.243315872117697,128
-2,adjusted_canonical_nolangevin_nuts_velocity verlet_precond:False,banana,29310.723783984376,511.17056683655017,,True,square,52262.1171875,12.523793025798915,1.243315872117697,128
-3,adjusted_canonical_nolangevin_nuts_velocity verlet_precond:False,banana,12242.189548828126,679.0930624737673,,False,square,52262.1171875,12.523793025798915,1.243315872117697,128
-4,adjusted_canonical_nolangevin_nuts_velocity verlet_precond:False,banana,inf,,,True,covariance,52262.1171875,12.523793025798915,1.243315872117697,128
-5,adjusted_canonical_nolangevin_nuts_velocity verlet_precond:False,banana,inf,,,False,covariance,52262.1171875,12.523793025798915,1.243315872117697,128
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
+0,adjusted_canonical_nolangevin_nuts_velocity verlet_precond:False,banana,13653.294887500002,67.40956237804842,,True,identity,66799.234375,11.924518461372863,0.754593279982607,128,success
+1,adjusted_canonical_nolangevin_nuts_velocity verlet_precond:False,banana,8307.901134375,73.8343138384857,,False,identity,66799.234375,11.924518461372863,0.754593279982607,128,success
+2,adjusted_canonical_nolangevin_nuts_velocity verlet_precond:False,banana,9789.154825000001,83.29294027707272,,True,square,66799.234375,11.924518461372863,0.754593279982607,128,success
+3,adjusted_canonical_nolangevin_nuts_velocity verlet_precond:False,banana,5200.488500781251,86.31258251263255,,False,square,66799.234375,11.924518461372863,0.754593279982607,128,success
+4,adjusted_canonical_nolangevin_nuts_velocity verlet_precond:False,banana,141379.22453671877,692.3360166855397,,True,covariance,66799.234375,11.924518461372863,0.754593279982607,128,success
+5,adjusted_canonical_nolangevin_nuts_velocity verlet_precond:False,banana,141379.22453671877,692.3360166855397,,False,covariance,66799.234375,11.924518461372863,0.754593279982607,128,success
