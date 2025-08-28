@@ -37,27 +37,50 @@ def run_laps(
         integrator_coefficients = mclachlan_coefficients
 
         info, grads_per_step, _acc_prob, final_state = laps(
-            logdensity_fn=logdensity_fn,
-            sample_init=sample_init,
-            # transform=transform,
-            ndims=ndims,
-            num_steps1=num_unadjusted_steps,
-            num_steps2=num_adjusted_steps,
-            num_chains=num_chains,
-            mesh=mesh,
-            rng_key=key,
-            alpha=1.9,
-            C=0.1,
+    
+            logdensity_fn=logdensity_fn, 
+            sample_init= sample_init,
+            ndims=ndims, 
+            num_steps1=num_unadjusted_steps, 
+            num_steps2=num_adjusted_steps, 
+            num_chains=num_chains, 
+            mesh=mesh, 
+            rng_key=key, 
             early_stop=True,
-            r_end=1e-2,
-            diagonal_preconditioning=diagonal_preconditioning,
-            integrator_coefficients=integrator_coefficients,
+            diagonal_preconditioning=diagonal_preconditioning, 
+            integrator_coefficients= integrator_coefficients, 
             steps_per_sample=15,
-            acc_prob=None,
-            ensemble_observables=lambda x: x,
+            ensemble_observables= lambda x: x,
             observables_for_bias=lambda x: jnp.square(x),
-            # ensemble_observables = lambda x: vec @ x
-        )  # run the algorithm
+            contract = lambda _: jnp.array([0.0, 0.0]),
+            r_end=0.01,
+            diagnostics= True,
+            superchain_size= 1
+            ) 
+        
+        #  info, grads_per_step, _acc_prob, final_state = laps(
+        #     logdensity_fn=logdensity_fn,
+        #     sample_init=sample_init,
+        #     # transform=transform,
+        #     ndims=ndims,
+        #     num_steps1=num_unadjusted_steps,
+        #     num_steps2=num_adjusted_steps,
+        #     num_chains=num_chains,
+        #     mesh=mesh,
+        #     rng_key=key,
+        #     alpha=1.9,
+        #     C=0.1,
+        #     early_stop=True,
+        #     r_end=1e-2,
+        #     diagonal_preconditioning=diagonal_preconditioning,
+        #     integrator_coefficients=integrator_coefficients,
+        #     steps_per_sample=15,
+        #     acc_prob=None,
+        #     ensemble_observables=lambda x: x,
+        #     observables_for_bias=lambda x: jnp.square(x),
+        #     # ensemble_observables = lambda x: vec @ x
+        # )  # run the algorithm
+
 
         print((info["phase_2"][1].shape), "SHAPE")
 
