@@ -211,7 +211,7 @@ def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKe
             default_event_space_bijector=lambda x: x,
         )
 
-        raw_samples, metadata = nuts(return_samples=True)(
+        raw_samples, metadata = unadjusted_mclmc(return_samples=True)(
             model=model, 
             num_steps=num_unadjusted_steps,
             initial_position=jax.random.normal(init_key, (P-1,)), 
@@ -314,8 +314,8 @@ if __name__ == "__main__":
         sample_init=lambda init_key: jax.random.normal(key=init_key, shape=(r_length-2,)),
         num_unadjusted_steps=1000000,
         # num_adjusted_steps=5000,
-        # filename="sequential_umclmc",
-        filename="nuts",
+        filename="sequential_umclmc",
+        # filename="nuts",
         )
 
 
