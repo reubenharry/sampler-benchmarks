@@ -18,6 +18,8 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import (
 )
 from sampler_evaluation.evaluation.ess import samples_to_low_error, get_standardized_squared_error
 
+from sampler_comparison.samplers.hamiltonianmontecarlo.unadjusted.underdamped_langevin import unadjusted_lmc
+
 
 im = 0 + 1j
 
@@ -150,14 +152,21 @@ def make_M_Minv_K(P, t, U, r, beta, hbar,m):
     return M, Minv, K, alpha, gamma, r
 
 def xi(s, r, U, t, P, hbar, gamma):
-    term1 = gamma * ((r[2:-1] - r[1:-2]).dot(s[1:] - s[:-1])  + (r[1] - r[0])*s[0] + (r[-1] - r[-2])*s[-1] )
-    term2 = -(t/(P*hbar))*jnp.sum(jax.vmap(U)(r[1:-1] + s/2) - jax.vmap(U)(r[1:-1] - s/2)  )
+    term1 = gamma * ((r[2:-1] - r[1:-2]).dot(s[1:] - s[:-1])  + (r[1] - r[0])*s[0] - (r[-1] - r[-2])*s[-1] )
+    # term1 = gamma * (jnp.sum(jnp.array([((r[i] - r[i-1])*(s[i-1] - s[i-2])) for i in range(2, P)])) + (r[1] - r[0])*s[0] - (r[P] - r[P-1])*s[P-2] )
+    # print(term1, "term1", gamma)
+    # term2 = -(t/(P*hbar))*jnp.sum(jax.vmap(U)(r[1:-1] + s/2) - jax.vmap(U)(r[1:-1] - s/2)  )
+    term2 = -(t/(P*hbar))*jnp.sum(jnp.array([U(r[i-1]+(s[i-2]/2)) - U(r[i-1]-(s[i-2]/2)) for i in range (2, P+1)]))
     return term1 + term2
+
+
+
 
 def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKey(0), sequential=False, sample_init=None, num_unadjusted_steps=100, num_adjusted_steps=100, num_chains=5000, filename=None):
 
 
     P = r.shape[0] - 1
+    print(P, "P")
 
     sqnorm = lambda x: x.dot(x)
 
@@ -184,6 +193,13 @@ def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKe
     
     toc = time.time()
 
+    # print(logdensity_fn(jnp.ones((P-1,))), "logdensity"
+    # )
+    # print(xi(jnp.ones((P-1,)),r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma), "xi(1)")
+    # print(xi(-jnp.ones((P-1,)),r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma), "xi(-1)")
+    # print("shapes", P, r.shape)
+    # raise Exception("Stop here")
+
     if sequential:
 
         from collections import namedtuple
@@ -195,11 +211,17 @@ def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKe
             default_event_space_bijector=lambda x: x,
         )
 
-        raw_samples, metadata = unadjusted_mclmc(return_samples=True)(
+        raw_samples, metadata = nuts(return_samples=True)(
             model=model, 
             num_steps=num_unadjusted_steps,
             initial_position=jax.random.normal(init_key, (P-1,)), 
             key=jax.random.key(0))
+        
+        # raw_samples, metadata = unadjusted_lmc(return_samples=True)(
+        #     model=model, 
+        #     num_steps=num_unadjusted_steps,
+        #     initial_position=jax.random.normal(init_key, (P-1,)), 
+        #     key=jax.random.key(0))
 
         samples, weights = (jax.vmap(lambda x : (xi(x,r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma), x[i]))(raw_samples))
 
@@ -256,6 +278,8 @@ if __name__ == "__main__":
 
     """
 
+    # P = 32, m = hbar = omega = 1, beta = 10 and r = [ -2.2    -2.005625  -1.53125  -1.196875  -1.5625   -1.328125  -1.19375  -1.259375  -1.125   -0.990625  -0.65625  -0.821875   -0.5875   -0.4453125  -0.32421875  -0.184375  -0.16346   0.0084375   0.121875  0.5353125  0.4875   0.5621875  0.75625   0.890625   1.1125   1.2259375  1.339375  1.4428124  1.55625   1.6696875   1.783125  1.8965625  2.1 ]
+
     beta_hbar_omega = 15.8
     m_omega_over_hbar = 0.03
     m = 1.0
@@ -268,6 +292,10 @@ if __name__ == "__main__":
 
     t=1
     i=1
+
+
+    # r=jax.random.normal(jax.random.PRNGKey(3), (r_length,))
+    r = jnp.array([ -2.2,    -2.005625,  -1.53125,  -1.196875,  -1.5625,   -1.328125,  -1.19375,  -1.259375,  -1.125,   -0.990625,  -0.65625,  -0.821875,   -0.5875,   -0.4453125,  -0.32421875,  -0.184375,  -0.16346,   0.0084375,   0.121875,  0.5353125,  0.4875,   0.5621875,  0.75625 ,  0.890625 ,  1.1125 ,  1.2259375 , 1.339375 , 1.4428124 , 1.55625  , 1.6696875,   1.783125 , 1.8965625 , 2.1 ])    
     
 
     ### This is the sequential version of the code (only runs a single chain)
@@ -280,14 +308,18 @@ if __name__ == "__main__":
         hbar=hbar,
         m=m,
         U = lambda x : 0.5*m*(omega**2)*(x**2),
-        r=jax.random.normal(jax.random.PRNGKey(3), (r_length,)),
+        r=r,
         # r=jax.random.uniform(jax.random.PRNGKey(1), (r_length,)),
         sequential=True,
         sample_init=lambda init_key: jax.random.normal(key=init_key, shape=(r_length-2,)),
-        num_unadjusted_steps=50000,
+        num_unadjusted_steps=1000000,
         # num_adjusted_steps=5000,
-        filename="sequential",
+        # filename="sequential_umclmc",
+        filename="nuts",
         )
+
+
+    raise Exception("Stop here")
 
 
     # This is the parallel version of the code, to be run on the first iteration of the inner loop.
