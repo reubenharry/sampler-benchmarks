@@ -104,7 +104,7 @@ def make_log_density_fn(model):
         return model.log_density_fn
 
     def log_density_fn(z):
-        return model.unnormalized_log_prob(
+        return model._unnormalized_log_prob(
             model.default_event_space_bijector(z)
         ) + model.default_event_space_bijector.forward_log_det_jacobian(
             z, event_ndims=1

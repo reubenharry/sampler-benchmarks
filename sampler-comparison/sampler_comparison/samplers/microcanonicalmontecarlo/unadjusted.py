@@ -12,7 +12,7 @@ from sampler_comparison.util import (
     map_integrator_type_to_integrator,
 )
 from blackjax.adaptation.unadjusted_alba import unadjusted_alba
-
+import time
 
 def unadjusted_mclmc_no_tuning(
     initial_state,
@@ -38,6 +38,7 @@ def unadjusted_mclmc_no_tuning(
 
 
     def s(model, num_steps, initial_position, key):
+
 
         logdensity_fn = make_log_density_fn(model)
 
@@ -70,6 +71,7 @@ def unadjusted_mclmc_no_tuning(
 
             get_final_sample = lambda output: output[1][1]
 
+        
         final_output, history = run_inference_algorithm(
             rng_key=key,
             initial_state=state,
@@ -78,6 +80,8 @@ def unadjusted_mclmc_no_tuning(
             transform=(lambda a, b: None) if return_only_final else transform,
             progress_bar=False,
         )
+        
+        
 
 
         if return_only_final:
@@ -85,6 +89,7 @@ def unadjusted_mclmc_no_tuning(
             return get_final_sample(final_output, {})
 
         (expectations, info) = history
+
 
         return (
             expectations,
@@ -94,6 +99,7 @@ def unadjusted_mclmc_no_tuning(
                 "acc_rate": jnp.nan,
                 "num_tuning_grads": 0,
                 "num_grads_per_proposal": calls_per_integrator_step(integrator_type),
+                "inverse_mass_matrix": inverse_mass_matrix,
                 "info": info,
             },
         )
