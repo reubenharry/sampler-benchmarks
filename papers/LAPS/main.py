@@ -20,7 +20,7 @@ sys.path.append('../probability/spinoffs/fun_mc')
 
 #from sampler_evaluation.models.banana import banana
 from sampler_evaluation.models.banana_mams_paper import banana_mams_paper
-# from sampler_evaluation.models.gaussian_mams_paper import IllConditionedGaussian
+from sampler_evaluation.models.gaussian_mams_paper import IllConditionedGaussian, rng_inference_gym_icg
 from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
 from sampler_evaluation.models.brownian import brownian_motion
 from sampler_evaluation.models.item_response import item_response
@@ -37,25 +37,44 @@ mesh = jax.sharding.Mesh(jax.devices()[:1], 'chains')
 print('Number of devices: ', len(jax.devices()))
 
 m = [(banana_mams_paper, 100, 50, 500),
-     #(Gaussian(ndims=100, eigenvalues='Gamma', numpy_seed= rng_inference_gym_icg), 500, 500])
+     (IllConditionedGaussian(ndims=100, eigenvalues='gamma', numpy_seed= rng_inference_gym_icg), 500, 500, 2000),
      (german_credit(), 500, 400, 2000),      
      (brownian_motion(), 500, 500, 2000),
-     (item_response(), 500, 500, 2000), #500],
+     (item_response(), 500, 500, 2000),
      (stochastic_volatility_mams_paper, 800, 1500, 5000)] # change to 3000 for M dependence plot
     
 
-model, n1, n2, n_meads = m[0]
-samples, info, settings_info = parallel_microcanonical(num_steps1= n1, 
-                                                       num_steps2= n2, 
-                                                       num_chains= batch_size, mesh= mesh, superchain_size= 1)(model=model)
+results = {}
+for mm in m:
+     model, n1, n2, n_meads = mm
+     samples, info, settings_info = parallel_microcanonical(num_steps1= n1, 
+                                                            num_steps2= n2, 
+                                                            num_chains= batch_size, mesh= mesh, superchain_size= 1)(model=model)
 
+     n = plot_trace(info, model, settings_info, 'papers/LAPS/img/trace/')
+     
+     results[model.name] = n
+     print(results)
+
+
+
+for mm in m:
+
+
+     model, n1, n2, n_meads = mm
+     n = n1 + n2
+
+     def step(state):
+          jax.vmap(model.log_)
+          return state, None
+
+     jax.lax.scan(step, )
 
 #meads_results = meads_with_adam(n_meads, batch_size)(model= model)
 
 #print(meads_results)
 
-plot_trace(info, model, settings_info, 'papers/LAPS/img/trace/')
-
+print(results)
 
 #shifter --image=jrobnik/sampling:1.0 python3 -m papers.LAPS.main
 
