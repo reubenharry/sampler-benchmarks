@@ -31,6 +31,7 @@ class IllConditionedGaussian(model.Model):
         name="ICG",
         pretty_name="Ill_Conditioned_Gaussian",
         do_covariance=True,
+        initialization = 'wide'
     ):
         """random rotation can be specified either by passing a numpy random seed or jax random key (if both are specified, numpy seed will be ignored)"""
 
@@ -131,6 +132,21 @@ class IllConditionedGaussian(model.Model):
                 ground_truth_mean=self.cov,
                 ground_truth_standard_deviation=jnp.nan,
             )
+
+        
+        if initialization == 'map':
+            sample_init = lambda key: jnp.zeros(ndims)
+
+        elif initialization == 'posterior':
+            sample_init = lambda key: self.R @ (jax.random.normal(key, shape=(ndims,)) * jnp.sqrt(eigs))
+
+        elif initialization == 'wide': # N(0, sigma_true_max)
+            sample_init = lambda key: jax.random.normal(key, shape=(ndims,)) * jnp.max(jnp.sqrt(eigs)) #* 1.3
+        else:
+            raise ValueError('initialization = '+ str(initialization) + ' is not a valid option.')
+            
+
+
         super(IllConditionedGaussian, self).__init__(
             default_event_space_bijector=tfb.Identity(),
             event_shape=tf.TensorShape([ndims]),
@@ -138,4 +154,5 @@ class IllConditionedGaussian(model.Model):
             name=name+f"_{self.ndims}_{self.condition_number}",
             pretty_name=pretty_name,
             sample_transformations=sample_transformations,
+            sample_init = sample_init
         )
