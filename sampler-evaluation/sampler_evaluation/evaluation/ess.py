@@ -25,6 +25,8 @@ def err(f_true, var_f, contract):
     return jax.vmap(lambda f: contract(jnp.square(f - f_true) / var_f))
 
 
+
+
 def samples_to_low_error(err_t, low_error=0.01):
     """Uses the error of the expectation values to compute the effective sample size n_eff
     b^2 = 1/n_eff"""
@@ -33,7 +35,8 @@ def samples_to_low_error(err_t, low_error=0.01):
 
     # jax.debug.print("final error is {x}", x=err_t[-1])
 
-    cutoff_reached = err_t[-1] < low_error
+    cutoff_reached = np.any(err_t < low_error)
+
     # if not cutoff_reached:
     #     jax.debug.print("Error never below threshold, final error is {x}", x=err_t[-1])
     # else:
@@ -42,16 +45,20 @@ def samples_to_low_error(err_t, low_error=0.01):
     return crossing if cutoff_reached else np.inf
 
 
-def find_crossing(array, cutoff):
-    """the smallest M such that array[m] < cutoff for all m > M"""
+def find_crossing(arr, threshold):
+    return np.argmax(arr < threshold)
 
-    b = array > cutoff
-    indices = np.argwhere(b)
-    if indices.shape[0] == 0:
-        warnings.warn("Error always below threshold.")
-        return 1
 
-    return np.max(indices) + 1
+# def find_crossing(array, cutoff):
+#     """the smallest M such that array[m] < cutoff for all m > M"""
+
+#     b = array > cutoff
+#     indices = np.argwhere(b)
+#     if indices.shape[0] == 0:
+#         warnings.warn("Error always below threshold.")
+#         return 1
+
+#     return np.max(indices) + 1
 
 
 def get_standardized_squared_error(samples, f, E_f, Var_f, contract_fn=jnp.max):

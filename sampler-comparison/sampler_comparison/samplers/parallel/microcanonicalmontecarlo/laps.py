@@ -9,6 +9,7 @@ from blackjax.adaptation.ensemble_mclmc import laps
 from sampler_comparison.samplers.general import make_log_density_fn
 from sampler_evaluation.evaluation.ess import samples_to_low_error
 
+import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 plt.style.use('style.mplstyle')
@@ -16,6 +17,51 @@ plt.rcParams['xtick.labelsize'] = 14
 plt.rcParams['ytick.labelsize'] = 14
 plt.rcParams['font.size'] = 16
             
+
+
+def get_n(info, settings_info):
+
+    info1 = info['phase_1']
+    info2 = info['phase_2'][0]
+
+
+    n1 = info["phase_1"]["steps_done"] # info1['step_size'].shape[0]
+    
+    steps1 = np.arange(1, n1+1)
+    steps2 = np.cumsum(info2['steps_per_sample']) * settings_info['num_grads_per_proposal'] + n1
+
+    steps = np.concatenate((steps1, steps2))
+    bias_max = np.concatenate((info1['bias0'][:n1], info2['bias'][:, 0]))
+
+    st = samples_to_low_error(bias_max, 0.01)
+    if np.isfinite(st):
+        n = steps[st]
+    else:
+        n = np.inf
+    
+    return n
+
+
+def get_trace(info, settings_info, dir):
+            
+    info1 = info['phase_1']
+    info2 = info['phase_2'][0]
+
+
+    n1 = info["phase_1"]["steps_done"] # info1['step_size'].shape[0]
+    
+    steps1 = jnp.arange(1, n1+1)
+    steps2 = jnp.cumsum(info2['steps_per_sample']) * settings_info['num_grads_per_proposal'] + n1
+    #steps2 = jnp.cumsum(info['phase_2'][0]['steps_per_sample']) * grads_per_step + n1
+
+    steps = np.concatenate((steps1, steps2))
+    ntotal = steps[-1]
+    bias_max = np.concatenate((info1['bias0'][:n1], info2['bias'][:, 0]))
+    bias_avg = np.concatenate((info1['bias1'][:n1], info2['bias'][:, 1]))
+    
+    np.save(dir, [steps, bias_max])
+
+
 
 def plot_trace(info, model, settings_info, dir):
             
@@ -34,10 +80,11 @@ def plot_trace(info, model, settings_info, dir):
     bias_max = np.concatenate((info1['bias0'][:n1], info2['bias'][:, 0]))
     bias_avg = np.concatenate((info1['bias1'][:n1], info2['bias'][:, 1]))
 
-
     st = samples_to_low_error(bias_max, 0.01)
-    print(st)
-    n = steps[st]
+    if np.isfinite(st):
+        n = steps[st]
+    else:
+        n = np.inf
 
 
     plt.figure(figsize= (15, 5))
@@ -154,12 +201,22 @@ def plot_trace(info, model, settings_info, dir):
     plt.savefig(dir + model.name + '.png')
     plt.close()
 
+    with open(dir + model.name + '.pkl', 'wb') as f:
+        pickle.dump((info, settings_info), f)
+
+
     return n
 
 
 
 def parallel_microcanonical(num_steps1, num_steps2, num_chains, mesh, early_stop=True,
                             diagonal_preconditioning=True, superchain_size= 1,
+                            C= 0.1,
+                            alpha= 1.9,
+                            bias_type= 3,
+                            steps_per_sample=15,
+                            acc_prob= None,
+                            integrator_coefficients = None
                             ):
 
     def s(model):
@@ -185,12 +242,16 @@ def parallel_microcanonical(num_steps1, num_steps2, num_chains, mesh, early_stop
             rng_key=jax.random.key(0), 
             early_stop=early_stop,
             diagonal_preconditioning=diagonal_preconditioning, 
-            integrator_coefficients= None, 
-            steps_per_sample=15,
+            integrator_coefficients= integrator_coefficients, 
+            steps_per_sample=steps_per_sample,
             ensemble_observables= lambda x: x,
             observables_for_bias=observables_for_bias,
             contract = contract,
-            r_end=0.01,
+            r_end=-1.,#0.01,
+            C=C,
+            bias_type= bias_type,
+            alpha=alpha,
+            acc_prob= acc_prob,
             diagnostics= True,
             superchain_size= superchain_size
             ) 

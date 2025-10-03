@@ -144,8 +144,9 @@ class IllConditionedGaussian(model.Model):
             sample_init = lambda key: jax.random.normal(key, shape=(ndims,)) * jnp.max(jnp.sqrt(eigs)) #* 1.3
         else:
             raise ValueError('initialization = '+ str(initialization) + ' is not a valid option.')
-            
 
+
+        self.sample_init = sample_init
 
         super(IllConditionedGaussian, self).__init__(
             default_event_space_bijector=tfb.Identity(),
@@ -154,5 +155,4 @@ class IllConditionedGaussian(model.Model):
             name=name+f"_{self.ndims}_{self.condition_number}",
             pretty_name=pretty_name,
             sample_transformations=sample_transformations,
-            sample_init = sample_init
         )

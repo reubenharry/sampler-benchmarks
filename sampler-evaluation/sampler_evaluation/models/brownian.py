@@ -3,8 +3,9 @@ import sys
 sys.path.append("../sampler-comparison/src/inference-gym/spinoffs/inference_gym")
 import inference_gym.using_jax as gym
 from inference_gym.targets import model
+import jax
 import jax.numpy as jnp
-
+import numpy as np
 import os
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -12,10 +13,9 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 def brownian_motion():
 
     brownian_motion = gym.targets.VectorModel(
-        gym.targets.BrownianMotionUnknownScalesMissingMiddleObservations(),
+        gym.targets.BrownianMotionUnknownScalesMissingMiddleObservations(),#(use_markov_chain= True),
         flatten_sample_transformations=True,
     )
-
 
     with open(
         # f"{module_dir}/data/{brownian_motion.name}_expectations_old.pkl",
@@ -76,4 +76,48 @@ def brownian_motion():
     
     brownian_motion.ndims = 32
 
+
+
+    def sample_init(key):
+        key_walk, key_sigma = jax.random.split(key)
+
+        # original prior
+        # log_sigma = jax.random.normal(key_sigma, shape= (2, )) * 2
+
+        # narrower prior
+
+        sigma = jnp.exp(jnp.log(np.array([0.1, 0.15])) + jax.random.normal(key_sigma, shape=(2,)) * 0.1)  # *0.05# log sigma_i, log sigma_obs
+        inv_soft_plus = lambda x: jnp.log(jnp.exp(x)-1.)
+        #sigma_transformed = inv_soft_plus(sigma)
+
+        walk = random_walk(key_walk, brownian_motion.ndims - 2) * sigma[0]
+
+        #return jnp.concatenate((sigma, walk))
+        #return jnp.concatenate((walk, sigma_transformed))
+        return jnp.concatenate((jnp.array([sigma[0]]), walk, jnp.array([sigma[1]])))
+
+    brownian_motion.sample_init = sample_init
+
     return brownian_motion
+
+
+
+def random_walk(key, num):
+    """ Genereting process for the standard normal walk:
+        x[0] ~ N(0, 1)
+        x[n+1] ~ N(x[n], 1)
+
+        Args:
+            key: jax random key
+            num: number of points in the walk
+        Returns:
+            1 realization of the random walk (array of length num)
+    """
+
+    def step(track, useless):
+        x, key = track
+        randkey, subkey = jax.random.split(key)
+        x += jax.random.normal(subkey)
+        return (x, randkey), x
+
+    return jax.lax.scan(step, init=(0.0, key), xs=None, length=num)[1]

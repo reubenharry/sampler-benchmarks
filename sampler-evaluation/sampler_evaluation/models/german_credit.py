@@ -65,6 +65,7 @@ def german_credit():
 
     def sample_init(key):
         weights = jax.random.normal(key, shape = (25, ))
+        #return jnp.concatenate((weights, jnp.zeros(26)))
         return jnp.concatenate((jnp.zeros(26), weights))
     
     gc.sample_init = sample_init

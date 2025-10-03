@@ -2,6 +2,7 @@ import sys
 #sys.path.append("../sampler-comparison/src/inference-gym/spinoffs/inference_gym")
 import inference_gym.using_jax as gym
 from inference_gym.targets import model
+import jax
 import jax.numpy as jnp
 import pickle
 
@@ -69,5 +70,16 @@ def item_response():
     # )
 
     item_response.ndims = 501
+    students = 400
+
+
+    def sample_init(key):
+        x = jax.random.normal(key, shape = (item_response.ndims,))
+        #x = x.at[-1].add(0.75)
+        x = x.at[students].add(0.75)
+        return x
+
+
+    item_response.sample_init = sample_init
 
     return item_response
