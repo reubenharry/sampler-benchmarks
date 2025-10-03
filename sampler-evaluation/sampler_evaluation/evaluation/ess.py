@@ -39,7 +39,7 @@ def samples_to_low_error(err_t, low_error=0.01):
     # else:
     #     jax.debug.print("Error below threshold at final error {x}", x=err_t[-1])
     crossing = find_crossing(err_t, low_error)
-    return crossing * (1 / cutoff_reached)
+    return crossing if cutoff_reached else np.inf
 
 
 def find_crossing(array, cutoff):

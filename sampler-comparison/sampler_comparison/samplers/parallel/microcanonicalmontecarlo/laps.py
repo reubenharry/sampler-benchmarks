@@ -31,12 +31,13 @@ def plot_trace(info, model, settings_info, dir):
 
     steps = np.concatenate((steps1, steps2))
     ntotal = steps[-1]
-    bias0 = np.concatenate((info1['bias0'][:n1], info2['bias'][:, 0]))
-    bias1 = np.concatenate((info1['bias1'][:n1], info2['bias'][:, 1]))
+    bias_max = np.concatenate((info1['bias0'][:n1], info2['bias'][:, 0]))
+    bias_avg = np.concatenate((info1['bias1'][:n1], info2['bias'][:, 1]))
 
-    #n = [find_crossing(steps, bias[:, i], 0.01) for i in range(2)]
-        
-    #steps_to_low_error = [jnp.ceil(samples_to_low_error(bias[:,i], low_error=0.01)).astype(int) for i in range(2)]
+
+    st = samples_to_low_error(bias_max, 0.01)
+    print(st)
+    n = steps[st]
 
 
     plt.figure(figsize= (15, 5))
@@ -56,8 +57,8 @@ def plot_trace(info, model, settings_info, dir):
     plt.plot([], [], '-', color= 'tab:blue', label= 'average')
     
     # true
-    plt.plot(steps, bias1, color = 'tab:blue')
-    plt.plot(steps, bias0, lw= 3, color = 'tab:red')
+    plt.plot(steps, bias_avg, color = 'tab:blue')
+    plt.plot(steps, bias_max, lw= 3, color = 'tab:red')
     plt.plot([], [], color='tab:gray', label= r'Second moments $b_t^2[x_i^2]$')
 
     # equipartition
@@ -77,7 +78,7 @@ def plot_trace(info, model, settings_info, dir):
     plt.plot(steps1, info1['R_max'][:n1], ':', color = 'tab:red')
     plt.plot(steps2, info2['R_avg'], ':', color = 'tab:blue')
     plt.plot(steps2, info2['R_max'], ':', color = 'tab:red')
-    plt.plot([], [], '--', color = 'tab:gray',label = 'split R')
+    plt.plot([], [], ':', color = 'tab:gray',label = 'split R')
 
     # pathfinder
     #pf= pd.read_csv('ensemble/submission/pathfinder_convergence.csv', sep= '\t')
@@ -153,6 +154,7 @@ def plot_trace(info, model, settings_info, dir):
     plt.savefig(dir + model.name + '.png')
     plt.close()
 
+    return n
 
 
 
@@ -197,6 +199,7 @@ def parallel_microcanonical(num_steps1, num_steps2, num_chains, mesh, early_stop
         return final_state.position, info, settings_info
     
     return s
+
 
 
 
