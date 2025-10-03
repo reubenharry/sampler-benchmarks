@@ -5,16 +5,21 @@ import tensorflow.compat.v2 as tf
 import tensorflow_probability.substrates.jax as tfp
 # import sys
 # sys.path.append("../sampler-comparison/src/inference-gym/spinoffs/inference_gym")
-from inference_gym.targets import model
 import jax.numpy as jnp
+
+import sys
+sys.path.append("../src/inference-gym/spinoffs/inference_gym")
+import os
+from inference_gym.targets import model
+
 
 tfb = tfp.bijectors
 tfd = tfp.distributions
-from inference_gym.targets import model
+# from inference_gym.targets import model
 import jax.numpy as jnp
 import jax
 import pickle
-
+from collections import namedtuple
 
 # This is (by default) unrotated (unlike the inference-gym version) and is used for a result in a paper.
 class IllConditionedGaussian(model.Model):
@@ -31,8 +36,11 @@ class IllConditionedGaussian(model.Model):
         self.ndims = ndims
         self.condition_number = condition_number
 
+
         # fix the eigenvalues of the covariance matrix
-        if eigenvalues == "linear":
+        if type(eigenvalues) == np.ndarray:
+            eigs = eigenvalues
+        elif eigenvalues == "linear":
             eigs = jnp.linspace(1.0 / condition_number, 1, ndims)
         elif eigenvalues == "log":
             eigs = jnp.logspace(
@@ -105,6 +113,8 @@ class IllConditionedGaussian(model.Model):
                 ground_truth_mean=self.cov,
                 ground_truth_standard_deviation=jnp.nan,
             )
+        self.sample_init=lambda key: jax.random.normal(key, shape=(ndims,))
+
         super(IllConditionedGaussian, self).__init__(
             default_event_space_bijector=tfb.Identity(),
             event_shape=tf.TensorShape([ndims]),
