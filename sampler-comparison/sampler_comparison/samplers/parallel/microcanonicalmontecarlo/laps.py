@@ -247,7 +247,7 @@ def parallel_microcanonical(num_steps1, num_steps2, num_chains, mesh, early_stop
             ensemble_observables= lambda x: x,
             observables_for_bias=observables_for_bias,
             contract = contract,
-            r_end=-1.,#0.01,
+            r_end=0.01,
             C=C,
             bias_type= bias_type,
             alpha=alpha,
