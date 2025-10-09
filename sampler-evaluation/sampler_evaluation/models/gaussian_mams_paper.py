@@ -163,5 +163,4 @@ class IllConditionedGaussian(model.Model):
             name=name+f"_{self.ndims}_{self.condition_number}",
             pretty_name=pretty_name,
             sample_transformations=sample_transformations,
-            # sample_init = sample_init
         )
