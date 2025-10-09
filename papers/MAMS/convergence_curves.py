@@ -12,6 +12,7 @@ import inference_gym.using_jax as gym
 import jax
 import jax.numpy as jnp
 import numpy as np
+from sampler_evaluation.evaluation.ess import samples_to_low_error
 #import sampler_evaluation
 #from sampler_comparison.samplers import samplers
 
@@ -45,7 +46,7 @@ def get_biases(model, niter):
                 initial_position= x0, 
                 key=sample_key)
                 
-        mams_results, mams_info = adjusted_mclmc(L_proposal_factor=jnp.inf, random_trajectory_length=False, alba_factor=0.23, target_acc_rate=0.9, num_tuning_steps=500,diagonal_preconditioning=True, integrator_type='velocity_verlet')(
+        mams_results, mams_info = adjusted_mclmc(L_proposal_factor=jnp.inf, random_trajectory_length=True, alba_factor=0.23, target_acc_rate=0.9, num_tuning_steps=5000,diagonal_preconditioning=True, integrator_type='velocity_verlet')(
                 model=model, 
                 num_steps=niter,
                 initial_position= x0, 
@@ -59,12 +60,13 @@ def get_biases(model, niter):
 
 
 #model=IllConditionedGaussian(2,1)
-models= [(IllConditionedGaussian(2, 1), 500),
-         (brownian_motion(), 5000),
-         (german_credit(), 5000),
-         (item_response(), 5000),
-         (stochastic_volatility_mams_paper, 5000)   
-][1:]
+models= [
+    # (IllConditionedGaussian(2, 1), 500),
+         (brownian_motion(), 10000),
+        #  (german_credit(), 5000),
+        #  (item_response(), 5000),
+        #  (stochastic_volatility_mams_paper, 5000)   
+][:]
     
 
 
@@ -72,14 +74,22 @@ models= [(IllConditionedGaussian(2, 1), 500),
 for model in models:
     print(model[0].name)
     nuts_results, nuts_info, mams_results, mams_info = jax.pmap(get_biases(*model))(jax.random.split(jax.random.key(0), 128))
+
+    error = (jnp.nanmedian(mams_results['square']['max'], axis=0))
+    print('final error mams', error[-1])
+    print(samples_to_low_error(error)*mams_info['num_grads_per_proposal'].mean(axis=0))
+
+    error = (jnp.nanmedian(nuts_results['square']['max'], axis=0))
+    print('final error nuts', error[-1])
+    print(samples_to_low_error(error)*nuts_info['num_grads_per_proposal'].mean(axis=0))
     
 
     
     np.savez('papers/MAMS/img/' + model[0].name + '.npz', 
-             nuts= nuts_results['square']['max'].mean(axis=0), 
-             mams= mams_results['square']['max'].mean(axis=0), 
-             nuts_avg= nuts_results['square']['avg'].mean(axis=0), 
-             mams_avg= mams_results['square']['avg'].mean(axis=0), 
+             nuts= jnp.nanmedian(nuts_results['square']['max'], axis=0), 
+             mams= jnp.nanmedian(mams_results['square']['max'], axis=0), 
+             nuts_avg= jnp.nanmedian(nuts_results['square']['avg'], axis=0), 
+             mams_avg= jnp.nanmedian(mams_results['square']['avg'], axis=0), 
              nuts_per_sample= nuts_info['num_grads_per_proposal'].mean(axis=0),
              mams_per_sample= mams_info['num_grads_per_proposal'].mean(axis = 0)
              )

@@ -123,18 +123,18 @@ if __name__ == "__main__":
     # models = [phi4(side, unreduce_lam(reduced_lam=4.0, side=side)) for side in [1024]]
 
     models = [
-        # brownian_motion(),
+        brownian_motion(),
         # Rosenbrock(18),
         # phi4(256, unreduce_lam(reduced_lam=4.0, side=256)),
         # phi4(1024, unreduce_lam(reduced_lam=4.0, side=1024)),
         german_credit(),
-        banana(),
+        # banana(),
         bimodal_gaussian(),
         stochastic_volatility_mams_paper,
         # IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log'),
-        IllConditionedGaussian(ndims=100, condition_number=100, eigenvalues='log', do_covariance=False),
+        IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
         # IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
-        item_response(),
+        # item_response(),
         # IllConditionedGaussian(ndims=1000000, condition_number=1, eigenvalues='log', do_covariance=False),
         cauchy(ndims=100),
         # U1(Lt=16, Lx=16, beta=6)
@@ -168,7 +168,7 @@ if __name__ == "__main__":
                     langevin_options = [False],
                     integrator_type_options = ['velocity_verlet'],
                     diagonal_preconditioning_options = [True],
-                    redo=False,
+                    redo=True,
                     compute_missing=True,
                     redo_bad_results=True
                 )
