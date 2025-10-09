@@ -163,7 +163,7 @@ def xi(s, r, U, t, P, hbar, gamma):
 
 
 
-def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKey(0), sequential=False, sample_init=None, num_unadjusted_steps=100, num_adjusted_steps=100, num_chains=5000, filename=None, initial_state_and_params=None):
+def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKey(0), sequential=False, sample_init=None, num_unadjusted_steps=100, num_adjusted_steps=100, num_chains=5000, initial_ss_and_params=None):
 
 
     P = r.shape[0] - 1
@@ -220,7 +220,7 @@ def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKe
 
         raw_samples = raw_samples[1000000:, :]
         # save raw samples
-        np.save(filename + ".npy", raw_samples)
+        # np.save(filename + ".npy", raw_samples)
         
         # raw_samples, metadata = unadjusted_lmc(return_samples=True)(
         #     model=model, 
@@ -274,7 +274,7 @@ def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKe
 
             import blackjax
             # loaded_samples = np.load("sequential_umclmc" + ".npy")
-            loaded_samples = jax.random.normal(jax.random.key(0), (num_chains, P-1))
+            
 
             # initial_state = blackjax.mclmc.init(
             #     position=jax.random.normal(jax.random.key(0), (P-1,)),
@@ -285,41 +285,59 @@ def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKe
             
 
             tic = time.time()
-            if initial_state_and_params is not None:
+            if initial_ss_and_params is not None:
 
                 raw_samples, metadata = jax.vmap(lambda key, pos: 
                     unadjusted_mclmc_no_tuning(
                         return_samples=True, 
                         # return_only_final=True, 
                         integrator_type="mclachlan",
-                        L=54.682884, 
-                        step_size=2.9930937, 
+                        L=initial_ss_and_params['params']['L'], 
+                        step_size=initial_ss_and_params['params']['step_size'], 
                         initial_state=blackjax.mclmc.init(
                             position=pos,
                             logdensity_fn=logdensity_fn,
                             random_generator_arg=jax.random.split(key)[0],
                         ), 
-                        inverse_mass_matrix=jnp.array([12.668048, 20.329592, 25.034225, 27.92579, 29.679482, 30.729008, 31.375006, 31.75311, 32.045685, 32.186428, 32.27571, 32.31823, 32.346756, 32.355663, 32.393826, 32.406498, 32.42128, 32.433342, 32.42514, 32.40407, 32.370388, 32.26124, 32.066486, 31.854162, 31.436607, 30.826267, 29.737642, 27.963968, 25.037106, 20.369642, 12.662694]),
+                        inverse_mass_matrix=initial_ss_and_params['params']['inverse_mass_matrix'],
                     )(
                     model=model, 
                     num_steps=num_unadjusted_steps,
                     initial_position=pos, 
-                    key=key))(jax.random.split(init_key, num_chains), loaded_samples[:num_chains, :])
+                    key=key))(jax.random.split(init_key, num_chains), initial_ss_and_params['ss'])
 
-            # raw_samples, metadata = jax.vmap(lambda key: unadjusted_mclmc(return_samples=True, return_only_final=False)(
-            #     model=model, 
-            #     num_steps=num_unadjusted_steps,
-            #     initial_position=jax.random.normal(init_key, (P-1,)), 
-            #     key=key))(jax.random.split(init_key, num_chains))
+                # raw_samples = raw_samples.reshape(num_chains*num_unadjusted_steps, P-1)
+                samples, weights = (jax.vmap(lambda x : (xi(x,r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma), x[i]))(raw_samples.reshape(num_chains*num_unadjusted_steps, P-1)))
+                return samples, weights, raw_samples, K, Minv
 
             else:
+                raw_samples, metadata = jax.vmap(lambda key: unadjusted_mclmc(
+                    return_samples=True, 
+                    return_only_final=False,
+                    num_tuning_steps=1000,
+                    )(
+                        model=model, 
+                        num_steps=num_unadjusted_steps,
+                        
+                        initial_position=jax.random.normal(init_key, (P-1,)), 
+                        key=key))(jax.random.split(init_key, num_chains))
+                jax.debug.print("metadata {x}", x=metadata.keys())
+                # raise Exception("Stop here")
 
-            print(time.time() - tic, "time (parallel, no laps)")
+                L = metadata['L'].mean()
+                step_size = metadata['step_size'].mean()
+                inverse_mass_matrix = metadata['inverse_mass_matrix'].mean(axis=0)
+
+                samples = raw_samples
+
+                # samples, weights = (jax.vmap(lambda x : (xi(x,r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma), x[i]))(raw_samples))
+                return samples, L, step_size, inverse_mass_matrix
+
+            # print(time.time() - tic, "time (parallel, no laps)")
             # raw_samples = raw_samples.reshape(num_chains*num_unadjusted_steps, P-1)
             # raise Exception("Stop here")
             # print(metadata['inverse_mass_matrix'].mean(axis=0), "metadata")
 
-        raw_samples = raw_samples.reshape(num_chains*num_unadjusted_steps, P-1)
         # print(raw_samples.shape, "raw samples shape")
         # raise Exception("Stop here")
 
@@ -333,7 +351,6 @@ def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKe
         # print(raw_samples.shape, "sample shape")
 
 
-        samples, weights = (jax.vmap(lambda x : (xi(x,r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma), x[i]))(raw_samples))
 
     # error_at_each_step = get_standardized_squared_error(
     #     jnp.expand_dims(jax.vmap(functools.partial(xi, r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma))(raw_samples),[0,2]), 
@@ -345,18 +362,14 @@ def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKe
     # gradient_calls_per_chain = 2.0 
     # print(samples_to_low_error(error_at_each_step, low_error=1/100), "ess")
     
-    tic = time.time()
-    print(tic - toc, "time")
+    # tic = time.time()
+    # print(tic - toc, "time")
     
-    if filename:   
-        print("making histograms")
-        make_histograms(filename, samples=samples, weights=weights, K=K, Minv=Minv, i=i)
-        # save samples
+    
         
         # np.save(filename + ".npy", raw_samples)
     
     # samples are \xi(s), weights are s[i]
-    return samples, weights, raw_samples
 
 
 
@@ -425,8 +438,8 @@ if __name__ == "__main__":
     # load raw samples
     filename = "parallel_umclmc"
     raw_samples = np.load(filename + ".npy")
-    sample_init = lambda init_key: jax.random.choice(init_key, raw_samples, axis=0)
-    # sample_init=lambda init_key: jax.random.normal(key=init_key, shape=(r_length-2,))
+    # sample_init = lambda init_key: jax.random.choice(init_key, raw_samples, axis=0)
+    sample_init=lambda init_key: jax.random.normal(key=init_key, shape=(r_length-2,))
 
 
 
@@ -447,8 +460,10 @@ if __name__ == "__main__":
     #     filename=filename,
     #     num_chains=1000 # this should be at large as possible while still fitting in memory.
     #     )
-    
-    samples, weights, raw_samples = sample_s_chi(
+
+    num_chains = 10000
+
+    samples, L, step_size, inverse_mass_matrix = sample_s_chi(
         t=1,
         i=1,
         beta=beta,
@@ -457,13 +472,42 @@ if __name__ == "__main__":
         U = lambda x : 0.5*m*(omega**2)*(x**2),
         r=jax.random.normal(jax.random.PRNGKey(3), (r_length,)),
         sequential=False,
-        initial_state_and_params=None,
+        initial_ss_and_params=None,
         sample_init=sample_init,
-        num_unadjusted_steps=10, # md = unadjusted. This could probably be fewer.
+        num_unadjusted_steps=2000, # md = unadjusted. This could probably be fewer.
         num_adjusted_steps=0, # mc = adjusted. 
-        filename=filename,
-        num_chains=5000 # this should be at large as possible while still fitting in memory.
+        # filename=filename,
+        num_chains=num_chains # this should be at large as possible while still fitting in memory.
         )
+
+    # params = {'L' : 54.682884, 'step_size' : 2.9930937, 'inverse_mass_matrix' : jnp.array([12.668048, 20.329592, 25.034225, 27.92579, 29.679482, 30.729008, 31.375006, 31.75311, 32.045685, 32.186428, 32.27571, 32.31823, 32.346756, 32.355663, 32.393826, 32.406498, 32.42128, 32.433342, 32.42514, 32.40407, 32.370388, 32.26124, 32.066486, 31.854162, 31.436607, 30.826267, 29.737642, 27.963968, 25.037106, 20.369642, 12.662694])}
+    params = {'L' : L, 'step_size' : step_size, 'inverse_mass_matrix' : inverse_mass_matrix}
+    # initial_ss_and_params = {'params': params, 'ss': samples[:, -1, :]}
+    loaded_samples = jax.random.normal(jax.random.key(0), (num_chains, P-1))
+    initial_ss_and_params = {'params': params, 'ss': loaded_samples}
+    
+    tic = time.time()
+    samples, weights, raw_samples, K, Minv = sample_s_chi(
+        t=1,
+        i=1,
+        beta=beta,
+        hbar=hbar,
+        m=m,
+        U = lambda x : 0.5*m*(omega**2)*(x**2),
+        r=jax.random.normal(jax.random.PRNGKey(3), (r_length,)),
+        sequential=False,
+        initial_ss_and_params=initial_ss_and_params,
+        sample_init=sample_init,
+        num_unadjusted_steps=100, # md = unadjusted. This could probably be fewer.
+        num_adjusted_steps=0, # mc = adjusted. 
+        # filename=filename,
+        num_chains=num_chains # this should be at large as possible while still fitting in memory.
+        )
+    print(time.time() - tic, "time")
+    if filename:   
+        print("making histograms")
+        make_histograms(filename, samples=samples, weights=weights, K=K, Minv=Minv, i=i)
+        # save samples
 
     print(samples.shape, "samples shape")
     # effective sample size

@@ -25,7 +25,8 @@ def frobenius(estimated_cov, true_cov):
 
 def bias(expectation, f, model):
     # print(expectation.shape, "shape")
-    # assert expectation.shape
+
+    # assert expectation.shape==1, expectation.shape
     # jax.debug.print("expectation {x}", x=expectation.shape)
     if len(expectation.shape) == 1:
         avg_bias = jnp.average(jnp.square(
@@ -225,6 +226,9 @@ def sampler_grads_to_low_error(
     # jax.debug.print("std {x}", x=jnp.std(errs))
 
     # jax.debug.print("\n\nsquared_errors\n\n {x}", x=contract_fn(np.array(squared_errors['square']['avg'])).shape)
+
+    # jax.debug.print("squared_errors blah {x}", x=squared_errors['square']['avg'][0][-1])
+    # jax.debug.print("squared_errors {x}", x=squared_errors['square']['max'][0][-1])
 
 
     return (

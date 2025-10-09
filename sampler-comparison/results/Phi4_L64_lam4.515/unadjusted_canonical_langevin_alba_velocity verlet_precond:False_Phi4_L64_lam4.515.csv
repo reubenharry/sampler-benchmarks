@@ -1,0 +1,7 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
+0,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,Phi4_L64_lam4.515,inf,,,True,identity,20000.0,0.7043307238907286,0.08251422025997404,2,success
+1,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,Phi4_L64_lam4.515,1785.0,180.31497192413056,,False,identity,20000.0,0.7043307238907286,0.08251422025997404,2,success
+2,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,Phi4_L64_lam4.515,inf,,,True,square,20000.0,0.7043307238907286,0.08251422025997404,2,success
+3,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,Phi4_L64_lam4.515,1623.0,140.83723797348486,,False,square,20000.0,0.7043307238907286,0.08251422025997404,2,success
+4,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,Phi4_L64_lam4.515,inf,,,True,quartic,20000.0,0.7043307238907286,0.08251422025997404,2,success
+5,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,Phi4_L64_lam4.515,inf,,,False,quartic,20000.0,0.7043307238907286,0.08251422025997404,2,success

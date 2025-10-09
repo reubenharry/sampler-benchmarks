@@ -227,6 +227,8 @@ def grid_search_unadjusted_lmc(
         )
         
         (alba_state, alba_params), adaptation_info = warmup.run(tune_key, initial_position[0], num_tuning_steps)
+
+        jax.debug.print("alba_params: {x}", x=alba_params)
         
         print(f"ALBA warmup complete!")
         print(f"  ALBA step size: {alba_params['step_size']:.6f}")
@@ -249,7 +251,7 @@ def grid_search_unadjusted_lmc(
             integrator=map_integrator_type_to_integrator["hmc"][integrator_type],  # Pass integrator directly
             statistic=statistic,  # Use model-specific statistic
             max_over_parameters=max_over_parameters,  # Use model-specific parameter type
-            grid_size=grid_size,
+            grid_size=5,
             grid_iterations=grid_iterations,
             is_adjusted_sampler=False,  # This is an unadjusted sampler
             desired_energy_var=desired_energy_var,  # For robnik_step_size_tuning

@@ -50,6 +50,8 @@ from sampler_evaluation.models.rosenbrock import Rosenbrock
 from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
 from sampler_evaluation.models.cauchy import cauchy
 from sampler_evaluation.models.u1 import U1
+from sampler_evaluation.models.phi4 import phi4
+from sampler_evaluation.models.data.estimate_expectations_phi4 import unreduce_lam
 
 print("Imports complete")
 
@@ -57,18 +59,24 @@ print("Imports complete")
 def get_model_list():
     """Return the list of models to plot."""
     return [
-        IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log'),
-        IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
-        IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log', do_covariance=False),
-        IllConditionedGaussian(ndims=10000, condition_number=100, eigenvalues='log', do_covariance=False),
-        brownian_motion(),
-        german_credit(),
-        item_response(),
-        Rosenbrock(18),
-        stochastic_volatility_mams_paper,
-        cauchy(ndims=100),
-        U1(Lt=16, Lx=16, beta=6),
-        banana(),
+        # IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log'),
+        # IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
+        # IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log', do_covariance=False),
+        # IllConditionedGaussian(ndims=10000, condition_number=100, eigenvalues='log', do_covariance=False),
+        # brownian_motion(),
+        # german_credit(),
+        # item_response(),
+        # Rosenbrock(18),
+        # stochastic_volatility_mams_paper,
+        # cauchy(ndims=100),
+        # U1(Lt=16, Lx=16, beta=6),
+        # banana(),
+        # phi4(256, unreduce_lam(reduced_lam=4.0, side=256)),
+        phi4(1024, unreduce_lam(reduced_lam=4.0, side=1024)),
+        phi4(512, unreduce_lam(reduced_lam=4.0, side=512)),
+        phi4(256, unreduce_lam(reduced_lam=4.0, side=256)),
+        phi4(128, unreduce_lam(reduced_lam=4.0, side=128)),
+        phi4(64, unreduce_lam(reduced_lam=4.0, side=64)),
     ]
 
 

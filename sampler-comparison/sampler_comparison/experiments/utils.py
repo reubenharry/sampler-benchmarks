@@ -4,7 +4,6 @@ import sys
 import jax
 jax.config.update("jax_enable_x64", True)
 
-
 sys.path.append("../sampler-comparison")
 sys.path.append("../sampler-evaluation")
 sys.path.append("../../src/inference-gym/spinoffs/inference_gym")
@@ -43,12 +42,14 @@ from sampler_evaluation.models.rosenbrock import Rosenbrock
 from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
 from sampler_evaluation.models.u1 import U1
 from sampler_evaluation.models.cauchy import cauchy
-
+from sampler_evaluation.models.phi4 import phi4
+from sampler_evaluation.models.data.estimate_expectations_phi4 import unreduce_lam
+from sampler_evaluation.models.bimodal import bimodal_gaussian
 
 model_info = {
     IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log').name: {
         'pretty_name' : 'Ill-Conditioned Gaussian in 2D, with condition number 1',
-        'batch_size' : 128,
+        'batch_size' : 1,
         'num_steps' : {True : 5000, False : 5000},
         'preferred_statistic' : 'square',
         'max_over_parameters' : False,
@@ -76,6 +77,14 @@ model_info = {
         'max_over_parameters' : False,
         'grid_search_steps' : {True : 10000, False : 20000}},
             
+
+    bimodal_gaussian().name: {
+        'pretty_name' : 'Bimodal Gaussian',
+        'batch_size' : 128,
+        'num_steps' : {True : 50000, False : 100000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : False,
+        'grid_search_steps' : {True : 10000, False : 20000}},
     brownian_motion().name: {
         'pretty_name' : 'Brownian Motion',
         'batch_size' : 64,
@@ -113,13 +122,13 @@ model_info = {
         'max_over_parameters' : False,
         'grid_search_steps' : {True : 40000, False : 40000}},
         
-    U1(Lt=16, Lx=16, beta=6).name: {
-        'pretty_name' : 'U1',
-        'batch_size' : 32,
-        'num_steps' : {True : 5000, False : 200000},
-        'preferred_statistic' : 'square',
-        'max_over_parameters' : True,
-        'grid_search_steps' : {True : 20000, False : 40000}},
+    # U1(Lt=16, Lx=16, beta=6).name: {
+    #     'pretty_name' : 'U1',
+    #     'batch_size' : 32,
+    #     'num_steps' : {True : 5000, False : 200000},
+    #     'preferred_statistic' : 'square',
+    #     'max_over_parameters' : True,
+    #     'grid_search_steps' : {True : 20000, False : 40000}},
 
     cauchy(ndims=100).name: {
         'pretty_name' : 'Cauchy',
@@ -134,7 +143,87 @@ model_info = {
         'num_steps' : {True : 20000, False : 50000},
         'preferred_statistic' : 'square',
         'max_over_parameters' : True,
-        'grid_search_steps' : {True : 5000, False : 10000}}}
+        'grid_search_steps' : {True : 5000, False : 10000}},
+
+    phi4(64, unreduce_lam(reduced_lam=4.0, side=64)).name: {
+        'pretty_name' : 'Phi4',
+        'batch_size' : 8,
+        'num_steps' : {True : 500, False : 50000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : False,
+        'grid_search_steps' : {True : 40000, False : 40000}},
+    
+    phi4(128, unreduce_lam(reduced_lam=4.0, side=128)).name: {
+        'pretty_name' : 'Phi4',
+        'batch_size' : 8,
+        'num_steps' : {True : 500, False : 50000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : False,
+        'grid_search_steps' : {True : 40000, False : 40000}},
+    
+    phi4(256, unreduce_lam(reduced_lam=4.0, side=256)).name: {
+        'pretty_name' : 'Phi4',
+        'batch_size' : 4,
+        'num_steps' : {True : 500, False : 50000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : False,
+        'grid_search_steps' : {True : 40000, False : 40000}},
+    
+    phi4(512, unreduce_lam(reduced_lam=4.0, side=512)).name: {
+        'pretty_name' : 'Phi4',
+        'batch_size' : 4,
+        'num_steps' : {True : 500, False : 50000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : False,
+        'grid_search_steps' : {True : 40000, False : 40000}},
+    
+    phi4(1024, unreduce_lam(reduced_lam=4.0, side=1024)).name: {
+        'pretty_name' : 'Phi4',
+        'batch_size' : 4,
+        'num_steps' : {True : 15000, False : 150000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : False,
+        'grid_search_steps' : {True : 150000, False : 150000}},
+
+    U1(Lt=64, Lx=64, beta=2.).name: {
+        'pretty_name' : 'U1',
+        'batch_size' : 4,
+        'num_steps' : {True : 500, False : 15000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : False,
+        'grid_search_steps' : {True : 150000, False : 150000}},
+    U1(Lt=128, Lx=128, beta=2.).name: {
+        'pretty_name' : 'U1',
+        'batch_size' : 4,
+        'num_steps' : {True : 500, False : 15000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : False,
+        'grid_search_steps' : {True : 150000, False : 150000}},
+    U1(Lt=256, Lx=256, beta=2.).name: {
+        'pretty_name' : 'U1',
+        'batch_size' : 4,
+        'num_steps' : {True : 500, False : 15000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : False,
+        'grid_search_steps' : {True : 150000, False : 150000}},
+    U1(Lt=512, Lx=512, beta=2.).name: {
+        'pretty_name' : 'U1',
+        'batch_size' : 4,
+        'num_steps' : {True : 500, False : 15000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : False,
+        'grid_search_steps' : {True : 150000, False : 150000}},
+    U1(Lt=1024, Lx=1024, beta=2.).name: {
+        'pretty_name' : 'U1',
+        'batch_size' : 1,
+        'num_steps' : {True : 500, False : 15000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : False,
+        'grid_search_steps' : {True : 150000, False : 150000}},
+        
+        
+        
+    }
 
 def get_model_specific_preferences(model, is_adjusted, statistic=None, max_over_parameters=None, grid_search_steps=None, num_steps=None):
     """

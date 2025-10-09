@@ -17,7 +17,7 @@ from sampler_comparison.util import (
     calls_per_integrator_step,
     map_integrator_type_to_integrator,
 )
-from blackjax.adaptation.adjusted_abla import alba_adjusted
+from blackjax.adaptation.adjusted_alba import adjusted_alba
 from blackjax.mcmc.adjusted_mclmc_dynamic import make_random_trajectory_length_fn
 
 def adjusted_mclmc_no_tuning(
@@ -35,6 +35,8 @@ def adjusted_mclmc_no_tuning(
 ):
 
     def s(model, num_steps, initial_position, key):
+
+        # return jnp.ones((num_steps, model.ndims)), {}
 
         logdensity_fn = make_log_density_fn(model)
 
@@ -117,6 +119,7 @@ def adjusted_mclmc(
     progress_bar=False,
     incremental_value_transform=None,
     alba_factor=0.3,
+    num_alba_steps=None,
 ):
     """
     Args:
@@ -145,13 +148,11 @@ def adjusted_mclmc(
 
         integrator = map_integrator_type_to_integrator["mclmc"][integrator_type]
 
-        num_alba_steps = num_tuning_steps // 3
-
-        warmup = alba_adjusted(
+        warmup = adjusted_alba(
             unadjusted_algorithm=blackjax.mclmc,
             logdensity_fn=logdensity_fn,
             target_eevpd=5e-4,
-            num_alba_steps=num_alba_steps,
+            num_alba_steps=num_tuning_steps // 3 if num_alba_steps is None else num_alba_steps,
             v=1.,
             adjusted_algorithm=blackjax.adjusted_mclmc_dynamic,
             target_acceptance_rate=target_acc_rate,
@@ -163,7 +164,9 @@ def adjusted_mclmc(
 
         (alba_state, alba_params, adaptation_info) = warmup.run(tune_key, initial_position, num_tuning_steps)
         
-        num_tuning_integrator_steps = adaptation_info.num_integration_steps.sum()
+        num_tuning_integrator_steps =  jnp.nan # adaptation_info.num_integration_steps.sum()
+
+        # jax.debug.print("adaptation_info: {x}", x=num_tuning_integrator_steps)
 
     
         expectations, metadata = adjusted_mclmc_no_tuning(
@@ -192,9 +195,9 @@ def adjusted_mclmc(
 def grid_search_adjusted_mclmc(
     num_chains,
     integrator_type,
-    grid_size=6,
+    grid_size=5,
     grid_iterations=2,
-    num_tuning_steps=10000,
+    num_tuning_steps=20000,
     return_samples=False,
     desired_energy_var=5e-4,
     diagonal_preconditioning=True,
@@ -253,7 +256,7 @@ def grid_search_adjusted_mclmc(
         # ALBA warmup
         logdensity_fn = make_log_density_fn(model)
         num_alba_steps = num_tuning_steps // 3
-        warmup = alba_adjusted(
+        warmup = adjusted_alba(
             unadjusted_algorithm=blackjax.mclmc,
             logdensity_fn=logdensity_fn,
             target_eevpd=desired_energy_var,

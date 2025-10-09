@@ -1,0 +1,9 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
+0,adjusted_microcanonical_langevin_alba_velocity verlet_precond:False,U1_Lt256_Lx256_beta2.0,93647.21010094149,121.8407070728006,,True,polyakov,,641.843461042725,9.454137480697453,4,success
+1,adjusted_microcanonical_langevin_alba_velocity verlet_precond:False,U1_Lt256_Lx256_beta2.0,8013.321821545392,3.528441582341984,,False,polyakov,,641.843461042725,9.454137480697453,4,success
+2,adjusted_microcanonical_langevin_alba_velocity verlet_precond:False,U1_Lt256_Lx256_beta2.0,inf,,,True,polyakov_square,,641.843461042725,9.454137480697453,4,success
+3,adjusted_microcanonical_langevin_alba_velocity verlet_precond:False,U1_Lt256_Lx256_beta2.0,inf,,,False,polyakov_square,,641.843461042725,9.454137480697453,4,success
+4,adjusted_microcanonical_langevin_alba_velocity verlet_precond:False,U1_Lt256_Lx256_beta2.0,15279.639066506044,131.538184189991,,True,top_charge,,641.843461042725,9.454137480697453,4,success
+5,adjusted_microcanonical_langevin_alba_velocity verlet_precond:False,U1_Lt256_Lx256_beta2.0,15279.639066506044,131.538184189991,,False,top_charge,,641.843461042725,9.454137480697453,4,success
+6,adjusted_microcanonical_langevin_alba_velocity verlet_precond:False,U1_Lt256_Lx256_beta2.0,inf,,,True,top_charge_square,,641.843461042725,9.454137480697453,4,success
+7,adjusted_microcanonical_langevin_alba_velocity verlet_precond:False,U1_Lt256_Lx256_beta2.0,inf,,,False,top_charge_square,,641.843461042725,9.454137480697453,4,success

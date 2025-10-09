@@ -14,6 +14,7 @@ import jax
 from sampler_comparison.samplers.microcanonicalmontecarlo.adjusted import (
     adjusted_mclmc,
 )
+from sampler_comparison.samplers.hamiltonianmontecarlo.mala import adjusted_overdamped
 from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
 from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import grid_search_unadjusted_mclmc, unadjusted_mclmc
 from sampler_comparison.samplers.microcanonicalmontecarlo.mchmc import grid_search_unadjusted_mchmc, unadjusted_mchmc
@@ -154,6 +155,8 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
 
         
         (True, True, False, 'nuts'): (f'adjusted_canonical_nolangevin_nuts_{integrator_name}_precond:{diagonal_preconditioning}', partial(nuts,num_tuning_steps=adjusted_tuning_steps, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, target_acc_rate=target_acc_rate)),
+
+        (True, True, False, 'mala'): (f'adjusted_canonical_nolangevin_mala_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_overdamped,num_tuning_steps=adjusted_tuning_steps, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, target_acc_rate=0.574)),
                                         # cos_angle_termination= cos_angle_termination)),
 
 
@@ -255,6 +258,8 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
             if tuning == 'grid_search':
                 map = lambda x : x
             else:
+                # if there's a gpu, do vmap otherwise pmap
+                # map = jax.vmap if jax.local_device_count() > 1 else jax.pmap
                 map = jax.pmap
 
             # run sampler
@@ -281,6 +286,8 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
 if __name__ == "__main__":
     # model = gym.targets.dirichlet(dtype=jax.numpy.float64)
     # model = Dirichlet()
-    # model = IllConditionedGaussian(ndims=100, condition_number=1, eigenvalues='log')
+    model = IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log')
+
+
 
     run_benchmarks(models=models, samplers=samplers, batch_size=128, num_steps=10000)

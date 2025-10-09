@@ -187,7 +187,7 @@ def grid_search_L(
     integrator,
     statistic="square",
     max_over_parameters=True,
-    grid_size=6,
+    grid_size=5,
     grid_iterations=2,
     is_adjusted_sampler=False,
     target_acc_rate=0.9,
@@ -267,7 +267,7 @@ def grid_search_L(
         
         if is_adjusted_sampler:
             # For adjusted samplers, use da_adaptation
-            from blackjax.adaptation.adjusted_abla import da_adaptation, make_random_trajectory_length_fn
+            from blackjax.adaptation.adjusted_alba import da_adaptation, make_random_trajectory_length_fn
             
             # Create integration steps function
             integration_steps_fn = make_random_trajectory_length_fn(random_trajectory_length)
@@ -332,6 +332,7 @@ def grid_search_L(
             """Inner objective function for step_size optimization"""
             # Calculate the number of steps needed for this step_size to achieve num_gradient_calls
             num_steps = calculate_num_steps(L, step_size)
+            jax.debug.print("num_steps: {x}", x=num_steps)
             
             sampler = sampler_fn(
                 initial_state=initial_state,
@@ -359,23 +360,31 @@ def grid_search_L(
         # Step size grid search with automatic expansion
         optimal_step_size, optimal_step_size_value, step_size_values, step_size_optimal_idx, step_size_tuning_outcome = step_size_grid_search_with_expansion(
             objective_fn=step_size_objective_fn,
-            initial_step_size=optimal_step_size,
+            center_step_size=optimal_step_size,
             L=L,
             key=eval_key,
-            grid_size=6,
+            grid_size=grid_size,
         )
+        
+        # Track step size boundary hits for this L value
+        step_size_boundary_hits.append({
+            'L': L,
+            'tuning_outcome': step_size_tuning_outcome,
+            'optimal_step_size': optimal_step_size,
+            'optimal_value': optimal_step_size_value
+        })
         
         print(f"    L = {L:.4f} complete: optimal step_size = {optimal_step_size:.6f}, value = {optimal_step_size_value:.4f}")
         
-        return optimal_step_size_value
+        return optimal_step_size_value, step_size_tuning_outcome
     
-    def step_size_grid_search_with_expansion(objective_fn, initial_step_size, L, key, grid_size=6):
+    def step_size_grid_search_with_expansion(objective_fn, center_step_size, L, key, grid_size=5):
         """
         Step size grid search with automatic boundary expansion.
         
         Args:
             objective_fn: Function that takes (step_size, key) and returns a scalar value to minimize
-            initial_step_size: Initial step size to center the search around
+            center_step_size: Step size to center the search around
             L: Current L value (used for bounds calculation)
             key: JAX random key
             grid_size: Number of step sizes to evaluate in each grid search
@@ -383,24 +392,32 @@ def grid_search_L(
         Returns:
             Tuple of (optimal_step_size, optimal_value, all_values, optimal_index, tuning_outcome)
         """
-        # Define step_size range centered on the adapted step size
-        # We want 1 <= L/step_size <= 50, so step_size should be in [L/50, L/1]
+        # Define step_size range using multiplicative grid centered on center_step_size
+        # Create grid with factors [0.5, 0.7, 1.0, 1.4, 2.0] for initial search
+        factors = jnp.array([0.5, 0.7, 1.0, 1.4, 2.0])
+        if grid_size != 5:
+            # For different grid sizes, create symmetric multiplicative factors
+            n_half = grid_size // 2
+            if grid_size % 2 == 1:  # odd size
+                factors = jnp.concatenate([
+                    jnp.array([0.5, 0.7, 1.0]),
+                    jnp.array([1.4, 2.0])
+                ])
+            else:  # even size
+                factors = jnp.concatenate([
+                    jnp.array([0.5, 0.7]),
+                    jnp.array([1.4, 2.0])
+                ])
+        
+        step_size_range = center_step_size * factors
+        
+        # Apply bounds: ensure 1 <= L/step_size <= 50
         min_step_size = L / 50.0
         max_step_size = L / 1.0
+        min_step_size = max(min_step_size, 0.001)  # reasonable minimum
         
-        # Ensure we don't go below a reasonable minimum step size
-        min_step_size = max(min_step_size, 0.001)
-        
-        # Create a grid centered on the adapted step size, but within the L/step_size constraints
-        center_step_size = initial_step_size
-        center_step_size = jnp.clip(center_step_size, min_step_size, max_step_size)
-        
-        # Create a grid around the center, ensuring we stay within bounds
-        grid_radius = min(center_step_size * 0.5, (max_step_size - min_step_size) / 2)
-        grid_min = max(center_step_size - grid_radius, min_step_size)
-        grid_max = min(center_step_size + grid_radius, max_step_size)
-        
-        step_size_range = jnp.linspace(grid_min, grid_max, grid_size)
+        # Clip to bounds
+        step_size_range = jnp.clip(step_size_range, min_step_size, max_step_size)
         
         # Track expansion iteration (for boundary expansion only)
         expansion_iteration = 0
@@ -443,21 +460,46 @@ def grid_search_L(
                 tuning_outcome = 2 # boundary_failure
                 break
             
-            # Expand the range for the next iteration
-            expansion_factor = 3.0 ** (expansion_iteration + 1)  # 3, 9, 27
+            # Expand the range for the next iteration using multiplicative factors
+            expansion_factor = 2.0 ** (expansion_iteration + 1)  # 2, 4, 8
             
             if hit_lower_boundary:
                 print(f"      WARNING: Optimal step_size {optimal_step_size:.6f} hit LOWER boundary {step_size_range[0]:.6f}")
                 print(f"      Expanding step_size grid range downward by factor {expansion_factor}...")
-                new_min = min_step_size * (1.0 / expansion_factor)
-                new_max = step_size_range[-1]
+                # Use larger multiplicative factors for expansion
+                factors = jnp.array([0.5/expansion_factor, 0.7/expansion_factor, 1.0, 1.4, 2.0])
+                if grid_size != 5:
+                    n_half = grid_size // 2
+                    if grid_size % 2 == 1:  # odd size
+                        factors = jnp.concatenate([
+                            jnp.array([0.5/expansion_factor, 0.7/expansion_factor, 1.0]),
+                            jnp.array([1.4, 2.0])
+                        ])
+                    else:  # even size
+                        factors = jnp.concatenate([
+                            jnp.array([0.5/expansion_factor, 0.7/expansion_factor]),
+                            jnp.array([1.4, 2.0])
+                        ])
             else:  # hit_upper_boundary
                 print(f"      WARNING: Optimal step_size {optimal_step_size:.6f} hit UPPER boundary {step_size_range[-1]:.6f}")
                 print(f"      Expanding step_size grid range upward by factor {expansion_factor}...")
-                new_min = step_size_range[0]
-                new_max = max_step_size * expansion_factor
+                # Use larger multiplicative factors for expansion
+                factors = jnp.array([0.5, 0.7, 1.0, 1.4*expansion_factor, 2.0*expansion_factor])
+                if grid_size != 5:
+                    n_half = grid_size // 2
+                    if grid_size % 2 == 1:  # odd size
+                        factors = jnp.concatenate([
+                            jnp.array([0.5, 0.7, 1.0]),
+                            jnp.array([1.4*expansion_factor, 2.0*expansion_factor])
+                        ])
+                    else:  # even size
+                        factors = jnp.concatenate([
+                            jnp.array([0.5, 0.7]),
+                            jnp.array([1.4*expansion_factor, 2.0*expansion_factor])
+                        ])
             
-            step_size_range = jnp.linspace(new_min, new_max, grid_size)
+            step_size_range = center_step_size * factors
+            step_size_range = jnp.clip(step_size_range, min_step_size, max_step_size)
             expansion_iteration += 1
         
         return optimal_step_size, optimal_step_size_value, step_size_values, step_size_optimal_idx, tuning_outcome
@@ -468,6 +510,8 @@ def grid_search_L(
     all_values = None
     optimal_idx = None
     overall_tuning_outcome = 0  # 0 = success, 1 = boundary_failure_inf, 2 = boundary_failure
+    step_size_boundary_hits = []  # Track step size boundary hits for each L value
+    L_boundary_hits = []  # Track L boundary hits for each grid iteration
     
     param_type = "max_over_parameters" if max_over_parameters else "avg_over_parameters"
     sampler_type = "adjusted" if is_adjusted_sampler else "unadjusted"
@@ -485,23 +529,63 @@ def grid_search_L(
         grid_key = jax.random.fold_in(key, grid_iteration + 2)
         
         if grid_iteration == 0:
-            # First iteration: search around initial_L
-            L_range = optimal_L * jnp.linspace(0.5, 2.0, grid_size)
+            # First iteration: search around initial_L with multiplicative grid
+            # Use wider range for high-dimensional problems: [0.1, 0.3, 0.7, 1.0, 1.5, 3.0, 7.0, 10.0]
+            factors = jnp.array([0.1, 0.3, 0.7, 1.0, 1.5, 3.0, 7.0, 10.0])
+            if grid_size != 8:
+                # For different grid sizes, create symmetric multiplicative factors
+                n_half = grid_size // 2
+                if grid_size % 2 == 1:  # odd size
+                    factors = jnp.concatenate([
+                        jnp.linspace(0.1, 1.0, n_half + 1),
+                        jnp.linspace(1.0, 10.0, n_half)[1:]
+                    ])
+                else:  # even size
+                    factors = jnp.concatenate([
+                        jnp.linspace(0.1, 1.0, n_half),
+                        jnp.linspace(1.0, 10.0, n_half)
+                    ])
+            L_range = initial_L * factors
             print(f"\n--- Grid Iteration {grid_iteration + 1}/{grid_iterations} (Initial Search) ---")
-            print(f"  L range: [{L_range[0]:.4f}, {L_range[-1]:.4f}]")
+            print(f"  L range: {L_range}")
         else:
             # Subsequent iterations: refine around the best value found
             if optimal_idx is not None:
-                # Create a finer grid around the optimal value
-                L_min = L_range[max(optimal_idx - 1, 0)]
-                L_max = L_range[min(optimal_idx + 1, len(L_range) - 1)]
-                L_range = jnp.linspace(L_min, L_max, grid_size)
+                # Create a finer multiplicative grid around the optimal value
+                # Use smaller factors for refinement: [0.8, 0.9, 1.0, 1.1, 1.2]
+                factors = jnp.array([0.8, 0.9, 1.0, 1.1, 1.2])
+                if grid_size != 5:
+                    n_half = grid_size // 2
+                    if grid_size % 2 == 1:  # odd size
+                        factors = jnp.concatenate([
+                            jnp.linspace(0.8, 1.0, n_half + 1),
+                            jnp.linspace(1.0, 1.2, n_half)[1:]
+                        ])
+                    else:  # even size
+                        factors = jnp.concatenate([
+                            jnp.linspace(0.8, 1.0, n_half),
+                            jnp.linspace(1.0, 1.2, n_half)
+                        ])
+                L_range = optimal_L * factors
                 print(f"\n--- Grid Iteration {grid_iteration + 1}/{grid_iterations} (Refinement) ---")
                 print(f"  Refining around previous optimal L: {optimal_L:.4f}")
                 print(f"  L range: [{L_range[0]:.4f}, {L_range[-1]:.4f}]")
             else:
                 # Fallback: search around the current optimal_L
-                L_range = optimal_L * jnp.linspace(0.8, 1.2, grid_size)
+                factors = jnp.array([0.8, 0.9, 1.0, 1.1, 1.2])
+                if grid_size != 5:
+                    n_half = grid_size // 2
+                    if grid_size % 2 == 1:  # odd size
+                        factors = jnp.concatenate([
+                            jnp.linspace(0.8, 1.0, n_half + 1),
+                            jnp.linspace(1.0, 1.2, n_half)[1:]
+                        ])
+                    else:  # even size
+                        factors = jnp.concatenate([
+                            jnp.linspace(0.8, 1.0, n_half),
+                            jnp.linspace(1.0, 1.2, n_half)
+                        ])
+                L_range = optimal_L * factors
                 print(f"\n--- Grid Iteration {grid_iteration + 1}/{grid_iterations} (Fallback Refinement) ---")
                 print(f"  L range: [{L_range[0]:.4f}, {L_range[-1]:.4f}]")
         
@@ -518,7 +602,7 @@ def grid_search_L(
                 print(f"    Range: [{current_L_range[0]:.4f}, {current_L_range[-1]:.4f}]")
             
             optimal_L, optimal_value, all_values, optimal_idx = grid_search_1D(
-                objective_fn=objective_fn,
+                objective_fn=lambda L, key: objective_fn(L, key)[0],  # Extract just the value, not the tuning outcome
                 coordinates=current_L_range,
                 key=grid_key,
                 coordinate_name="L",
@@ -527,6 +611,15 @@ def grid_search_L(
             # Check if we hit a boundary
             hit_lower_boundary = optimal_idx == 0
             hit_upper_boundary = optimal_idx == len(current_L_range) - 1
+            
+            # Track boundary hits
+            L_boundary_hits.append({
+                'iteration': expansion_iteration + 1,
+                'hit_lower': hit_lower_boundary,
+                'hit_upper': hit_upper_boundary,
+                'optimal_L': optimal_L,
+                'range': (current_L_range[0], current_L_range[-1])
+            })
             
             # If we didn't hit any boundary, we're done with this grid iteration
             if not hit_lower_boundary and not hit_upper_boundary:
@@ -547,21 +640,45 @@ def grid_search_L(
                 overall_tuning_outcome = 2 # boundary_failure
                 break
             
-            # Expand the range for the next attempt
-            expansion_factor = 3.0 ** (expansion_iteration + 1)  # 3, 9, 27
+            # Expand the range for the next attempt using multiplicative factors
+            expansion_factor = 2.0 ** (expansion_iteration + 1)  # 2, 4, 8
             
             if hit_lower_boundary:
                 print(f"    WARNING: Optimal L {optimal_L:.4f} hit LOWER boundary {current_L_range[0]:.4f}")
                 print(f"    Expanding L grid range downward by factor {expansion_factor}...")
-                new_min = current_L_range[0] / expansion_factor
-                new_max = current_L_range[-1]
+                # Use reasonable multiplicative factors for expansion
+                factors = jnp.array([0.1/expansion_factor, 0.3/expansion_factor, 0.7, 1.0, 1.5, 3.0, 7.0, 10.0])
+                if grid_size != 8:
+                    n_half = grid_size // 2
+                    if grid_size % 2 == 1:  # odd size
+                        factors = jnp.concatenate([
+                            jnp.array([0.1/expansion_factor, 0.3/expansion_factor, 0.7, 1.0]),
+                            jnp.array([1.5, 3.0, 7.0, 10.0])
+                        ])
+                    else:  # even size
+                        factors = jnp.concatenate([
+                            jnp.array([0.1/expansion_factor, 0.3/expansion_factor]),
+                            jnp.array([1.5, 3.0, 7.0, 10.0])
+                        ])
             else:  # hit_upper_boundary
                 print(f"    WARNING: Optimal L {optimal_L:.4f} hit UPPER boundary {current_L_range[-1]:.4f}")
                 print(f"    Expanding L grid range upward by factor {expansion_factor}...")
-                new_min = current_L_range[0]
-                new_max = current_L_range[-1] * expansion_factor
+                # Use reasonable multiplicative factors for expansion
+                factors = jnp.array([0.1, 0.3, 0.7, 1.0, 1.5*expansion_factor, 3.0*expansion_factor, 7.0*expansion_factor, 10.0*expansion_factor])
+                if grid_size != 8:
+                    n_half = grid_size // 2
+                    if grid_size % 2 == 1:  # odd size
+                        factors = jnp.concatenate([
+                            jnp.array([0.1, 0.3, 0.7, 1.0]),
+                            jnp.array([1.5*expansion_factor, 3.0*expansion_factor, 7.0*expansion_factor, 10.0*expansion_factor])
+                        ])
+                    else:  # even size
+                        factors = jnp.concatenate([
+                            jnp.array([0.1, 0.3]),
+                            jnp.array([1.5*expansion_factor, 3.0*expansion_factor, 7.0*expansion_factor, 10.0*expansion_factor])
+                        ])
             
-            current_L_range = jnp.linspace(new_min, new_max, grid_size)
+            current_L_range = optimal_L * factors
             expansion_iteration += 1
         
         print(f"  L grid search complete!")
@@ -576,9 +693,53 @@ def grid_search_L(
     
     # Convert tuning outcome code to string for display
     tuning_outcome_str = {0: "success", 1: "boundary_failure_inf", 2: "boundary_failure"}[overall_tuning_outcome]
-    print(f"Tuning outcome: {tuning_outcome_str}")
+    print(f"Overall tuning outcome: {tuning_outcome_str}")
     
-    print(f"Note: Optimal step_size was found for each L value using {sampler_type} adaptation + epsilon grid")
+    # Report L boundary hits
+    print(f"\n=== L Boundary Analysis ===")
+    if L_boundary_hits:
+        final_boundary_hit = L_boundary_hits[-1]
+        if final_boundary_hit['hit_lower'] or final_boundary_hit['hit_upper']:
+            boundary_type = "LOWER" if final_boundary_hit['hit_lower'] else "UPPER"
+            print(f"⚠️  L grid search hit {boundary_type} boundary in final iteration")
+            print(f"   Final L range: [{final_boundary_hit['range'][0]:.4f}, {final_boundary_hit['range'][1]:.4f}]")
+            print(f"   Optimal L: {final_boundary_hit['optimal_L']:.4f}")
+        else:
+            print(f"✓ L grid search completed without hitting boundaries")
+        
+        # Count total boundary hits
+        total_boundary_hits = sum(1 for hit in L_boundary_hits if hit['hit_lower'] or hit['hit_upper'])
+        if total_boundary_hits > 0:
+            print(f"   Total L boundary hits across all iterations: {total_boundary_hits}")
+    else:
+        print(f"✓ No L boundary hits recorded")
+    
+    # Report step size boundary hits
+    print(f"\n=== Step Size Boundary Analysis ===")
+    if step_size_boundary_hits:
+        boundary_hit_count = sum(1 for hit in step_size_boundary_hits if hit['tuning_outcome'] > 0)
+        inf_count = sum(1 for hit in step_size_boundary_hits if hit['tuning_outcome'] == 1)
+        failure_count = sum(1 for hit in step_size_boundary_hits if hit['tuning_outcome'] == 2)
+        
+        if boundary_hit_count > 0:
+            print(f"⚠️  Step size grid search hit boundaries for {boundary_hit_count}/{len(step_size_boundary_hits)} L values")
+            if inf_count > 0:
+                print(f"   - {inf_count} L values had infinite optimal values")
+            if failure_count > 0:
+                print(f"   - {failure_count} L values failed after max expansions")
+            
+            # Show details for problematic L values
+            print(f"   Problematic L values:")
+            for hit in step_size_boundary_hits:
+                if hit['tuning_outcome'] > 0:
+                    outcome_str = {1: "inf", 2: "boundary_failure"}[hit['tuning_outcome']]
+                    print(f"     L={hit['L']:.4f}: {outcome_str}")
+        else:
+            print(f"✓ Step size grid search completed without hitting boundaries for any L value")
+    else:
+        print(f"✓ No step size boundary hits recorded")
+    
+    print(f"\nNote: Optimal step_size was found for each L value using {sampler_type} adaptation + epsilon grid")
     print(f"\nOptimization structure:")
     print(f"  Outer loop: Grid search over L values ({grid_iterations} iterations)")
     print(f"  Inner loop: For each L, {sampler_type} step_size adaptation + epsilon grid search")

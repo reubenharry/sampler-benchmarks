@@ -1,0 +1,3 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
+0,adjusted_canonical_nolangevin_mala_velocity verlet_precond:True,Cauchy_100D,inf,,,True,entropy,,0.06495964949528112,0.06495964949528112,32,success
+1,adjusted_canonical_nolangevin_mala_velocity verlet_precond:True,Cauchy_100D,inf,,,False,entropy,,0.06495964949528112,0.06495964949528112,32,success

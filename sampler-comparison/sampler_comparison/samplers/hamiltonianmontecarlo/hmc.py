@@ -13,7 +13,7 @@ from sampler_comparison.util import (
     calls_per_integrator_step,
     map_integrator_type_to_integrator,
 )
-from blackjax.adaptation.adjusted_abla import alba_adjusted
+from blackjax.adaptation.adjusted_alba import adjusted_alba
 
 
 def adjusted_hmc_no_tuning(
@@ -144,7 +144,7 @@ def adjusted_hmc(
 
         num_alba_steps = num_tuning_steps // 3
 
-        warmup = alba_adjusted(
+        warmup = adjusted_alba(
             unadjusted_algorithm=blackjax.langevin,
             logdensity_fn=logdensity_fn,
             target_eevpd=3e-4,
@@ -160,7 +160,7 @@ def adjusted_hmc(
 
         (alba_state, alba_params, adaptation_info) = warmup.run(tune_key, initial_position, num_tuning_steps)
         
-        num_tuning_integrator_steps = adaptation_info.num_integration_steps.sum()
+        num_tuning_integrator_steps = jnp.nan # adaptation_info.num_integration_steps.sum()
 
         expectations, metadata = adjusted_hmc_no_tuning(
             initial_state=alba_state,
@@ -201,6 +201,7 @@ def grid_search_adjusted_hmc(
     target_acc_rate=0.9,
     random_trajectory_length=True,
 ):
+    # raise Exception("stop")
     """
     Cleaner and more principled grid search for adjusted HMC with ALBA warmup.
     
@@ -251,7 +252,7 @@ def grid_search_adjusted_hmc(
         logdensity_fn = make_log_density_fn(model)
         num_dimensions = initial_position[0].shape[0]
         num_alba_steps = num_tuning_steps // 3
-        warmup = alba_adjusted(
+        warmup = adjusted_alba(
             unadjusted_algorithm=blackjax.langevin,
             logdensity_fn=logdensity_fn,
             target_eevpd=desired_energy_var,
@@ -288,7 +289,7 @@ def grid_search_adjusted_hmc(
             integrator=map_integrator_type_to_integrator["hmc"][integrator_type],  # Pass integrator directly
             statistic=statistic,  # Use model-specific statistic
             max_over_parameters=max_over_parameters,  # Use model-specific parameter type
-            grid_size=grid_size,
+            grid_size=5,
             grid_iterations=grid_iterations,
             is_adjusted_sampler=True,  # This is an adjusted sampler
             target_acc_rate=target_acc_rate,  # For da_adaptation

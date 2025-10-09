@@ -115,6 +115,7 @@ def unadjusted_mclmc(
     return_only_final=False,
     incremental_value_transform=None,
     alba_factor=0.4,
+    num_alba_steps=None,
 ):
     def s(model, num_steps, initial_position, key):
 
@@ -122,13 +123,12 @@ def unadjusted_mclmc(
 
         tune_key, run_key = jax.random.split(key, 2)
         
-        num_alba_steps = num_tuning_steps // 3
         warmup = unadjusted_alba(
             algorithm=blackjax.mclmc, 
             logdensity_fn=logdensity_fn, integrator=map_integrator_type_to_integrator["mclmc"][integrator_type], 
             target_eevpd=desired_energy_var, 
             v=jnp.sqrt(model.ndims), 
-            num_alba_steps=num_alba_steps,
+            num_alba_steps=num_tuning_steps // 3 if num_alba_steps is None else num_alba_steps,
             preconditioning=diagonal_preconditioning,
             alba_factor=alba_factor,
             )

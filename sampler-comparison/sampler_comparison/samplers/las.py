@@ -12,8 +12,10 @@ import numpy as np
 import jax
 import jax.numpy as jnp
 from sampler_evaluation.models.banana import banana
+from sampler_evaluation.models.gaussian_mams_paper import IllConditionedGaussian
+from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
 
-def las(num_steps1, num_steps2, num_chains, diagonal_preconditioning=True):
+def las(num_adjusted_steps, num_chains, diagonal_preconditioning=True, target_acceptance_rate=0.8):
 
     def s(model, key):
 
@@ -26,15 +28,15 @@ def las(num_steps1, num_steps2, num_chains, diagonal_preconditioning=True):
         # #model.sample_transformations["square"].fn(position)
         # observables_for_bias = lambda position:jnp.square(model.default_event_space_bijector(jax.flatten_util.ravel_pytree(position)[0]))
 
-        unadjusted_position, adjusted_position, infos, num_steps_unadjusted = blackjax.adaptation.las.las(
+        unadjusted_position, adjusted_position, infos, num_steps_unadjusted, step_size_adaptation_state = blackjax.adaptation.las.las(
             logdensity_fn=logdensity_fn,
             key=key,
             # sample_init=model.sample_init,
             ndims=model.ndims,
-            num_steps1=num_steps1,
-            num_steps2=num_steps2,
+            num_adjusted_steps=num_adjusted_steps,
             num_chains=num_chains,
-            diagonal_preconditioning=diagonal_preconditioning
+            diagonal_preconditioning=diagonal_preconditioning,
+            target_acceptance_rate=target_acceptance_rate
         )
         return unadjusted_position, adjusted_position, infos, num_steps_unadjusted
 
@@ -43,20 +45,21 @@ def las(num_steps1, num_steps2, num_chains, diagonal_preconditioning=True):
 
 if __name__ == "__main__":
     # run las on banana
-    model = banana()
-    num_steps1 = 1000
-    num_steps2 = 1000
-    num_chains = 100
+    # model = IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log')
+    model = stochastic_volatility_mams_paper
+    # num_steps1 = 1000
+    num_adjusted_steps = 1000
+    num_chains = 1000
     diagonal_preconditioning = True
     print("running las")
-    sampler = las(num_steps1, num_steps2, num_chains, diagonal_preconditioning)
+    sampler = las(num_adjusted_steps, num_chains, diagonal_preconditioning)
     unadjusted_samples, adjusted_samples, infos, num_steps_unadjusted = sampler(model, key=jax.random.key(0))
     # print(samples)
     # print(samples.shape)
     
     unadjusted_error_at_each_step = jnp.nanmedian(get_standardized_squared_error(
     np.expand_dims(unadjusted_samples,0), 
-    f=model.sample_transformations["square"],
+    f=model.sample_transformations["square"].fn,
     E_f=model.sample_transformations["square"].ground_truth_mean,
     Var_f=model.sample_transformations["square"].ground_truth_standard_deviation**2
     ),axis=0)
@@ -94,10 +97,11 @@ if __name__ == "__main__":
     # add a vertical line at the end of the unadjusted phase
     plt.axvline(x=num_steps_unadjusted, color='black', linestyle='--')
     # plt.plot(unadjusted_error_at_each_step)
-    plt.savefig('las_bias.png')
+    # save in sampler-comparison/sampler_comparison/experiments/results/figures
+    plt.savefig(f'las_bias_{model.name}.png')
     plt.close()
     plt.plot(adjusted_error_at_each_step)
-    plt.savefig('las_bias_adjusted.png')
+    plt.savefig(f'las_bias_adjusted_{model.name}.png')
     plt.close()
     # plt.plot(np.concatenate([unadjusted_error_at_each_step, adjusted_error_at_each_step]))
 

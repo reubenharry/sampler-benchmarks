@@ -1,0 +1,7 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
+0,adjusted_canonical_langevin_alba_mclachlan_precond:False,Phi4_L1024_lam4.266,inf,,,True,identity,34646.0,0.13696282367198537,0.0410834478883169,4,success
+1,adjusted_canonical_langevin_alba_mclachlan_precond:False,Phi4_L1024_lam4.266,45832.35299077236,156.83016897268203,,False,identity,34646.0,0.13696282367198537,0.0410834478883169,4,success
+2,adjusted_canonical_langevin_alba_mclachlan_precond:False,Phi4_L1024_lam4.266,inf,,,True,square,34646.0,0.13696282367198537,0.0410834478883169,4,success
+3,adjusted_canonical_langevin_alba_mclachlan_precond:False,Phi4_L1024_lam4.266,66040.73913193072,379.8542504698348,,False,square,34646.0,0.13696282367198537,0.0410834478883169,4,success
+4,adjusted_canonical_langevin_alba_mclachlan_precond:False,Phi4_L1024_lam4.266,inf,,,True,quartic,34646.0,0.13696282367198537,0.0410834478883169,4,success
+5,adjusted_canonical_langevin_alba_mclachlan_precond:False,Phi4_L1024_lam4.266,inf,,,False,quartic,34646.0,0.13696282367198537,0.0410834478883169,4,success
