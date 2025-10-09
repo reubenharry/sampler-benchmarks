@@ -44,7 +44,7 @@ e_x2 = stats["e_x2"]
 e_x4 = stats["e_x4"]
 var_x2 = e_x4 - e_x2**2
 
-print(e_x, "e_x")
+# print(e_x, "e_x")
 
 
 ndims = SP500_returns.shape[0] + 2

@@ -1,6 +1,8 @@
 sampler-comparison/src
 .vscode
 **__pycache**
+*.pkl
 .pytest_cache
 slurm*
 script*
+*.npy

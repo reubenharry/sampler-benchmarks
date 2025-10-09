@@ -5,29 +5,35 @@ import numpy as np
 import os
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
-def phi4(L,lam):
+def phi4(L,lam, load_from_file=True):
 
     ndims = L**2
 
 
     lam_str = str(lam)[:5]
 
-    try:
+    # try:
+    if load_from_file:
         with open(
             f"{module_dir}/data/Phi4_L{L}_lam"+lam_str+"_expectations.pkl",
             "rb",
         ) as f:
             stats = pickle.load(f)
 
-        e_x = stats["e_x"]
-        e_x2 = stats["e_x2"]
-        e_x4 = stats["e_x4"]
+        # print(stats.keys(),stats['identity'].shape,stats['square'].shape, "stats")
+
+        e_x = stats["identity"]
+        e_x2 = stats["square"]
+        # print(e_x2.shape, "e_x2")
+        # raise Exception
+        e_x4 = stats["quartic"]
         var_x2 = e_x4 - e_x2**2
 
-    except:
-        e_x = 0
-        e_x2 = 0
-        var_x2 = 0
+    else:
+        e_x = 0.0
+        e_x2 = 0.0
+        e_x4 = 0.0
+        var_x2 = 0.0
 
     # jax.debug.print("e_x {x}", x=e_x)
     # jax.debug.print("e_x2 {x}", x=e_x2)
@@ -46,7 +52,7 @@ def phi4(L,lam):
         return -jnp.sum(action_density)
 
     def psd(phi):
-        return jnp.square(jnp.abs(jnp.fft.fft2(phi.reshape(L, L)))) / L ** 2
+        return (jnp.square(jnp.abs(jnp.fft.fft2(phi.reshape(L, L)))) / L ** 2).reshape(ndims)
     
 
     return make_model(
@@ -59,7 +65,10 @@ def phi4(L,lam):
                     ground_truth_mean=e_x, ground_truth_standard_deviation=jnp.sqrt(e_x2 - e_x**2),),
             "square": SampleTransformation(
                     fn=lambda x: x**2,
-                    ground_truth_mean=e_x2, ground_truth_standard_deviation=jnp.sqrt(var_x2),)
+                    ground_truth_mean=e_x2, ground_truth_standard_deviation=jnp.sqrt(var_x2),),
+            "quartic": SampleTransformation(
+                    fn=lambda x: x**4,
+                    ground_truth_mean=e_x4, ground_truth_standard_deviation=jnp.nan,),
         },
 
         # x_ground_truth_mean=jnp.zeros((L,L)),

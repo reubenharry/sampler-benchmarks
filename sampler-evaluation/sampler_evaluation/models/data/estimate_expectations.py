@@ -10,7 +10,7 @@ import sys
 import numpy as np
 import os
 
-os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(4)
+# os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(4)
 sys.path.append("./")
 sys.path.append("../sampler-comparison")
 sys.path.append("../../blackjax")
@@ -94,7 +94,7 @@ def estimate_ground_truth(model, num_samples, annealing=False):
                 # 'return_only_final':False,
             })
 
-        num_chains = 4
+        num_chains = 1
         key = jax.random.PRNGKey(1)
         run_keys = jax.random.split(key, num_chains)
         init_pos = jax.random.normal(
@@ -104,6 +104,8 @@ def estimate_ground_truth(model, num_samples, annealing=False):
             ),
             key=jax.random.key(0),
         )
+
+        # expectation = np.zeros((num_chains, model.ndims))
 
         expectation, _ = jax.vmap(
             lambda pos, key: sampler(

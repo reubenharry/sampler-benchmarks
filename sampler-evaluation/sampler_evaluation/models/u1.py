@@ -19,30 +19,42 @@ import h5py
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
-def U1(Lt, Lx, beta= 1.):
+def U1(Lt, Lx, beta= 1., load_from_file=True):
 
     """Args:
             lattice size = (Lt, Lx)
             beta: inverse temperature
     """
     
-    name = 'U1'
     assert(Lt == Lx)
     Lxy = Lx
-    # try:
-        # with open(
-        #     f"{module_dir}/data/U1_Lt{Lt}_Lx{Lx}_beta{beta}"+"_expectations.pkl",
-        #     "rb",
-        # ) as f:
-        #     stats = pickle.load(f)
-    file = f"/global/cfs/cdirs/m4031/reubenh/new_schwinger/u1_GT_nuts_Lxy_{Lxy}_beta_{beta}_N_1000000.h5"
-    # file = "/global/cfs/cdirs/m4031/reubenh/new_schwinger/u1_GT_nuts_Lxy_16_beta_6_N_1000000.h5"
-    stats = h5py.File(file)
+    if load_from_file:  
+        with open(
+            f"{module_dir}/data/U1_Lt{Lt}_Lx{Lx}_beta{beta}"+"_expectations.pkl",
+            "rb",
+        ) as f:
+            stats = pickle.load(f)
+        # file = f"/global/cfs/cdirs/m4031/reubenh/new_schwinger/u1_GT_nuts_Lxy_{Lxy}_beta_{beta}_N_1000000.h5"
+        # file = "/global/cfs/cdirs/m4031/reubenh/new_schwinger/u1_GT_nuts_Lxy_16_beta_6_N_1000000.h5"
+        # stats = h5py.File(file)
 
-    e_x_top_charge = jnp.mean(jnp.asarray(stats["top_charge"][()]),axis=(0,1))
-    e_x2_top_charge = jnp.mean(jnp.asarray(stats["top_charge"][()])**2,axis=(0,1))
-    e_std_top_charge = jnp.sqrt(e_x2_top_charge - e_x_top_charge**2)
-    print("successfully h5pied")
+        # print(stats["top_charge"].shape)
+        # print(stats["polyakov"].shape)
+
+        # raise Exception
+
+        e_x_top_charge = jnp.asarray(stats["top_charge"])
+        e_x2_top_charge = jnp.asarray(stats["top_charge_square"])
+        e_std_top_charge = jnp.sqrt(e_x2_top_charge - e_x_top_charge**2)
+        e_x_polyakov = jnp.asarray(stats["polyakov"])
+        e_x2_polyakov = jnp.asarray(stats["polyakov_square"])
+
+    else:
+        e_x_top_charge = 0.0
+        e_x2_top_charge = 0.0
+        e_std_top_charge = 0.0
+        e_x_polyakov = 0.0
+        e_x2_polyakov = 0.0
     # var_x2 = e_x4 - e_x2**2
 
     # except:
@@ -97,26 +109,36 @@ def U1(Lt, Lx, beta= 1.):
         charge = jnp.sum(jnp.sin(x)) / (2 * jnp.pi)
         return jnp.array([charge])
     
-    def top_charge_int(links_flattened):
-        x = plaquette(links.reshape(links.shape))
-        charge = jnp.rint(jnp.sum((x + jnp.pi) % (2  * jnp.pi) - jnp.pi) / (2* jnp.pi))
-        return jnp.array([charge])
+    # def top_charge_int(links_flattened):
+    #     x = plaquette(links.reshape(links.shape))
+    #     charge = jnp.rint(jnp.sum((x + jnp.pi) % (2  * jnp.pi) - jnp.pi) / (2* jnp.pi))
+    #     return jnp.array([charge])
     
     return make_model(
         logdensity_fn=logdensity_fn,
         ndims=ndims,
         default_event_space_bijector=lambda x:x,
         sample_transformations = {
-        # 'polyakov':SampleTransformation(
-        #     fn=polyakov_autocorr,
-        #     ground_truth_mean=jnp.nan,
-        #     ground_truth_standard_deviation=jnp.nan,
-        # ),
+        'polyakov':SampleTransformation(
+            fn=polyakov_autocorr,
+            ground_truth_mean=e_x_polyakov,
+            ground_truth_standard_deviation=jnp.sqrt(e_x2_polyakov - e_x_polyakov**2),
+        ),
+        'polyakov_square':SampleTransformation(
+            fn=lambda x: polyakov_autocorr(x)**2,
+            ground_truth_mean=e_x2_polyakov,
+            ground_truth_standard_deviation=jnp.nan,
+        ),
         'top_charge':SampleTransformation(
             fn=top_charge,
-            ground_truth_mean=jnp.array([e_x_top_charge]),
-            ground_truth_standard_deviation=jnp.array([e_std_top_charge]),
-        )
+            ground_truth_mean=e_x_top_charge,
+            ground_truth_standard_deviation=e_std_top_charge,
+        ),
+        'top_charge_square':SampleTransformation(
+            fn=lambda x: top_charge(x)**2,
+            ground_truth_mean=e_x2_top_charge,
+            ground_truth_standard_deviation=jnp.nan,
+        ),
             
         },
         exact_sample=None,
