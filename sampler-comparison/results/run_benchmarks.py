@@ -128,7 +128,7 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
     integrator_name = integrator_type.replace('_', ' ')
 
 
-    unadjusted_tuning_steps = 20000
+    unadjusted_tuning_steps = 200000
     adjusted_tuning_steps = 5000
 
     target_acc_rate = 0.9 if integrator_type == 'mclachlan' else 0.9
@@ -140,9 +140,9 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
 
         (True, True, False, 'alba'): (f'adjusted_canonical_nolangevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_hmc,num_tuning_steps=adjusted_tuning_steps, integrator_type=integrator_type, L_proposal_factor=jnp.inf,target_acc_rate=target_acc_rate,diagonal_preconditioning=diagonal_preconditioning)),
 
-        (True, False, True, 'alba'): (f'adjusted_microcanonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_mclmc,L_proposal_factor=1.25, random_trajectory_length=False, alba_factor=0.23, target_acc_rate=target_acc_rate, num_tuning_steps=adjusted_tuning_steps,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
+        (True, False, True, 'alba'): (f'adjusted_microcanonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_mclmc,L_proposal_factor=1.25, random_trajectory_length=False, alba_factor=0.23, target_acc_rate=target_acc_rate, num_adjusted_tuning_steps=adjusted_tuning_steps,num_unadjusted_tuning_steps=unadjusted_tuning_steps,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
 
-        (True, False, False, 'alba'): (f'adjusted_microcanonical_nolangevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_mclmc,num_tuning_steps=adjusted_tuning_steps,target_acc_rate=target_acc_rate,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
+        (True, False, False, 'alba'): (f'adjusted_microcanonical_nolangevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_mclmc,num_adjusted_tuning_steps=adjusted_tuning_steps,num_unadjusted_tuning_steps=unadjusted_tuning_steps,target_acc_rate=target_acc_rate,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
 
         (False, True, True, 'alba'): (f'unadjusted_canonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(unadjusted_lmc,desired_energy_var=3e-4, num_tuning_steps=unadjusted_tuning_steps,diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
 

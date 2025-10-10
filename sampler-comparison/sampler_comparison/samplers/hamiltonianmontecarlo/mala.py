@@ -161,6 +161,8 @@ def adjusted_overdamped(
                 tune_key, initial_position, num_tuning_steps
             )
 
+        # jax.debug.print("params {x}", x=state.position[0])
+
         # hmc_state = HMCState(
         #     position=initial_position,
         #     logdensity=

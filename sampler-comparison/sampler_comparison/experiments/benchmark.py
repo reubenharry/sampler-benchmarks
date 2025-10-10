@@ -127,16 +127,16 @@ if __name__ == "__main__":
         # Rosenbrock(18),
         # phi4(256, unreduce_lam(reduced_lam=4.0, side=256)),
         # phi4(1024, unreduce_lam(reduced_lam=4.0, side=1024)),
-        german_credit(),
+        # german_credit(),
         # banana(),
-        bimodal_gaussian(),
-        stochastic_volatility_mams_paper,
+        # bimodal_gaussian(),
+        # stochastic_volatility_mams_paper,
         # IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log'),
-        IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
+        # IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
         # IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
         # item_response(),
         # IllConditionedGaussian(ndims=1000000, condition_number=1, eigenvalues='log', do_covariance=False),
-        cauchy(ndims=100),
+        # cauchy(ndims=100),
         # U1(Lt=16, Lx=16, beta=6)
         ]
 
@@ -162,9 +162,9 @@ if __name__ == "__main__":
         run(
                     key=jax.random.PRNGKey(4),
                     models=[model],
-                    tuning_options=['mala'],
+                    tuning_options=['alba'],
                     mh_options = [True],
-                    canonical_options = [True],
+                    canonical_options = [False],
                     langevin_options = [False],
                     integrator_type_options = ['velocity_verlet'],
                     diagonal_preconditioning_options = [True],

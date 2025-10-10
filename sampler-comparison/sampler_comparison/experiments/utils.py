@@ -88,7 +88,7 @@ model_info = {
     brownian_motion().name: {
         'pretty_name' : 'Brownian Motion',
         'batch_size' : 64,
-        'num_steps' : {True : 200000, False : 100000},
+        'num_steps' : {True : 20000, False : 100000},
         'preferred_statistic' : 'square',
         'max_over_parameters' : True,
         'grid_search_steps' : {True : 30000, False : 30000}},
