@@ -153,14 +153,14 @@ def adjusted_mclmc_tuning(
 
     kernel = lambda rng_key, state, avg_num_integration_steps, step_size, inverse_mass_matrix: blackjax.mcmc.adjusted_mclmc_dynamic.build_kernel(
         integrator=integrator,
+        L_proposal_factor=L_proposal_factor,
+    )(
         integration_steps_fn=integration_steps_fn(avg_num_integration_steps),
         inverse_mass_matrix=inverse_mass_matrix,
-    )(
         rng_key=rng_key,
         state=state,
         step_size=step_size,
         logdensity_fn=logdensity_fn,
-        L_proposal_factor=L_proposal_factor,
     )
 
     total_tuning_integrator_steps = 0
