@@ -45,6 +45,9 @@ from sampler_evaluation.models.phi4 import phi4
 from sampler_evaluation.models.data.estimate_expectations_phi4 import unreduce_lam
 from sampler_evaluation.models.u1 import U1
 from sampler_evaluation.models.bimodal import bimodal_gaussian
+from sampler_evaluation.models.neals_funnel_mams_paper import neals_funnel_mams_paper
+
+
 def clear_jax_cache():
     """Clear JAX compilation cache to prevent memory accumulation"""
     try:
@@ -123,8 +126,9 @@ if __name__ == "__main__":
     # models = [phi4(side, unreduce_lam(reduced_lam=4.0, side=side)) for side in [1024]]
 
     models = [
-        brownian_motion(),
         # Rosenbrock(18),
+        # brownian_motion(),
+        neals_funnel_mams_paper,
         # phi4(256, unreduce_lam(reduced_lam=4.0, side=256)),
         # phi4(1024, unreduce_lam(reduced_lam=4.0, side=1024)),
         # german_credit(),
@@ -162,9 +166,9 @@ if __name__ == "__main__":
         run(
                     key=jax.random.PRNGKey(4),
                     models=[model],
-                    tuning_options=['alba'],
+                    tuning_options=['mala'],
                     mh_options = [True],
-                    canonical_options = [False],
+                    canonical_options = [True],
                     langevin_options = [False],
                     integrator_type_options = ['velocity_verlet'],
                     diagonal_preconditioning_options = [True],

@@ -156,7 +156,7 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
         
         (True, True, False, 'nuts'): (f'adjusted_canonical_nolangevin_nuts_{integrator_name}_precond:{diagonal_preconditioning}', partial(nuts,num_tuning_steps=adjusted_tuning_steps, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, target_acc_rate=target_acc_rate)),
 
-        (True, True, False, 'mala'): (f'adjusted_canonical_nolangevin_mala_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_overdamped,num_tuning_steps=adjusted_tuning_steps, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, target_acc_rate=0.574)),
+        (True, True, False, 'mala'): (f'adjusted_canonical_nolangevin_mala_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_overdamped,num_tuning_steps=1000, integrator_type=integrator_type,diagonal_preconditioning=diagonal_preconditioning, target_acc_rate=0.574)),
                                         # cos_angle_termination= cos_angle_termination)),
 
 

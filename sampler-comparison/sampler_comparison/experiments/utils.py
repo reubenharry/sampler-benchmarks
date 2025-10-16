@@ -45,6 +45,7 @@ from sampler_evaluation.models.cauchy import cauchy
 from sampler_evaluation.models.phi4 import phi4
 from sampler_evaluation.models.data.estimate_expectations_phi4 import unreduce_lam
 from sampler_evaluation.models.bimodal import bimodal_gaussian
+from sampler_evaluation.models.neals_funnel_mams_paper import neals_funnel_mams_paper
 
 model_info = {
     IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log').name: {
@@ -65,7 +66,7 @@ model_info = {
     IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log').name: {
         'pretty_name' : 'Ill-Conditioned Gaussian in 100D, with condition number 1000',
         'batch_size' : 64,
-        'num_steps' : {True : 50000, False : 100000},
+        'num_steps' : {True : 100000, False : 100000},
         'preferred_statistic' : 'square',
         'max_over_parameters' : False,
         'grid_search_steps' : {True : 10000, False : 20000}},
@@ -80,15 +81,15 @@ model_info = {
 
     bimodal_gaussian().name: {
         'pretty_name' : 'Bimodal Gaussian',
-        'batch_size' : 128,
-        'num_steps' : {True : 200000, False : 100000},
+        'batch_size' : 4,
+        'num_steps' : {True : 1000000, False : 100000},
         'preferred_statistic' : 'square',
         'max_over_parameters' : False,
         'grid_search_steps' : {True : 10000, False : 20000}},
     brownian_motion().name: {
         'pretty_name' : 'Brownian Motion',
-        'batch_size' : 64,
-        'num_steps' : {True : 20000, False : 100000},
+        'batch_size' : 4,
+        'num_steps' : {True : 1000000, False : 100000},
         'preferred_statistic' : 'square',
         'max_over_parameters' : True,
         'grid_search_steps' : {True : 30000, False : 30000}},
@@ -96,28 +97,28 @@ model_info = {
     german_credit().name: {
         'pretty_name' : 'German Credit',
         'batch_size' : 128,
-        'num_steps' : {True : 200000, False : 100000},
+        'num_steps' : {True : 20000, False : 100000},
         'preferred_statistic' : 'square',
         'max_over_parameters' : True,
         'grid_search_steps' : {True : 10000, False : 20000}},
     item_response().name: {
         'pretty_name' : 'Item Response',
-        'batch_size' : 64,
-        'num_steps' : {True : 100000, False : 200000},
+        'batch_size' : 4,
+        'num_steps' : {True : 1000000, False : 200000},
         'preferred_statistic' : 'square',
         'max_over_parameters' : True,
         'grid_search_steps' : {True : 20000, False : 40000}},
     stochastic_volatility_mams_paper.name: {
         'pretty_name' : 'Stochastic Volatility',
-        'batch_size' : 128,
-        'num_steps' : {True : 500000, False : 200000},
+        'batch_size' : 4,
+        'num_steps' : {True : 1000000, False : 200000},
         'preferred_statistic' : 'square',
         'max_over_parameters' : True,
         'grid_search_steps' : {True : 20000, False : 40000}},
     Rosenbrock(18).name: {
         'pretty_name' : 'Rosenbrock',
-        'batch_size' : 64,
-        'num_steps' : {True : 50000, False : 150000},
+        'batch_size' : 4,
+        'num_steps' : {True : 1000000, False : 150000},
         'preferred_statistic' : 'square',
         'max_over_parameters' : False,
         'grid_search_steps' : {True : 40000, False : 40000}},
@@ -132,15 +133,15 @@ model_info = {
 
     cauchy(ndims=100).name: {
         'pretty_name' : 'Cauchy',
-        'batch_size' : 32,
-        'num_steps' : {True : 300000, False : 700000},
+        'batch_size' : 4,
+        'num_steps' : {True : 1000000, False : 700000},
         'preferred_statistic' : 'entropy',
         'max_over_parameters' : False,
         'grid_search_steps' : {True : 70000, False : 140000}},
     banana().name: {
         'pretty_name' : 'Banana',
-        'batch_size' : 128,
-        'num_steps' : {True : 100000, False : 50000},
+        'batch_size' : 4,
+        'num_steps' : {True : 1000000, False : 50000},
         'preferred_statistic' : 'square',
         'max_over_parameters' : True,
         'grid_search_steps' : {True : 5000, False : 10000}},
@@ -217,6 +218,13 @@ model_info = {
         'pretty_name' : 'U1',
         'batch_size' : 1,
         'num_steps' : {True : 500, False : 15000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : False,
+        'grid_search_steps' : {True : 150000, False : 150000}},
+    neals_funnel_mams_paper.name: {
+        'pretty_name' : 'Neals Funnel',
+        'batch_size' : 1,
+        'num_steps' : {True : 100000000, False : 15000},
         'preferred_statistic' : 'square',
         'max_over_parameters' : False,
         'grid_search_steps' : {True : 150000, False : 150000}},

@@ -5,7 +5,7 @@ from jax import lax
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-from quantum_problem import sample_s_chi, xi, make_M_Minv_K
+from quantum_problem import make_histograms, sample_s_chi, xi, make_M_Minv_K
 
 def bin_centers(bin_edges):
   return (bin_edges[1:] + bin_edges[:-1]) / 2.0
@@ -62,8 +62,9 @@ def do_intermediate_staging(rng, chain_pos, left_wall, sigma_sqrds, j_this, big_
   return rng, chain_pos
 
 
-def endpoint_sampling(rng, chain_pos, beadval, real_mass, inv_kt, big_p):
-  std = jnp.sqrt(inv_kt / (real_mass * big_p))
+def endpoint_sampling(rng, chain_pos, beadval, real_mass, tau_c, inv_kt, big_p):
+  # std = jnp.sqrt(inv_kt / (real_mass * big_p))
+  std = jnp.sqrt(jnp.abs(tau_c)**2 / (real_mass * big_p))
   rng, sub0 = jax.random.split(rng)
   rng, sub1 = jax.random.split(rng)
   mean0 = chain_pos[1]
@@ -93,119 +94,115 @@ def pot_energy_simple(r, ss, real_mass, omga, pbeads_r):
 
 
 
-def make_mc_step(pbeads_r, jval_r, real_mass, beta, beads_sigma_sqrds, 
-            lft_wall_choices, numchoices, alt_jval_r, accept_move_fn):
-  
-  def step(carry, step_idx):
-    """
-    Perform one Monte Carlo step including segment updates, single-bead updates, and endpoint updates.
+
+
+
+
+def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, real_mass, num_unadjusted_steps, num_chains, t):
+  tau_c = t - ((beta * hbar * im) / 2)
+  omega_p = jnp.sqrt(pbeads_r) / (jnp.abs(tau_c))
+
+  def make_mc_step(pbeads_r, jval_r, real_mass, beta, beads_sigma_sqrds, 
+              lft_wall_choices, numchoices, alt_jval_r, tau_c, accept_move_fn):
     
-    Args:
-      carry: Tuple of (rng, chain_r, ss, old_pot)
-      step_idx: Current step index
-      pbeads_r: Number of beads
-      jval_r: Maximum j value for staging
-      real_mass: Mass parameter
-      beta: Inverse temperature
-      beads_sigma_sqrds: Precomputed sigma squared values for staging
-      lft_wall_choices: Precomputed left wall positions
-      numchoices: Number of segment choices
-      alt_jval_r: Alternative j value for last segment
-      accept_move_fn: Function to accept/reject moves
-    
-    Returns:
-      Tuple of (updated_carry, sample_value)
-    """
-    rng, chain_r, ss, old_pot = carry
-    jax.debug.print("step_idx {x}", x=step_idx)
+    def step(carry, step_idx):
+      """
+      Perform one Monte Carlo step including segment updates, single-bead updates, and endpoint updates.
+      
+      Args:
+        carry: Tuple of (rng, chain_r, ss, old_pot)
+        step_idx: Current step index
+        pbeads_r: Number of beads
+        jval_r: Maximum j value for staging
+        real_mass: Mass parameter
+        beta: Inverse temperature
+        beads_sigma_sqrds: Precomputed sigma squared values for staging
+        lft_wall_choices: Precomputed left wall positions
+        numchoices: Number of segment choices
+        alt_jval_r: Alternative j value for last segment
+        accept_move_fn: Function to accept/reject moves
+      
+      Returns:
+        Tuple of (updated_carry, sample_value)
+      """
+      rng, chain_r, ss, old_pot = carry
+      jax.debug.print("step_idx {x}", x=step_idx)
 
-    # Segment updates over all left walls
-    def seg_body(i, inner_carry):
-      rng, chain_r, ss, old_pot = inner_carry
-      leftwall = lft_wall_choices[i]
-      j_this = jnp.where(i == (numchoices - 1), alt_jval_r, jval_r)
-      rng, chain_prop = do_intermediate_staging(rng, chain_r, leftwall, beads_sigma_sqrds, j_this, pbeads_r, jval_r)
-      rng, chain_r_new, ss_new, old_pot_new = accept_move_fn(rng, chain_prop, chain_r, ss, old_pot)
-      return (rng, chain_r_new, ss_new, old_pot_new)
+      # Segment updates over all left walls
+      def seg_body(i, inner_carry):
+        rng, chain_r, ss, _, _, old_pot = inner_carry
+        leftwall = lft_wall_choices[i]
+        j_this = jnp.where(i == (numchoices - 1), alt_jval_r, jval_r)
+        rng, chain_prop = do_intermediate_staging(rng, chain_r, leftwall, beads_sigma_sqrds, j_this, pbeads_r, jval_r)
+        rng, chain_r_new, ss_new, K, Minv, new_pot = accept_move_fn(rng, chain_prop, chain_r, ss, old_pot)
+        return (rng, chain_r_new, ss_new, K, Minv, new_pot)
 
-    rng, chain_r, ss, old_pot = lax.fori_loop(0, numchoices, seg_body, (rng, chain_r, ss, old_pot))
+      rng, chain_r, ss, K, Minv, old_pot = lax.fori_loop(0, numchoices, seg_body, (rng, chain_r, ss, jnp.zeros(P-1), jnp.zeros((P-1,P-1)), old_pot))
 
-    # Single-bead updates (excluding first choice)
-    def single_body(i, inner_carry):
-      rng, chain_r, ss, old_pot = inner_carry
-      leftwall = lft_wall_choices[i] - 1
-      rng, chain_prop = do_intermediate_staging(rng, chain_r, leftwall, beads_sigma_sqrds, jnp.array(1), pbeads_r, jval_r)
-      rng, chain_r_new, ss_new, old_pot_new = accept_move_fn(rng, chain_prop, chain_r, ss, old_pot)
-      return (rng, chain_r_new, ss_new, old_pot_new)
+      # Single-bead updates (excluding first choice)
+      def single_body(i, inner_carry):
+        rng, chain_r, ss, _, _, old_pot = inner_carry
+        leftwall = lft_wall_choices[i] - 1
+        rng, chain_prop = do_intermediate_staging(rng, chain_r, leftwall, beads_sigma_sqrds, jnp.array(1), pbeads_r, jval_r)
+        rng, chain_r_new, ss_new, K, Minv, old_pot_new = accept_move_fn(rng, chain_prop, chain_r, ss, old_pot)
+        return (rng, chain_r_new, ss_new, K, Minv, old_pot_new)
 
-    rng, chain_r, ss, old_pot = lax.fori_loop(1, numchoices, single_body, (rng, chain_r, ss, old_pot))
+      rng, chain_r, ss, K, Minv, old_pot = lax.fori_loop(1, numchoices, single_body, (rng, chain_r, ss, jnp.zeros(P-1), jnp.zeros((P-1,P-1)), old_pot))
 
-    # Endpoint updates for two ends
-    def end_body(i, inner_carry):
-      rng, chain_r, ss, old_pot = inner_carry
-      rand_int = i * pbeads_r
-      rng, chain_prop = endpoint_sampling(rng, chain_r, rand_int, real_mass, beta, pbeads_r)
-      rng, chain_r_new, ss_new, old_pot_new = accept_move_fn(rng, chain_prop, chain_r, ss, old_pot)
-      return (rng, chain_r_new, ss_new, old_pot_new)
+      # Endpoint updates for two ends
+      def end_body(i, inner_carry):
+        rng, chain_r, ss, _, _, old_pot = inner_carry
+        rand_int = i * pbeads_r
+        rng, chain_prop = endpoint_sampling(rng, chain_r, rand_int, real_mass, tau_c, beta, pbeads_r)
+        rng, chain_r_new, ss_new, K, Minv, old_pot_new = accept_move_fn(rng, chain_prop, chain_r, ss, old_pot)
+        return (rng, chain_r_new, ss_new, K, Minv, old_pot_new)
 
-    rng, chain_r, ss, old_pot = lax.fori_loop(0, 2, end_body, (rng, chain_r, ss, old_pot))
-
-    # Output the sample value (difference between endpoints)
-    sample_value = chain_r[0] - chain_r[pbeads_r]
-    
-    return (rng, chain_r, ss, old_pot), sample_value
-  return step
+      rng, chain_r, ss, K, Minv, old_pot = lax.fori_loop(0, 2, end_body, (rng, chain_r, ss, jnp.zeros(P-1), jnp.zeros((P-1,P-1)), old_pot))
 
 
+      std = jnp.sqrt(K @ Minv @ K)
+      empirical_std = jnp.sqrt(2*beta*get_Utilde(ss[:, burn_in:, :], chain_r, beta))
+      std_err = std - empirical_std
+      jax.debug.print("std error {x}", x=(jnp.abs(std - empirical_std), std, empirical_std))
+      # raw_samples = ss.reshape(num_chains*(num_unadjusted_steps - burn_in), ss.shape[2])
+      # chi_samples, weights = (jax.vmap(lambda s : (xi(s,r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma), s[i]))(raw_samples))
+      # variance = jnp.mean(chi_samples**2)
+      # Utilde = variance / (2 *beta)
+      # todo
 
+      
+      
+      # return (rng, chain_r, ss, old_pot), (chain_r, ss, K, Minv) # use this for plotting
+      return (rng, chain_r, ss, old_pot), (chain_r, std_err)
+    return step
 
-def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, real_mass, omga, kbt, num_unadjusted_steps, num_chains):
-  beta = 1.0 / kbt
-  omega_p = jnp.sqrt(pbeads_r) / beta
-
-  def get_Utilde(ss,r):
+  def get_Utilde(ss,r, beta):
   
     M, Minv, K, alpha, gamma, r = make_M_Minv_K(P, t, U, r, beta, hbar,m)
-    raw_samples = ss.reshape(num_chains*num_unadjusted_steps, ss.shape[2])
-    samples, weights = (jax.vmap(lambda x : (xi(x,r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma), x[i]))(raw_samples))
-
-    # print("samples.shape", samples.shape, weights.shape)
-    # jax.debug.print("samples {x}", x=samples)
-
-    variance = jnp.mean(samples**2)
-    Utilde = jnp.exp(-0.5 * variance)
+    raw_samples = ss.reshape(num_chains*(num_unadjusted_steps - burn_in), ss.shape[2])
+    chi_samples, weights = (jax.vmap(lambda s : (xi(s,r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma), s[i]))(raw_samples))
+    variance = jnp.mean(chi_samples**2)
+    Utilde = variance / (2 *beta)
     return Utilde
   
 
   beads_sigma_sqrds = get_sigma_vals(beta, omega_p, real_mass, jval_r, jnp.zeros(jval_r))
 
   def pot_energy(r, Utilde):
-    # Calculate tau_c
-    
     # Calculate the kinetic term: (mP / (2|τ_c|^2)) * Σ_{k=1}^{P} (r_{k+1} - r_k)^2
     kinetic_term = (m * P) / (2 * jnp.abs(tau_c)**2) * jnp.sum((r[1:] - r[:-1])**2)
-    
     # Calculate the potential term: (1 / (2P)) * (U(r_1) + U(r_{P+1}))
-    potential_term = (1 / (2 * P)) * (U(r[0]) + U(r[P]))
-    
-    # Apply the formula: -β * [kinetic_term + potential_term]
-    
-    # Keep the existing sampling logic for ss
-    
-    pot_energy_value = -beta * (kinetic_term + potential_term + Utilde)
-    
-    return pot_energy_value
+    potential_term = (1 / (2 * P)) * (U(r[0]) + U(r[P]))    
+    return kinetic_term + potential_term + Utilde
 
-  r_length = chain_r.shape[0]
-
-  
+  # todo: use masses?
   initial_ss, L, step_size, inverse_mass_matrix = sample_s_chi(
-        t=1,
-        i=1,
+        t=t,
+        i=i,
         beta=beta,
         hbar=hbar,
         m=m,
-        U = lambda x : 0.5*m*(omga**2)*(x**2),
+        U = U,
         r=chain_r,
         sequential=False,
         initial_ss_and_params=None,
@@ -215,7 +212,9 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
         num_chains=num_chains # this should be at large as possible while still fitting in memory.
         )
 
-  Utilde = get_Utilde(initial_ss, chain_r)
+  print(initial_ss.shape, "initial_ss shape")
+  
+  Utilde = get_Utilde(initial_ss[:, burn_in:, :], chain_r, beta)
   old_pot_init = pot_energy(chain_r, Utilde)
 
   def accept_move(rng, chain_new, chain_current, ss, old_pot, beta, pot_energy_fn, L, step_size, inverse_mass_matrix):
@@ -236,9 +235,9 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
     """
     rng, sub = jax.random.split(rng)
     ss_and_params = {'params': {'L': L, 'step_size': step_size, 'inverse_mass_matrix': inverse_mass_matrix}, 'ss': ss[:, -1, :]}
-    _, _, new_ss, _, _ = sample_s_chi(
-        t=1,
-        i=1,
+    _, _, new_ss, K, Minv = sample_s_chi(
+        t=t,
+        i=i,
         beta=beta,
         hbar=hbar,
         m=m,
@@ -252,7 +251,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
         # filename=filename,
         num_chains=num_chains # this should be at large as possible while still fitting in memory.
         )
-    Utilde = get_Utilde(new_ss, chain_new)
+    Utilde = get_Utilde(new_ss[:, burn_in:, :], chain_new, beta)
     new_pot = pot_energy_fn(chain_new, Utilde)
     exp_pot = jnp.exp(-beta * (new_pot - old_pot))
     rng, sub = jax.random.split(rng)
@@ -260,7 +259,11 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
     accept = randval <= jnp.minimum(1.0, exp_pot)
     updated_r = jnp.where(accept, chain_new, chain_current)
     updated_pot = jnp.where(accept, new_pot, old_pot)
-    return rng, updated_r, new_ss, updated_pot
+
+    new_M, new_Minv, new_K, new_alpha, new_gamma, new_r = make_M_Minv_K(P, t, U, updated_r, beta, hbar,m)
+
+    updated_ss = jnp.where(accept, new_ss, ss)
+    return rng, updated_r, updated_ss, new_K, new_Minv, updated_pot
 
 
   # Precompute integer choices
@@ -269,85 +272,116 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
   lft_wall_choices = lft_wall_choices - 1  # zero-based
   alt_jval_r = pbeads_r - lft_wall_choices[-1]
 
-  # Create a closure for accept_move with the pot_energy function
-  # def accept_move_with_pot(rng, chain_new, chain_current, ss, old_pot):
-  #   return accept_move(rng, chain_new, chain_current, ss, old_pot, beta, pot_energy)
-
+  
   accept_fn = partial(accept_move, beta=beta, pot_energy_fn=pot_energy, L=L, step_size=step_size, inverse_mass_matrix=inverse_mass_matrix)
-
-  # Create a closure for mc_step with all the required parameters
-  # def mc_step_with_params(carry, step_idx):
-  #   return mc_step(carry, step_idx, pbeads_r, jval_r, real_mass, beta, beads_sigma_sqrds, 
-  #                  lft_wall_choices, numchoices, alt_jval_r, accept_move_with_pot)
-
+ 
   step = make_mc_step(pbeads_r, jval_r, real_mass, beta, beads_sigma_sqrds, 
-                      lft_wall_choices, numchoices, alt_jval_r, accept_fn)
+                      lft_wall_choices, numchoices, alt_jval_r, tau_c, accept_fn)
 
   init_carry = (rng, chain_r, initial_ss, old_pot_init)
-  jax.debug.print("num steps {x}", x=mc_steps)
-  (rng_out, chain_r_out, ss_out, old_pot_out), all_samples = lax.scan(step, init_carry, jnp.arange(mc_steps))
+  # (rng_out, chain_r_out, ss_out, old_pot_out), (all_samples, ss_hist, K, Minv) = lax.scan(step, init_carry, jnp.arange(mc_steps)) # use this for plotting
+  (rng_out, chain_r_out, ss_out, old_pot_out), (all_samples, std_errs) = lax.scan(step, init_carry, jnp.arange(mc_steps))
 
-  # Extract only post-equilibration samples
+  plotting = False
+  if plotting:
+
+    index= 1
+
+    print("\n ss out ", ss_hist.shape, K.shape, Minv.shape, all_samples.shape)
+    flat_samples = ss_hist[index][:, burn_in:, :].reshape(num_chains*(num_unadjusted_steps-burn_in), ss_hist.shape[-1])
+    gamma = (m*P*t)/(hbar * (jnp.abs(tau_c)**2)) 
+    r_chain = all_samples[index]
+    
+    chi_samples, weights = (jax.vmap(lambda s : (xi(s,r=r_chain,U=U,t=t,P=P,hbar=hbar,gamma=gamma), s[i]))(flat_samples))
+
+    std = jnp.sqrt(K[index] @ Minv[index] @ K[index])
+    empirical_std = jnp.sqrt(jnp.mean(chi_samples**2))
+    jax.debug.print("std error final {x}", x=(jnp.abs(std - empirical_std), std, empirical_std))
+
+
+    make_histograms('testing', samples=chi_samples, weights=None, K=K[index], Minv=Minv[index], i=i)
+    raise Exception("Stop here")
+
   samples_np = np.asarray(all_samples[mc_equilibrate:])
-  histvals, hist_bin_edges = np.histogram(samples_np, bins=50)
-  return histvals, hist_bin_edges
+  return samples_np, std_errs
 
 
 if __name__ == "__main__":
   # Parameters
-  numsteps = 300
-  equilibration = 100
-  num_chains = 100
-  num_unadjusted_steps = 10
+  numsteps = 500000
+  equilibration = 0
+  num_chains = 10000
+  num_unadjusted_steps = 15
+  burn_in = 5 # inner loop burn in
 
-  P = 32
+  P = 8
   j_r = 8
-  # m = 1.0
-  # harm_omga = 1.0
-  beta_hbar_omega = 15.8
-  m_omega_over_hbar = 0.03
   m = 1.0
+  omega = 1.0
+
   hbar = 1.0
   i=1
   U = lambda x : 0.5*m*(omega**2)*(x**2)
 
   
-  omega = (m_omega_over_hbar * hbar) / m
-  kbt = 1.0 / 10.0
+  kbt = 1.0  
   beta = 1 / kbt
-  hbar = 1.0
-  t = 1.0
+
+  # time = 1.0
   im = 0 + 1j
-  # beta = (beta_hbar_omega / (hbar * omega))
-  tau_c = t - ((beta * hbar * im) / 2)
+  
 
   # Initial chain from uniform(0,1)
   rng = jax.random.PRNGKey(0)
   rng, sub = jax.random.split(rng)
   r_chain = jax.random.uniform(sub, shape=(P + 1,))
 
-  m = 1.0
-  w = 1.0
-
   tic = time.time()
-  dist_hist, dist_bin_edges = do_mc_open_chain(rng, numsteps, equilibration, r_chain, P, j_r, m, omega, kbt, num_unadjusted_steps, num_chains)
-  print(time.time() - tic, "time")
-  # Normalize histogram
-  sum1 = 0.0
-  for s in range(len(dist_hist)):
-    sum1 += dist_hist[s] * (dist_bin_edges[1] - dist_bin_edges[0])
-  dist_hist = dist_hist / sum1
+  for time in [1.0]:
+  # for time in [3.0]:
+    samples_np, std_errs = do_mc_open_chain(rng, numsteps, equilibration, r_chain, P, j_r, m, num_unadjusted_steps, num_chains, t=time)
+    print(samples_np.shape)
+    # save samples  
+    np.save(f'samples_np_{time}.npy', samples_np)
+    plt.plot(std_errs)
+    plt.savefig(f'std_errs_{time}.png')
+    # plt.clf()
 
-  # Plot
-  ideal_x = np.arange(-7, 7, 0.05)
-  ideal_prediction_x = np.asarray(get_harmonic_density(jnp.array(ideal_x), 1 / kbt, m, w))
-  # plt.plot(ideal_x, ideal_prediction_x, linestyle='-', label='Exact', color='blue')
-  plt.plot(bin_centers(dist_bin_edges), dist_hist, 'o', label=r'$N(u_{P+1})$', color='red')
-  plt.legend(loc='upper right')
-  plt.xlabel(r'$u_{P+1}$')
-  plt.ylabel(r'$N(u_{P+1})$')
-  plt.title('Estimator for harmonic oscillator density matrix (JAX)')
-  plt.savefig('the_density.png')
-  plt.clf()
+
+  # observable = lambda x : x[0] * x[-1]
+  # observables = jax.vmap(observable)(samples_np)
+  # plt.hist(observables, bins=50)
+  # plt.savefig('the_density.png')
+  # plt.clf()
+
+  # histvals, hist_bin_edges = np.histogram(samples_np, bins=50)
+  # # make histogram
+  # plt.plot(hist_bin_edges[:-1], histvals, label='Monte Carlo Samples')
+  # plt.legend(loc='upper right')
+  # plt.xlabel(r'$u_{P+1}$')
+  # plt.ylabel(r'$N(u_{P+1})$')
+  # plt.title('Estimator for harmonic oscillator density matrix (JAX)')
+  # plt.savefig('the_density.png')
+  # plt.clf()
+
+
+  # print(time.time() - tic, "time")
+  # # Normalize histogram
+  # sum1 = 0.0
+  # for s in range(len(dist_hist)):
+  #   sum1 += dist_hist[s] * (dist_bin_edges[1] - dist_bin_edges[0])
+  # dist_hist = dist_hist / sum1
+
+  # # Plot
+  # ideal_x = np.arange(-7, 7, 0.05)
+  # ideal_prediction_x = np.asarray(get_harmonic_density(jnp.array(ideal_x), 1 / kbt, m, w))
+  # # plt.plot(ideal_x, ideal_prediction_x, linestyle='-', label='Exact', color='blue')
+  # plt.plot(bin_centers(dist_bin_edges), dist_hist, 'o', label=r'$N(u_{P+1})$', color='red')
+  # plt.legend(loc='upper right')
+  # plt.xlabel(r'$u_{P+1}$')
+  # plt.ylabel(r'$N(u_{P+1})$')
+  # plt.title('Estimator for harmonic oscillator density matrix (JAX)')
+  # plt.savefig('the_density.png')
+  # plt.clf()
 
 

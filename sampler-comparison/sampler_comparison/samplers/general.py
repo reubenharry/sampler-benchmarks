@@ -144,6 +144,8 @@ def sampler_grads_to_low_error(
         keys,
         initial_position,
     )
+    # jax.debug.print("metadata {x}", x=metadata)
+    # jax.debug.print("\n\nsamples {x}\n\n", x=samples['identity']['avg'].shape)
 
     individual_chain_statistics = False
     if individual_chain_statistics:

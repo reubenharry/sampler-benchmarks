@@ -36,7 +36,7 @@ def adjusted_overdamped_no_tuning(
 
         logdensity_fn = make_log_density_fn(model)
 
-        num_steps_per_traj = L / step_size
+        # num_steps_per_traj = L / step_size
         
 
         # integration_steps_fn = make_random_trajectory_length_fn(random_trajectory_length)
@@ -148,7 +148,6 @@ def adjusted_overdamped(
         # num_alba_steps = num_tuning_steps // 3
 
         # da
-        # TODO: change to mala
         warmup = blackjax.window_adaptation(
                     blackjax.dynamic_malt, logdensity_fn, integrator=integrator, 
                     preconditioning=diagonal_preconditioning,
@@ -156,12 +155,13 @@ def adjusted_overdamped(
                     # adaptation_info_fn=lambda a , info, b : info,
                     adaptation_info_fn=lambda a , b, c : None,
                     extra_init_args={'random_generator_arg': init_key},
+                    integration_steps_fn = lambda _: jnp.ones(1)[0],
                 )
         (state, params), adaptation_info = warmup.run(
                 tune_key, initial_position, num_tuning_steps
             )
 
-        # jax.debug.print("params {x}", x=state.position[0])
+        jax.debug.print("params {x}", x=state.position[0])
 
         # hmc_state = HMCState(
         #     position=initial_position,
