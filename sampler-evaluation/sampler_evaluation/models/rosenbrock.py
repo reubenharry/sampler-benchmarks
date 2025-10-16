@@ -121,7 +121,7 @@ class Rosenbrock(model.Model):
             sample_transformations=sample_transformations,
         )
 
-    def unnormalized_log_prob(self, x):
+    def _unnormalized_log_prob(self, x):
         """- log p of the target distribution"""
         X, Y = x[..., : self.ndims // 2], x[..., self.ndims // 2 :]
         return -0.5 * jnp.sum(
