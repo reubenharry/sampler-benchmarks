@@ -308,7 +308,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
 
 if __name__ == "__main__":
   # Parameters
-  numsteps = 500000
+  numsteps = 1000000
   equilibration = 0
   num_chains = 10000
   num_unadjusted_steps = 15
@@ -334,11 +334,15 @@ if __name__ == "__main__":
   # Initial chain from uniform(0,1)
   rng = jax.random.PRNGKey(0)
   rng, sub = jax.random.split(rng)
-  r_chain = jax.random.uniform(sub, shape=(P + 1,))
+  # load r_chain 
 
   tic = time.time()
   for time in [1.0]:
   # for time in [3.0]:
+    r_chain = jax.random.uniform(sub, shape=(P + 1,))
+    # r_chains = np.load(f'/global/homes/r/reubenh/sampler-benchmarks/sampler-comparison/samples_np_{time}.npy')
+    # r_chain= jnp.array(r_chains[-1, :])
+    # print(r_chain.shape, "r_chain shape")
     samples_np, std_errs = do_mc_open_chain(rng, numsteps, equilibration, r_chain, P, j_r, m, num_unadjusted_steps, num_chains, t=time)
     print(samples_np.shape)
     # save samples  
