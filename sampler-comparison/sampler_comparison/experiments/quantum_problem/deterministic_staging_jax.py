@@ -130,34 +130,34 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
 
       # Segment updates over all left walls
       def seg_body(i, inner_carry):
-        rng, chain_r, ss, _, _, old_pot = inner_carry
+        rng, chain_r, ss, _, _, old_pot, acc_prob = inner_carry
         leftwall = lft_wall_choices[i]
         j_this = jnp.where(i == (numchoices - 1), alt_jval_r, jval_r)
         rng, chain_prop = do_intermediate_staging(rng, chain_r, leftwall, beads_sigma_sqrds, j_this, pbeads_r, jval_r)
-        rng, chain_r_new, ss_new, K, Minv, new_pot = accept_move_fn(rng, chain_prop, chain_r, ss, old_pot)
-        return (rng, chain_r_new, ss_new, K, Minv, new_pot)
+        rng, chain_r_new, ss_new, K, Minv, new_pot, acc_prob = accept_move_fn(rng, chain_prop, chain_r, ss, old_pot)
+        return (rng, chain_r_new, ss_new, K, Minv, new_pot, acc_prob)
 
-      rng, chain_r, ss, K, Minv, old_pot = lax.fori_loop(0, numchoices, seg_body, (rng, chain_r, ss, jnp.zeros(P-1), jnp.zeros((P-1,P-1)), old_pot))
+      rng, chain_r, ss, K, Minv, old_pot, acc_prob = lax.fori_loop(0, numchoices, seg_body, (rng, chain_r, ss, jnp.zeros(P-1), jnp.zeros((P-1,P-1)), old_pot, 0))
 
       # Single-bead updates (excluding first choice)
       def single_body(i, inner_carry):
-        rng, chain_r, ss, _, _, old_pot = inner_carry
+        rng, chain_r, ss, _, _, old_pot, acc_prob = inner_carry
         leftwall = lft_wall_choices[i] - 1
         rng, chain_prop = do_intermediate_staging(rng, chain_r, leftwall, beads_sigma_sqrds, jnp.array(1), pbeads_r, jval_r)
-        rng, chain_r_new, ss_new, K, Minv, old_pot_new = accept_move_fn(rng, chain_prop, chain_r, ss, old_pot)
-        return (rng, chain_r_new, ss_new, K, Minv, old_pot_new)
+        rng, chain_r_new, ss_new, K, Minv, old_pot_new, acc_prob = accept_move_fn(rng, chain_prop, chain_r, ss, old_pot)
+        return (rng, chain_r_new, ss_new, K, Minv, old_pot_new, acc_prob)
 
-      rng, chain_r, ss, K, Minv, old_pot = lax.fori_loop(1, numchoices, single_body, (rng, chain_r, ss, jnp.zeros(P-1), jnp.zeros((P-1,P-1)), old_pot))
+      rng, chain_r, ss, K, Minv, old_pot, acc_prob = lax.fori_loop(1, numchoices, single_body, (rng, chain_r, ss, jnp.zeros(P-1), jnp.zeros((P-1,P-1)), old_pot, 0))
 
       # Endpoint updates for two ends
       def end_body(i, inner_carry):
-        rng, chain_r, ss, _, _, old_pot = inner_carry
+        rng, chain_r, ss, _, _, old_pot, acc_prob = inner_carry
         rand_int = i * pbeads_r
         rng, chain_prop = endpoint_sampling(rng, chain_r, rand_int, real_mass, tau_c, beta, pbeads_r)
-        rng, chain_r_new, ss_new, K, Minv, old_pot_new = accept_move_fn(rng, chain_prop, chain_r, ss, old_pot)
-        return (rng, chain_r_new, ss_new, K, Minv, old_pot_new)
+        rng, chain_r_new, ss_new, K, Minv, old_pot_new, acc_prob = accept_move_fn(rng, chain_prop, chain_r, ss, old_pot)
+        return (rng, chain_r_new, ss_new, K, Minv, old_pot_new, acc_prob)
 
-      rng, chain_r, ss, K, Minv, old_pot = lax.fori_loop(0, 2, end_body, (rng, chain_r, ss, jnp.zeros(P-1), jnp.zeros((P-1,P-1)), old_pot))
+      rng, chain_r, ss, K, Minv, old_pot, acc_prob = lax.fori_loop(0, 2, end_body, (rng, chain_r, ss, jnp.zeros(P-1), jnp.zeros((P-1,P-1)), old_pot, 0))
 
 
       std = jnp.sqrt(K @ Minv @ K)
@@ -173,7 +173,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
       
       
       # return (rng, chain_r, ss, old_pot), (chain_r, ss, K, Minv) # use this for plotting
-      return (rng, chain_r, ss, old_pot), (chain_r, std_err)
+      return (rng, chain_r, ss, old_pot), (chain_r, std_err, acc_prob)
     return step
 
   def get_Utilde(ss,r, beta):
@@ -190,10 +190,10 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
 
   def pot_energy(r, Utilde):
     # Calculate the kinetic term: (mP / (2|τ_c|^2)) * Σ_{k=1}^{P} (r_{k+1} - r_k)^2
-    kinetic_term = (m * P) / (2 * jnp.abs(tau_c)**2) * jnp.sum((r[1:] - r[:-1])**2)
+    # kinetic_term = (m * P) / (2 * jnp.abs(tau_c)**2) * jnp.sum((r[1:] - r[:-1])**2)
     # Calculate the potential term: (1 / (2P)) * (U(r_1) + U(r_{P+1}))
     potential_term = (1 / (2 * P)) * (U(r[0]) + U(r[P]))    
-    return kinetic_term + potential_term + Utilde
+    return potential_term + Utilde
 
   # todo: use masses?
   initial_ss, L, step_size, inverse_mass_matrix = sample_s_chi(
@@ -263,7 +263,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
     new_M, new_Minv, new_K, new_alpha, new_gamma, new_r = make_M_Minv_K(P, t, U, updated_r, beta, hbar,m)
 
     updated_ss = jnp.where(accept, new_ss, ss)
-    return rng, updated_r, updated_ss, new_K, new_Minv, updated_pot
+    return rng, updated_r, updated_ss, new_K, new_Minv, updated_pot, jnp.minimum(1.0, exp_pot)
 
 
   # Precompute integer choices
@@ -280,7 +280,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
 
   init_carry = (rng, chain_r, initial_ss, old_pot_init)
   # (rng_out, chain_r_out, ss_out, old_pot_out), (all_samples, ss_hist, K, Minv) = lax.scan(step, init_carry, jnp.arange(mc_steps)) # use this for plotting
-  (rng_out, chain_r_out, ss_out, old_pot_out), (all_samples, std_errs) = lax.scan(step, init_carry, jnp.arange(mc_steps))
+  (rng_out, chain_r_out, ss_out, old_pot_out), (all_samples, std_errs, acc_probs) = lax.scan(step, init_carry, jnp.arange(mc_steps))
 
   plotting = False
   if plotting:
@@ -303,19 +303,19 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
     raise Exception("Stop here")
 
   samples_np = np.asarray(all_samples[mc_equilibrate:])
-  return samples_np, std_errs
+  return samples_np, std_errs, acc_probs
 
 
 if __name__ == "__main__":
   # Parameters
-  numsteps = 1000000
+  numsteps = 100000
   equilibration = 0
   num_chains = 10000
   num_unadjusted_steps = 15
   burn_in = 5 # inner loop burn in
 
   P = 8
-  j_r = 8
+  j_r = 5
   m = 1.0
   omega = 1.0
 
@@ -343,12 +343,18 @@ if __name__ == "__main__":
     # r_chains = np.load(f'/global/homes/r/reubenh/sampler-benchmarks/sampler-comparison/samples_np_{time}.npy')
     # r_chain= jnp.array(r_chains[-1, :])
     # print(r_chain.shape, "r_chain shape")
-    samples_np, std_errs = do_mc_open_chain(rng, numsteps, equilibration, r_chain, P, j_r, m, num_unadjusted_steps, num_chains, t=time)
+    samples_np, std_errs, acc_probs = do_mc_open_chain(rng, numsteps, equilibration, r_chain, P, j_r, m, num_unadjusted_steps, num_chains, t=time)
     print(samples_np.shape)
     # save samples  
-    np.save(f'samples_np_{time}.npy', samples_np)
+    np.save(f'samples_np_{time}_{j_r}.npy', samples_np)
     plt.plot(std_errs)
-    plt.savefig(f'std_errs_{time}.png')
+    plt.savefig(f'std_errs_{time}_{j_r}.png')
+    plt.clf()
+    # get running avg of acc_probs
+    running_avg_acc_probs = np.cumsum(acc_probs) / np.arange(1, len(acc_probs) + 1)
+    plt.plot(running_avg_acc_probs)
+    # plt.savefig(f'running_avg_acc_probs_{time}.png')
+    plt.savefig(f'acc_probs_{time}_{j_r}.png')
     # plt.clf()
 
 
