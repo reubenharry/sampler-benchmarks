@@ -172,11 +172,11 @@ def Schwinger(Lt, Lx, beta= 1., m = -.188, load_from_file=False):
 
     def action(gauge_field):
 
-        return gauge_logdensity(gauge_field) + ferm_action(gauge_density)
+        return gauge_logdensity(gauge_field) + ferm_action(gauge_field)
 
     def action_pf(gauge_field,pf):
 
-        return gauge_logdensity(gauge_field) + ferm_pf_action(gauge_density,pf)
+        return gauge_logdensity(gauge_field) + ferm_pf_action(gauge_field,pf)
 
     return make_model(
         logdensity_fn=action,
