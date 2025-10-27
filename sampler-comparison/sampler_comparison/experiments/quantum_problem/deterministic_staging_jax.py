@@ -5,7 +5,163 @@ from jax import lax
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-from quantum_problem import make_histograms, sample_s_chi, xi, make_M_Minv_K
+import time
+import matplotlib.pyplot as plt
+# from sampling_algorithms import da_adaptation
+import sys
+sys.path.append("/global/u1/r/reubenh/blackjax")
+sys.path.append("/global/u1/r/reubenh/sampler-benchmarks/sampler-comparison")
+import jax
+# import blackjax
+import numpy as np
+import jax.numpy as jnp
+from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import (
+    unadjusted_mclmc,
+    unadjusted_mclmc_no_tuning,
+)
+import blackjax
+
+def histogram_area(values, bins=50, range=None):
+    counts, edges = jnp.histogram(values, bins=bins, range=range, density=False)
+    widths = jnp.diff(edges)
+    area = jnp.sum(counts * widths)
+    return area
+
+def mod_index(arr, i):
+    return arr[i % (arr.shape[0])]
+
+def analytic_gaussian(l, K, Minv):
+    return jax.scipy.stats.norm.pdf(loc=0, scale=jnp.sqrt(K @ Minv @ K), x=l)
+
+def analytic(lam, i, K, Minv): 
+
+    return (1/ (2*np.sqrt(2*np.pi))) *2*(Minv[:,i]@K)*((1/(K @ Minv @ K))**(3/2))*lam*np.exp( (-(lam**2)) / (2 * K @ Minv @ K) )
+
+
+def make_histograms(filename, samples, weights, K, Minv, i):
+
+    num_bins = 100
+    samples = np.array(samples)
+    l = np.linspace(jnp.min(samples), jnp.max(samples), num_bins)
+
+    gaussian = analytic_gaussian(l, K=K, Minv=Minv)
+    plt.plot(l, gaussian)
+    plt.hist(samples, bins=num_bins, density=True)
+
+    plt.savefig(filename + "hist.png")
+    plt.clf()
+
+def make_M_Minv_K(P, t, U, r, beta, hbar,m):
+    tau_c = t - ((beta * hbar * im) / 2)
+
+    alpha = (m*P*beta)/(4*(jnp.abs(tau_c)**2))
+    gamma = (m*P*t)/(hbar * (jnp.abs(tau_c)**2)) 
+
+    M = (jnp.diag(2*alpha  + (beta / (4*P))*jax.vmap(jax.grad(jax.grad(U)))(r[1:-1])) ) - alpha * jnp.diag(jnp.ones(P-2),k=1) - alpha * jnp.diag(jnp.ones(P-2),k=-1)
+
+    Minv = jnp.linalg.inv(M)
+
+    K = gamma * (2*r[1:-1] - r[:-2] - r[2:]) - (t * jax.vmap(jax.grad(U))(r[1:-1]))/(P*hbar)
+
+    print(K.shape, "k shape")
+
+    return M, Minv, K, alpha, gamma, r
+
+def xi(s, r, U, t, P, hbar, gamma):
+    term1 = gamma * ((r[2:-1] - r[1:-2]).dot(s[1:] - s[:-1])  + (r[1] - r[0])*s[0] - (r[-1] - r[-2])*s[-1] )
+    term2 = -(t/(P*hbar))*jnp.sum(jnp.array([U(r[i-1]+(s[i-2]/2)) - U(r[i-1]-(s[i-2]/2)) for i in range (2, P+1)]))
+    return term1 + term2
+
+
+
+
+def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKey(0), sequential=False, sample_init=None, num_unadjusted_steps=100, num_adjusted_steps=100, num_chains=5000, initial_ss_and_params=None):
+
+
+    P = r.shape[0] - 1
+    print(P, "P")
+
+    sqnorm = lambda x: x.dot(x)
+
+    
+    M, Minv, K, alpha, gamma, r = make_M_Minv_K(P, t, U, r, beta, hbar, m)
+
+    @jax.jit
+    def logdensity_fn(s):
+        term1 = (alpha / 2) * (sqnorm(s[1:] - s[:-1]) + (  (s[0]**2) + (s[-1]**2) ))
+        term2 = (beta / (2*P)) * jnp.sum(jax.vmap(U)(r[1:-1] + s/2) + jax.vmap(U)(r[1:-1] - s/2))
+        return  -(term1 + term2)
+    
+
+
+    
+    def transform(state, info):
+        x = state.position
+        return (xi(x,r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma
+                   
+                   ),x[i])
+        
+    
+    init_key, run_key = jax.random.split(rng_key)
+    
+   
+    from collections import namedtuple
+    Model = namedtuple("Model", ["ndims", "log_density_fn", "default_event_space_bijector"])
+    
+    model = Model(
+        ndims=(P-1),
+        log_density_fn=logdensity_fn,
+        default_event_space_bijector=lambda x: x,
+    )
+
+
+
+    if initial_ss_and_params is not None:
+
+            raw_samples, metadata = jax.vmap(lambda key, pos: 
+                unadjusted_mclmc_no_tuning(
+                    return_samples=True, 
+                    # return_only_final=True, 
+                    integrator_type="mclachlan",
+                    L=initial_ss_and_params['params']['L'], 
+                    step_size=initial_ss_and_params['params']['step_size'], 
+                    initial_state=blackjax.mclmc.init(
+                        position=pos,
+                        logdensity_fn=logdensity_fn,
+                        random_generator_arg=jax.random.split(key)[0],
+                    ), 
+                    inverse_mass_matrix=initial_ss_and_params['params']['inverse_mass_matrix'],
+                )(
+                model=model, 
+                num_steps=num_unadjusted_steps,
+                initial_position=pos, 
+                key=key))(jax.random.split(init_key, num_chains), initial_ss_and_params['ss'])
+
+            # raw_samples = raw_samples.reshape(num_chains*num_unadjusted_steps, P-1)
+            samples, weights = (jax.vmap(lambda x : (xi(x,r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma), x[i]))(raw_samples.reshape(num_chains*num_unadjusted_steps, P-1)))
+            return samples, weights, raw_samples, K, Minv
+
+    else:
+        raw_samples, metadata = jax.vmap(lambda key: unadjusted_mclmc(
+            return_samples=True, 
+            return_only_final=False,
+            num_tuning_steps=1000,
+            )(
+                model=model, 
+                num_steps=num_unadjusted_steps,
+                
+                initial_position=jax.random.normal(init_key, (P-1,)), 
+                key=key))(jax.random.split(init_key, num_chains))
+        
+        L = metadata['L'].mean()
+        step_size = metadata['step_size'].mean()
+        inverse_mass_matrix = metadata['inverse_mass_matrix'].mean(axis=0)
+
+        samples = raw_samples
+
+        return samples, L, step_size, inverse_mass_matrix
+
+ 
 
 def bin_centers(bin_edges):
   return (bin_edges[1:] + bin_edges[:-1]) / 2.0
@@ -64,7 +220,8 @@ def do_intermediate_staging(rng, chain_pos, left_wall, sigma_sqrds, j_this, big_
 
 def endpoint_sampling(rng, chain_pos, beadval, real_mass, tau_c, inv_kt, big_p):
   # std = jnp.sqrt(inv_kt / (real_mass * big_p))
-  std = jnp.sqrt(jnp.abs(tau_c)**2 / (real_mass * big_p))
+  # std = jnp.sqrt(jnp.abs(tau_c)**2 / (real_mass * big_p))
+  std = jnp.sqrt(jnp.abs(tau_c)**2 / (real_mass * big_p * inv_kt))
   rng, sub0 = jax.random.split(rng)
   rng, sub1 = jax.random.split(rng)
   mean0 = chain_pos[1]
@@ -160,10 +317,12 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
       rng, chain_r, ss, K, Minv, old_pot, acc_prob = lax.fori_loop(0, 2, end_body, (rng, chain_r, ss, jnp.zeros(P-1), jnp.zeros((P-1,P-1)), old_pot, 0))
 
 
-      std = jnp.sqrt(K @ Minv @ K)
-      empirical_std = jnp.sqrt(2*beta*get_Utilde(ss[:, burn_in:, :], chain_r, beta))
-      std_err = std - empirical_std
-      jax.debug.print("std error {x}", x=(jnp.abs(std - empirical_std), std, empirical_std))
+      # std = jnp.sqrt(K @ Minv @ K)
+      # empirical_std = jnp.sqrt(2*beta*get_Utilde(ss[:, burn_in:, :], chain_r, beta))
+      # std_err = std - empirical_std
+      std_err = 0
+
+      # jax.debug.print("std error {x}", x=(jnp.abs(std - empirical_std), std, empirical_std))
       # raw_samples = ss.reshape(num_chains*(num_unadjusted_steps - burn_in), ss.shape[2])
       # chi_samples, weights = (jax.vmap(lambda s : (xi(s,r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma), s[i]))(raw_samples))
       # variance = jnp.mean(chi_samples**2)
@@ -177,13 +336,16 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
     return step
 
   def get_Utilde(ss,r, beta):
+
+    # return None
   
     M, Minv, K, alpha, gamma, r = make_M_Minv_K(P, t, U, r, beta, hbar,m)
     raw_samples = ss.reshape(num_chains*(num_unadjusted_steps - burn_in), ss.shape[2])
     chi_samples, weights = (jax.vmap(lambda s : (xi(s,r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma), s[i]))(raw_samples))
     variance = jnp.mean(chi_samples**2)
+    area = histogram_area(chi_samples)
     Utilde = variance / (2 *beta)
-    return Utilde
+    return Utilde - jnp.log(area) / (beta)
   
 
   beads_sigma_sqrds = get_sigma_vals(beta, omega_p, real_mass, jval_r, jnp.zeros(jval_r))
@@ -192,8 +354,22 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
     # Calculate the kinetic term: (mP / (2|τ_c|^2)) * Σ_{k=1}^{P} (r_{k+1} - r_k)^2
     # kinetic_term = (m * P) / (2 * jnp.abs(tau_c)**2) * jnp.sum((r[1:] - r[:-1])**2)
     # Calculate the potential term: (1 / (2P)) * (U(r_1) + U(r_{P+1}))
-    potential_term = (1 / (2 * P)) * (U(r[0]) + U(r[P]))    
-    return potential_term + Utilde
+    potential_term = (1 / (2 * P)) * (U(r[0]) + U(r[P])) 
+
+    potential_term_2 = (1/P) * jnp.sum(U(r[1:-1]))
+
+    M, Minv, K, alpha, gamma, r = make_M_Minv_K(P, t, U, r, beta, hbar,m)
+
+    potential_term_3 = jnp.log(jax.scipy.linalg.det(M)) / (2 * beta)
+
+    potential_term_4 = (K @ Minv @ K) / (2 * beta)
+
+    return potential_term + potential_term_2 + potential_term_3 + potential_term_4
+
+
+
+
+    # return potential_term + Utilde
 
   # todo: use masses?
   initial_ss, L, step_size, inverse_mass_matrix = sample_s_chi(
@@ -212,10 +388,11 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
         num_chains=num_chains # this should be at large as possible while still fitting in memory.
         )
 
-  print(initial_ss.shape, "initial_ss shape")
+  # print(initial_ss.shape, "initial_ss shape")
   
   Utilde = get_Utilde(initial_ss[:, burn_in:, :], chain_r, beta)
   old_pot_init = pot_energy(chain_r, Utilde)
+  # old_pot_init = pot_energy(chain_r)
 
   def accept_move(rng, chain_new, chain_current, ss, old_pot, beta, pot_energy_fn, L, step_size, inverse_mass_matrix):
     """
@@ -253,6 +430,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
         )
     Utilde = get_Utilde(new_ss[:, burn_in:, :], chain_new, beta)
     new_pot = pot_energy_fn(chain_new, Utilde)
+    # new_pot = pot_energy_fn(chain_new)
     exp_pot = jnp.exp(-beta * (new_pot - old_pot))
     rng, sub = jax.random.split(rng)
     randval = jax.random.uniform(sub)
@@ -269,10 +447,13 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
   # Precompute integer choices
   numchoices = int(np.floor((pbeads_r - 1) / (jval_r + 1))) + 1
   lft_wall_choices = jnp.arange(numchoices) * (jval_r + 1) + 1
-  lft_wall_choices = lft_wall_choices - 1  # zero-based
   alt_jval_r = pbeads_r - lft_wall_choices[-1]
+  lft_wall_choices = lft_wall_choices - 1  # zero-based
 
-  
+  # L = 0
+  # step_size = 0
+  # inverse_mass_matrix = 0
+  # initial_ss = 0
   accept_fn = partial(accept_move, beta=beta, pot_energy_fn=pot_energy, L=L, step_size=step_size, inverse_mass_matrix=inverse_mass_matrix)
  
   step = make_mc_step(pbeads_r, jval_r, real_mass, beta, beads_sigma_sqrds, 
@@ -296,7 +477,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
 
     std = jnp.sqrt(K[index] @ Minv[index] @ K[index])
     empirical_std = jnp.sqrt(jnp.mean(chi_samples**2))
-    jax.debug.print("std error final {x}", x=(jnp.abs(std - empirical_std), std, empirical_std))
+    # jax.debug.print("std error final {x}", x=(jnp.abs(std - empirical_std), std, empirical_std))
 
 
     make_histograms('testing', samples=chi_samples, weights=None, K=K[index], Minv=Minv[index], i=i)
@@ -308,14 +489,14 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
 
 if __name__ == "__main__":
   # Parameters
-  numsteps = 100000
+  numsteps = 2000000
   equilibration = 0
   num_chains = 10000
-  num_unadjusted_steps = 15
-  burn_in = 5 # inner loop burn in
+  num_unadjusted_steps = 2
+  burn_in = 1 # inner loop burn in
 
   P = 8
-  j_r = 5
+  j_r = 1
   m = 1.0
   omega = 1.0
 
@@ -337,7 +518,13 @@ if __name__ == "__main__":
   # load r_chain 
 
   tic = time.time()
-  for time in [1.0]:
+  for time in [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]:
+    if time < 4.0:
+      P = 8
+    elif time < 8.0:
+      P = 16
+    else:
+      P = 32
   # for time in [3.0]:
     r_chain = jax.random.uniform(sub, shape=(P + 1,))
     # r_chains = np.load(f'/global/homes/r/reubenh/sampler-benchmarks/sampler-comparison/samples_np_{time}.npy')

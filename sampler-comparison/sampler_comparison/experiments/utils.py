@@ -46,6 +46,7 @@ from sampler_evaluation.models.phi4 import phi4
 from sampler_evaluation.models.data.estimate_expectations_phi4 import unreduce_lam
 from sampler_evaluation.models.bimodal import bimodal_gaussian
 from sampler_evaluation.models.neals_funnel_mams_paper import neals_funnel_mams_paper
+from sampler_evaluation.models.schwinger import Schwinger
 
 model_info = {
     IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log').name: {
@@ -225,6 +226,13 @@ model_info = {
         'pretty_name' : 'Neals Funnel',
         'batch_size' : 1,
         'num_steps' : {True : 100000000, False : 15000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : False,
+        'grid_search_steps' : {True : 150000, False : 150000}},
+    Schwinger(Lt=8, Lx=8, beta=6,load_from_file=False).name: {
+        'pretty_name' : 'Schwinger',
+        'batch_size' : 1,
+        'num_steps' : {True : 1000, False : 15000},
         'preferred_statistic' : 'square',
         'max_over_parameters' : False,
         'grid_search_steps' : {True : 150000, False : 150000}},

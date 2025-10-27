@@ -46,7 +46,7 @@ from sampler_evaluation.models.data.estimate_expectations_phi4 import unreduce_l
 from sampler_evaluation.models.u1 import U1
 from sampler_evaluation.models.bimodal import bimodal_gaussian
 from sampler_evaluation.models.neals_funnel_mams_paper import neals_funnel_mams_paper
-
+from sampler_evaluation.models.schwinger import Schwinger
 
 def clear_jax_cache():
     """Clear JAX compilation cache to prevent memory accumulation"""
@@ -126,9 +126,10 @@ if __name__ == "__main__":
     # models = [phi4(side, unreduce_lam(reduced_lam=4.0, side=side)) for side in [1024]]
 
     models = [
+        Schwinger(Lt=8, Lx=8, beta=6,load_from_file=False)
         # Rosenbrock(18),
         # brownian_motion(),
-        neals_funnel_mams_paper,
+        # neals_funnel_mams_paper,
         # phi4(256, unreduce_lam(reduced_lam=4.0, side=256)),
         # phi4(1024, unreduce_lam(reduced_lam=4.0, side=1024)),
         # german_credit(),
@@ -166,11 +167,11 @@ if __name__ == "__main__":
         run(
                     key=jax.random.PRNGKey(4),
                     models=[model],
-                    tuning_options=['mala'],
+                    tuning_options=['alba'],
                     mh_options = [True],
-                    canonical_options = [True],
-                    langevin_options = [False],
-                    integrator_type_options = ['velocity_verlet'],
+                    canonical_options = [False],
+                    langevin_options = [True],
+                    integrator_type_options = ['mclachlan'],
                     diagonal_preconditioning_options = [True],
                     redo=True,
                     compute_missing=True,
