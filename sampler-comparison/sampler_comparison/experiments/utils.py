@@ -229,10 +229,10 @@ model_info = {
         'preferred_statistic' : 'square',
         'max_over_parameters' : False,
         'grid_search_steps' : {True : 150000, False : 150000}},
-    Schwinger(Lt=8, Lx=8, beta=6,load_from_file=False).name: {
+    Schwinger(Lt=16, Lx=16, beta=6,load_from_file=False).name: {
         'pretty_name' : 'Schwinger',
         'batch_size' : 1,
-        'num_steps' : {True : 1000, False : 15000},
+        'num_steps' : {True : 1000, False : 1000},
         'preferred_statistic' : 'square',
         'max_over_parameters' : False,
         'grid_search_steps' : {True : 150000, False : 150000}},

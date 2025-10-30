@@ -138,6 +138,8 @@ def unadjusted_mclmc(
 
         num_tuning_integrator_steps = num_tuning_steps
 
+        # raise Exception("stop")
+
         expectations, metadata = unadjusted_mclmc_no_tuning(
             initial_state=blackjax_state_after_tuning,
             integrator_type=integrator_type,

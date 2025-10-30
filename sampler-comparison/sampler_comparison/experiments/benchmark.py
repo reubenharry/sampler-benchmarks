@@ -126,7 +126,7 @@ if __name__ == "__main__":
     # models = [phi4(side, unreduce_lam(reduced_lam=4.0, side=side)) for side in [1024]]
 
     models = [
-        Schwinger(Lt=8, Lx=8, beta=6,load_from_file=False)
+        Schwinger(Lt=16, Lx=16, beta=6,load_from_file=False)
         # Rosenbrock(18),
         # brownian_motion(),
         # neals_funnel_mams_paper,
@@ -168,14 +168,14 @@ if __name__ == "__main__":
                     key=jax.random.PRNGKey(4),
                     models=[model],
                     tuning_options=['alba'],
-                    mh_options = [True],
+                    mh_options = [False],
                     canonical_options = [False],
                     langevin_options = [True],
                     integrator_type_options = ['mclachlan'],
                     diagonal_preconditioning_options = [True],
                     redo=True,
                     compute_missing=True,
-                    redo_bad_results=True
+                    redo_bad_results=True,
                 )
     # run(
     #             key=jax.random.PRNGKey(4),

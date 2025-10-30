@@ -128,7 +128,7 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
     integrator_name = integrator_type.replace('_', ' ')
 
 
-    unadjusted_tuning_steps = 200000
+    unadjusted_tuning_steps = 20000
     adjusted_tuning_steps = 5000
 
     target_acc_rate = 0.9 if integrator_type == 'mclachlan' else 0.9
