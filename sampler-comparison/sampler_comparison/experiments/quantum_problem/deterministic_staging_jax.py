@@ -291,7 +291,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
         rng, chain_r, ss, _, _, old_pot, acc_prob = inner_carry
         leftwall = lft_wall_choices[i]
         j_this = jnp.where(i == (numchoices - 1), alt_jval_r, jval_r)
-        jax.debug.print("0 {x}", x=(leftwall, i, j_this))
+        # jax.debug.print("0 {x}", x=(leftwall, i, j_this))
         rng, chain_prop = do_intermediate_staging(rng, chain_r, leftwall, beads_sigma_sqrds, j_this, pbeads_r, jval_r)
         rng, chain_r_new, ss_new, K, Minv, new_pot, acc_prob = accept_move_fn(rng, chain_prop, chain_r, ss, old_pot)
         return (rng, chain_r_new, ss_new, K, Minv, new_pot, acc_prob)
@@ -302,7 +302,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
       def single_body(i, inner_carry):
         rng, chain_r, ss, _, _, old_pot, acc_prob = inner_carry
         leftwall = lft_wall_choices[i] - 1
-        jax.debug.print("1 {x}", x=(leftwall, i))
+        # jax.debug.print("1 {x}", x=(leftwall, i))
         rng, chain_prop = do_intermediate_staging(rng, chain_r, leftwall, beads_sigma_sqrds, jnp.array(1), pbeads_r, jval_r)
         rng, chain_r_new, ss_new, K, Minv, old_pot_new, acc_prob = accept_move_fn(rng, chain_prop, chain_r, ss, old_pot)
         return (rng, chain_r_new, ss_new, K, Minv, old_pot_new, acc_prob)
@@ -313,7 +313,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
       def end_body(i, inner_carry):
         rng, chain_r, ss, _, _, old_pot, acc_prob = inner_carry
         rand_int = i * pbeads_r
-        jax.debug.print("2 {x}", x=(rand_int, i))
+        # jax.debug.print("2 {x}", x=(rand_int, i))
         rng, chain_prop = endpoint_sampling(rng, chain_r, rand_int, real_mass, tau_c, beta, pbeads_r)
         rng, chain_r_new, ss_new, K, Minv, old_pot_new, acc_prob = accept_move_fn(rng, chain_prop, chain_r, ss, old_pot)
         return (rng, chain_r_new, ss_new, K, Minv, old_pot_new, acc_prob)
@@ -503,7 +503,7 @@ if __name__ == "__main__":
   burn_in = 0 # inner loop burn in
 
   P = 8
-  j_r = 1
+  j_r = 8
   m = 1.0
   omega = 1.0
 

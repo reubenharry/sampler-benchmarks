@@ -244,7 +244,7 @@ def make_flat_step(pbeads_r, jval_r, real_mass, beta, beads_sigma_sqrds,
                    lft_wall_choices, numchoices, alt_jval_r, t, tau_c, accept_move_fn, L, step_size, inverse_mass_matrix):
   
   
-  def r_step(rng, chain_r, ss, old_pot, state_in_sweep):
+  def r_step(rng, chain_r, state_in_sweep):
     
     # rng, chain_r, ss, old_pot = carry
     phase, wall_index = state_in_sweep
@@ -255,34 +255,34 @@ def make_flat_step(pbeads_r, jval_r, real_mass, beta, beads_sigma_sqrds,
       j_this = jnp.where(wall_index == (numchoices - 1), alt_jval_r, jval_r)
       # jax.debug.print("0 {x}", x=(leftwall, wall_index, j_this))
       rng_new, chain_prop = do_intermediate_staging(rng, chain_r, leftwall, beads_sigma_sqrds, j_this, pbeads_r, jval_r)
-      _, chain_r_new, K_new, Minv_new, new_pot, acc_prob_new = accept_move_fn(rng_new, chain_prop, chain_r, ss, old_pot)
+      # _, chain_r_new, K_new, Minv_new, new_pot, acc_prob_new = accept_move_fn(rng_new, chain_prop, chain_r, ss, old_pot)
       
       # Check if we've completed all segment updates
       next_wall = wall_index + 1
       next_phase = jnp.where(next_wall >= (numchoices), 1, 0)  # Move to single-bead phase when done
       next_wall = jnp.where(next_wall >= (numchoices ), 0, next_wall)  # Reset wall index for next phase
       
-      return (chain_r_new, new_pot), (next_phase, next_wall)
+      return (chain_prop), (next_phase, next_wall)
     
     # Phase 1: Single-bead updates (excluding first choice)
     def do_single_bead_update():
       leftwall = lft_wall_choices[wall_index+1] - 1
       # jax.debug.print("1 {x}", x=(leftwall, wall_index))
       rng_new, chain_prop = do_intermediate_staging(rng, chain_r, leftwall, beads_sigma_sqrds, jnp.array(1), pbeads_r, jval_r)
-      _, chain_r_new, K_new, Minv_new, new_pot, acc_prob_new = accept_move_fn(rng_new, chain_prop, chain_r, ss, old_pot)
+      # _, chain_r_new, K_new, Minv_new, new_pot, acc_prob_new = accept_move_fn(rng_new, chain_prop, chain_r, ss, old_pot)
       
       # Check if we've completed all single-bead updates
       next_wall = wall_index + 1
       next_phase = jnp.where(next_wall >= (numchoices - 1 ), 2, 1)  # Move to endpoint phase when done
       next_wall = jnp.where(next_wall >= (numchoices - 1 ), 0, next_wall)  # Reset wall index for next phase
       
-      return (chain_r_new, new_pot), (next_phase, next_wall)
+      return (chain_prop), (next_phase, next_wall)
     
     # Phase 2: Endpoint updates
     def do_endpoint_update():
       rand_int = wall_index * pbeads_r
       rng_new, chain_prop = endpoint_sampling(rng, chain_r, rand_int, real_mass, tau_c, beta, pbeads_r)
-      _, chain_r_new, K_new, Minv_new, new_pot, acc_prob_new = accept_move_fn(rng_new, chain_prop, chain_r, ss, old_pot)
+      # _, chain_r_new, K_new, Minv_new, new_pot, acc_prob_new = accept_move_fn(rng_new, chain_prop, chain_r, ss, old_pot)
 
       # jax.debug.print("2 {x}", x=(rand_int, wall_index))
       # Check if we've completed all endpoint updates
@@ -290,7 +290,7 @@ def make_flat_step(pbeads_r, jval_r, real_mass, beta, beads_sigma_sqrds,
       next_phase = jnp.where(next_wall >= 2, 0, 2)  # Reset to segment phase when done
       next_wall = jnp.where(next_wall >= 2, 0, next_wall)  # Reset wall index for next phase
       
-      return (chain_r_new, new_pot), (next_phase, next_wall)
+      return (chain_prop), (next_phase, next_wall)
     
     # Use lax.switch to select the appropriate phase function
     updated_carry, updated_state = lax.switch(
@@ -325,12 +325,17 @@ def make_flat_step(pbeads_r, jval_r, real_mass, beta, beads_sigma_sqrds,
 
   def flat_step(carry, rng):
 
-    r_key, ss_key = jax.random.split(rng)
+    r_key, ss_key, accept_key = jax.random.split(rng, 3)
 
     chain_r, ss, old_pot, state_in_sweep = carry
-    (new_chain_r, new_pot), new_state_in_sweep = r_step(r_key, chain_r, ss, old_pot, state_in_sweep)
-    new_ss = ss_step(ss, new_chain_r, ss_key)
-    return (new_chain_r, new_ss, new_pot, new_state_in_sweep), new_chain_r
+    (proposed_chain_r), new_state_in_sweep = r_step(r_key, chain_r, state_in_sweep)
+
+    proposed_ss = ss_step(ss, proposed_chain_r, ss_key)
+    _, chain_r_new, new_ss, K_new, Minv_new, new_pot, acc_prob_new = accept_move_fn(
+      rng=accept_key, chain_new=proposed_chain_r, chain_current=chain_r, new_ss=proposed_ss, old_ss=ss, old_pot=old_pot)
+    # accept or reject
+
+    return (chain_r_new, new_ss, new_pot, new_state_in_sweep), chain_r_new
     
 
   return flat_step
@@ -381,7 +386,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
   Utilde = get_Utilde(initial_ss[:, burn_in:, :], chain_r, beta)
   old_pot_init = pot_energy(chain_r, Utilde)
 
-  def accept_move(rng, chain_new, chain_current, new_ss, old_pot, beta, pot_energy_fn):
+  def accept_move(rng, chain_new, chain_current, new_ss, old_ss, old_pot, beta, pot_energy_fn):
     
     rng, sub = jax.random.split(rng)
     Utilde = get_Utilde(new_ss[:, burn_in:, :], chain_new, beta)
@@ -394,9 +399,11 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
     updated_r = jnp.where(accept, chain_new, chain_current)
     updated_pot = jnp.where(accept, new_pot, old_pot)
 
+    updated_ss = jnp.where(accept, new_ss, old_ss)
+
     new_M, new_Minv, new_K, new_alpha, new_gamma, new_r = make_M_Minv_K(P, t, U, updated_r, beta, hbar,m)
 
-    return rng, updated_r, new_K, new_Minv, updated_pot, jnp.minimum(1.0, exp_pot)
+    return rng, updated_r, updated_ss, new_K, new_Minv, updated_pot, jnp.minimum(1.0, exp_pot)
 
 
   # Precompute integer choices
