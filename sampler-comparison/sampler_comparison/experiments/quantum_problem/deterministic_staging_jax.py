@@ -349,7 +349,6 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
     variance = jnp.mean(chi_samples**2)
     # area = histogram_area(chi_samples)
     Utilde = variance / (2 *beta)
-    # return Utilde
     # out = Utilde - jnp.log(area) / (beta)
     # return out
 
@@ -365,6 +364,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
 
     
     true_norm = first_factor * second_factor * third_factor 
+    return Utilde, true_norm
     
     
     # jax.debug.print("true vs estimated {x}", x=(true_var, out))
@@ -466,7 +466,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
       term2 = jnp.sum(U(chain_current[1:-1] + s/2) + U(chain_current[1:-1] - s/2))
       out = -(beta / (2 * P)) * (term1 - term2)
       # jnp.sum(jnp.array([U(r[i-1]+(s[i-2]/2)) - U(r[i-1]-(s[i-2]/2)) for i in range (2, P+1)]))
-      return out
+      return jnp.exp(out)
 
     Utilde, new_norm = get_Utilde(new_ss[:, burn_in:, :], chain_new, beta)
     new_pot = pot_energy_fn(chain_new, Utilde)
@@ -475,7 +475,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
     flat_ss = new_ss[:, burn_in:, :].reshape(num_chains*(num_unadjusted_steps-burn_in), new_ss.shape[2])
     expectation_of_A = jax.vmap(A)(flat_ss).mean()
     jax.debug.print("expectation_of_A empirical vs analytic {x}", x=(expectation_of_A - new_norm/old_norm))
-    exp_pot = jnp.exp(-beta * (delta_V_1 )) #  * expectation_of_A
+    exp_pot = jnp.exp(-beta * (delta_V_1 )) * (expectation_of_A)
     rng, sub = jax.random.split(rng)
     randval = jax.random.uniform(sub)
     accept = randval <= jnp.minimum(1.0, exp_pot)
