@@ -65,7 +65,7 @@ def make_M_Minv_K(P, t, U, r, beta, hbar,m):
 
     print(K.shape, "k shape")
 
-    return M, Minv, K, alpha, gamma, r
+    return M, Minv, K, alpha, gamma, r, tau_c
 
 def xi(s, r, U, t, P, hbar, gamma):
     term1 = gamma * ((r[2:-1] - r[1:-2]).dot(s[1:] - s[:-1])  + (r[1] - r[0])*s[0] - (r[-1] - r[-2])*s[-1] )
@@ -86,7 +86,7 @@ def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKe
     sqnorm = lambda x: x.dot(x)
 
     
-    M, Minv, K, alpha, gamma, r = make_M_Minv_K(P, t, U, r, beta, hbar, m)
+    M, Minv, K, alpha, gamma, r, tau_c = make_M_Minv_K(P, t, U, r, beta, hbar, m)
 
     @jax.jit
     def logdensity_fn(s):
@@ -282,43 +282,43 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
       Returns:
         Tuple of (updated_carry, sample_value)
       """
-      rng, chain_r, ss, old_pot = carry
-    #   jax.debug.print("step_idx {x}", x=step_idx)
+      rng, chain_r, ss, old_pot, old_norm = carry
+      jax.debug.print("step_idx {x}", x=step_idx)
 
       # Segment updates over all left walls
       def seg_body(i, inner_carry):
         # jax.debug.print("0 {x}", x=i)
-        rng, chain_r, ss, _, _, old_pot, acc_prob = inner_carry
+        rng, chain_r, ss, _, _, old_pot, old_norm, acc_prob = inner_carry
         leftwall = lft_wall_choices[i]
         j_this = jnp.where(i == (numchoices - 1), alt_jval_r, jval_r)
         # jax.debug.print("0 {x}", x=(leftwall, i, j_this))
         rng, chain_prop = do_intermediate_staging(rng, chain_r, leftwall, beads_sigma_sqrds, j_this, pbeads_r, jval_r)
-        rng, chain_r_new, ss_new, K, Minv, new_pot, acc_prob = accept_move_fn(rng, chain_prop, chain_r, ss, old_pot)
-        return (rng, chain_r_new, ss_new, K, Minv, new_pot, acc_prob)
+        rng, chain_r_new, ss_new, K, Minv, new_pot, old_norm_new, acc_prob = accept_move_fn(rng, chain_prop, chain_r, ss, old_pot, old_norm)
+        return (rng, chain_r_new, ss_new, K, Minv, new_pot, old_norm_new, acc_prob)
 
-      rng, chain_r, ss, K, Minv, old_pot, acc_prob = lax.fori_loop(0, numchoices, seg_body, (rng, chain_r, ss, jnp.zeros(P-1), jnp.zeros((P-1,P-1)), old_pot, 0))
+      rng, chain_r, ss, K, Minv, old_pot, old_norm, acc_prob = lax.fori_loop(0, numchoices, seg_body, (rng, chain_r, ss, jnp.zeros(P-1), jnp.zeros((P-1,P-1)), old_pot, old_norm, 0))
 
       # Single-bead updates (excluding first choice)
       def single_body(i, inner_carry):
-        rng, chain_r, ss, _, _, old_pot, acc_prob = inner_carry
+        rng, chain_r, ss, _, _, old_pot, old_norm, acc_prob = inner_carry
         leftwall = lft_wall_choices[i] - 1
         # jax.debug.print("1 {x}", x=(leftwall, i))
         rng, chain_prop = do_intermediate_staging(rng, chain_r, leftwall, beads_sigma_sqrds, jnp.array(1), pbeads_r, jval_r)
-        rng, chain_r_new, ss_new, K, Minv, old_pot_new, acc_prob = accept_move_fn(rng, chain_prop, chain_r, ss, old_pot)
-        return (rng, chain_r_new, ss_new, K, Minv, old_pot_new, acc_prob)
+        rng, chain_r_new, ss_new, K, Minv, old_pot_new, old_norm_new, acc_prob = accept_move_fn(rng, chain_prop, chain_r, ss, old_pot, old_norm)
+        return (rng, chain_r_new, ss_new, K, Minv, old_pot_new, old_norm_new, acc_prob)
 
-      rng, chain_r, ss, K, Minv, old_pot, acc_prob = lax.fori_loop(1, numchoices, single_body, (rng, chain_r, ss, jnp.zeros(P-1), jnp.zeros((P-1,P-1)), old_pot, 0))
+      rng, chain_r, ss, K, Minv, old_pot, old_norm, acc_prob = lax.fori_loop(1, numchoices, single_body, (rng, chain_r, ss, jnp.zeros(P-1), jnp.zeros((P-1,P-1)), old_pot, old_norm, 0))
 
       # Endpoint updates for two ends
       def end_body(i, inner_carry):
-        rng, chain_r, ss, _, _, old_pot, acc_prob = inner_carry
+        rng, chain_r, ss, _, _, old_pot, old_norm, acc_prob = inner_carry
         rand_int = i * pbeads_r
         # jax.debug.print("2 {x}", x=(rand_int, i))
         rng, chain_prop = endpoint_sampling(rng, chain_r, rand_int, real_mass, tau_c, beta, pbeads_r)
-        rng, chain_r_new, ss_new, K, Minv, old_pot_new, acc_prob = accept_move_fn(rng, chain_prop, chain_r, ss, old_pot)
-        return (rng, chain_r_new, ss_new, K, Minv, old_pot_new, acc_prob)
+        rng, chain_r_new, ss_new, K, Minv, old_pot_new, old_norm_new, acc_prob = accept_move_fn(rng, chain_prop, chain_r, ss, old_pot, old_norm)
+        return (rng, chain_r_new, ss_new, K, Minv, old_pot_new, old_norm_new, acc_prob)
 
-      rng, chain_r, ss, K, Minv, old_pot, acc_prob = lax.fori_loop(0, 2, end_body, (rng, chain_r, ss, jnp.zeros(P-1), jnp.zeros((P-1,P-1)), old_pot, 0))
+      rng, chain_r, ss, K, Minv, old_pot, old_norm, acc_prob = lax.fori_loop(0, 2, end_body, (rng, chain_r, ss, jnp.zeros(P-1), jnp.zeros((P-1,P-1)), old_pot, old_norm, 0))
 
 
       # std = jnp.sqrt(K @ Minv @ K)
@@ -336,20 +336,43 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
       
       
       # return (rng, chain_r, ss, old_pot), (chain_r, ss, K, Minv) # use this for plotting
-      return (rng, chain_r, ss, old_pot), (chain_r, std_err, acc_prob)
+      return (rng, chain_r, ss, old_pot, old_norm), (chain_r, std_err, acc_prob)
     return step
 
   def get_Utilde(ss,r, beta):
 
     # return None
   
-    M, Minv, K, alpha, gamma, r = make_M_Minv_K(P, t, U, r, beta, hbar,m)
+    M, Minv, K, alpha, gamma, r, tau_c = make_M_Minv_K(P, t, U, r, beta, hbar,m)
     raw_samples = ss.reshape(num_chains*(num_unadjusted_steps - burn_in), ss.shape[2])
     chi_samples, weights = (jax.vmap(lambda s : (xi(s,r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma), s[i]))(raw_samples))
     variance = jnp.mean(chi_samples**2)
-    area = histogram_area(chi_samples)
+    # area = histogram_area(chi_samples)
     Utilde = variance / (2 *beta)
-    return Utilde - jnp.log(area) / (beta)
+    # return Utilde
+    # out = Utilde - jnp.log(area) / (beta)
+    # return out
+
+
+    true_var = K @ Minv @ K
+    # Formula: (mP/(2π|τ_c|ħ))^P * exp(-βmω²/(2P) * Σ_i=2^P r_i²) * ((2π)^(P-1)/det[M(t,β)])^(1/2)
+    
+    # Sum term: compute sum of r_i² from i=2 to P (r[1] to r[P-1] in 0-indexed)
+    r_sum_term = jnp.sum(r[1:-1]**2)
+    first_factor = ((m * P) / (2 * jnp.pi * jnp.abs(tau_c) * hbar))**P
+    second_factor = jnp.exp(((-beta * m * omega**2) / (2 * P)) * r_sum_term)
+    third_factor = (2 * jnp.pi)**((P-1)/2) * jnp.linalg.det(M)**(-1/2)
+
+    
+    true_norm = first_factor * second_factor * third_factor 
+    
+    
+    # jax.debug.print("true vs estimated {x}", x=(true_var, out))
+    # jax.debug.print("true var vs estimated var {x}", x=(true_var, variance))
+    # jax.debug.print("true norm vs estimated norm {x}", x=(jnp.log(true_norm), jnp.log(area)))
+
+    return ((true_var / 2) - jnp.log(true_norm)) / beta, true_norm
+
   
 
   beads_sigma_sqrds = get_sigma_vals(beta, omega_p, real_mass, jval_r, jnp.zeros(jval_r))
@@ -395,11 +418,12 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
 
   # print(initial_ss.shape, "initial_ss shape")
   
-  Utilde = get_Utilde(initial_ss[:, burn_in:, :], chain_r, beta)
+  Utilde, true_norm = get_Utilde(initial_ss[:, burn_in:, :], chain_r, beta)
   old_pot_init = pot_energy(chain_r, Utilde)
+  old_norm_init = true_norm
   # old_pot_init = pot_energy(chain_r)
 
-  def accept_move(rng, chain_new, chain_current, ss, old_pot, beta, pot_energy_fn, L, step_size, inverse_mass_matrix):
+  def accept_move(rng, chain_new, chain_current, ss, old_pot, old_norm, beta, pot_energy_fn, L, step_size, inverse_mass_matrix):
 
     # return rng, chain_new, ss, jnp.zeros(P-1), jnp.zeros((P-1,P-1)), old_pot, jnp.minimum(1.0, 0.0)
     """
@@ -437,20 +461,35 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
         )
     # new_ss = ss
 
-    Utilde = get_Utilde(new_ss[:, burn_in:, :], chain_new, beta)
+    def A(s):
+      term1 = jnp.sum(U(chain_new[1:-1] + s/2) + U(chain_new[1:-1] - s/2))
+      term2 = jnp.sum(U(chain_current[1:-1] + s/2) + U(chain_current[1:-1] - s/2))
+      out = -(beta / (2 * P)) * (term1 - term2)
+      # jnp.sum(jnp.array([U(r[i-1]+(s[i-2]/2)) - U(r[i-1]-(s[i-2]/2)) for i in range (2, P+1)]))
+      return out
+
+    Utilde, new_norm = get_Utilde(new_ss[:, burn_in:, :], chain_new, beta)
     new_pot = pot_energy_fn(chain_new, Utilde)
     # new_pot = pot_energy_fn(chain_new)
-    exp_pot = jnp.exp(-beta * (new_pot - old_pot))
+    delta_V_1 = (new_pot - old_pot)
+    flat_ss = new_ss[:, burn_in:, :].reshape(num_chains*(num_unadjusted_steps-burn_in), new_ss.shape[2])
+    expectation_of_A = jax.vmap(A)(flat_ss).mean()
+    jax.debug.print("expectation_of_A empirical vs analytic {x}", x=(expectation_of_A - new_norm/old_norm))
+    exp_pot = jnp.exp(-beta * (delta_V_1 )) #  * expectation_of_A
     rng, sub = jax.random.split(rng)
     randval = jax.random.uniform(sub)
     accept = randval <= jnp.minimum(1.0, exp_pot)
     updated_r = jnp.where(accept, chain_new, chain_current)
     updated_pot = jnp.where(accept, new_pot, old_pot)
 
-    new_M, new_Minv, new_K, new_alpha, new_gamma, new_r = make_M_Minv_K(P, t, U, updated_r, beta, hbar,m)
+    new_M, new_Minv, new_K, new_alpha, new_gamma, new_r, new_tau_c = make_M_Minv_K(P, t, U, updated_r, beta, hbar,m)
+
+    updated_norm = jnp.where(accept, new_norm, old_norm)
+
+
 
     updated_ss = jnp.where(accept, new_ss, ss)
-    return rng, updated_r, updated_ss, new_K, new_Minv, updated_pot, jnp.minimum(1.0, exp_pot)
+    return rng, updated_r, updated_ss, new_K, new_Minv, updated_pot, updated_norm, jnp.minimum(1.0, exp_pot)
 
 
   # Precompute integer choices
@@ -464,11 +503,11 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
   step = make_mc_step(pbeads_r, jval_r, real_mass, beta, beads_sigma_sqrds, 
                       lft_wall_choices, numchoices, alt_jval_r, tau_c, accept_fn)
 
-  init_carry = (rng, chain_r, initial_ss, old_pot_init)
+  init_carry = (rng, chain_r, initial_ss, old_pot_init, old_norm_init)
   # (rng_out, chain_r_out, ss_out, old_pot_out), (all_samples, ss_hist, K, Minv) = lax.scan(step, init_carry, jnp.arange(mc_steps)) # use this for plotting
   import time as time_module
   tic = time_module.time()
-  (rng_out, chain_r_out, ss_out, old_pot_out), (all_samples, std_errs, acc_probs) = lax.scan(step, init_carry, jnp.arange(mc_steps))
+  (rng_out, chain_r_out, ss_out, old_pot_out, old_norm_out), (all_samples, std_errs, acc_probs) = lax.scan(step, init_carry, jnp.arange(mc_steps))
   print(time_module.time() - tic, "time of scan")
   plotting = False
   if plotting:
@@ -503,7 +542,7 @@ if __name__ == "__main__":
   burn_in = 0 # inner loop burn in
 
   P = 8
-  j_r = 8
+  j_r = 1
   m = 1.0
   omega = 1.0
 
