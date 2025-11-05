@@ -535,7 +535,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
 
 if __name__ == "__main__":
   # Parameters
-  numsteps = 100000
+  numsteps = 1000000
   equilibration = 0
   num_chains = 10000
   num_unadjusted_steps = 1
