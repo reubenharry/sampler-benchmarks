@@ -22,16 +22,16 @@ plt.rcParams['font.size'] = 16
 def get_n(info, settings_info):
 
     info1 = info['phase_1']
-    info2 = info['phase_2'][0]
+    info2 = info['phase_2']
 
 
-    n1 = info["phase_1"]["steps_done"] # info1['step_size'].shape[0]
-    
+    n1 = len(info1['bias'])
+
     steps1 = np.arange(1, n1+1)
     steps2 = np.cumsum(info2['steps_per_sample']) * settings_info['num_grads_per_proposal'] + n1
 
     steps = np.concatenate((steps1, steps2))
-    bias_max = np.concatenate((info1['bias0'][:n1], info2['bias'][:, 0]))
+    bias_max = np.concatenate((info1['bias'][:, 0], info2['bias'][:, 0]))
 
     st = samples_to_low_error(bias_max, 0.01)
     if np.isfinite(st):
@@ -45,19 +45,15 @@ def get_n(info, settings_info):
 def get_trace(info, settings_info, dir):
             
     info1 = info['phase_1']
-    info2 = info['phase_2'][0]
+    info2 = info['phase_2']
 
 
-    n1 = info["phase_1"]["steps_done"] # info1['step_size'].shape[0]
-    
+    n1 = len(info1['bias'])
     steps1 = jnp.arange(1, n1+1)
     steps2 = jnp.cumsum(info2['steps_per_sample']) * settings_info['num_grads_per_proposal'] + n1
-    #steps2 = jnp.cumsum(info['phase_2'][0]['steps_per_sample']) * grads_per_step + n1
-
+    
     steps = np.concatenate((steps1, steps2))
-    ntotal = steps[-1]
-    bias_max = np.concatenate((info1['bias0'][:n1], info2['bias'][:, 0]))
-    bias_avg = np.concatenate((info1['bias1'][:n1], info2['bias'][:, 1]))
+    bias_max = np.concatenate((info1['bias'][:, 0], info2['bias'][:, 0]))
     
     np.save(dir, [steps, bias_max])
 
@@ -66,19 +62,18 @@ def get_trace(info, settings_info, dir):
 def plot_trace(info, model, settings_info, dir):
             
     info1 = info['phase_1']
-    info2 = info['phase_2'][0]
+    info2 = info['phase_2']
 
 
-    n1 = info["phase_1"]["steps_done"] # info1['step_size'].shape[0]
+    n1 = len(info1["bias"]) # info1['step_size'].shape[0]
     
     steps1 = jnp.arange(1, n1+1)
     steps2 = jnp.cumsum(info2['steps_per_sample']) * settings_info['num_grads_per_proposal'] + n1
-    #steps2 = jnp.cumsum(info['phase_2'][0]['steps_per_sample']) * grads_per_step + n1
 
     steps = np.concatenate((steps1, steps2))
     ntotal = steps[-1]
-    bias_max = np.concatenate((info1['bias0'][:n1], info2['bias'][:, 0]))
-    bias_avg = np.concatenate((info1['bias1'][:n1], info2['bias'][:, 1]))
+    bias_max = np.concatenate((info1['bias'][:, 0], info2['bias'][:, 0]))
+    bias_avg = np.concatenate((info1['bias'][:, 1], info2['bias'][:, 1]))
 
     st = samples_to_low_error(bias_max, 0.01)
     if np.isfinite(st):
@@ -109,7 +104,7 @@ def plot_trace(info, model, settings_info, dir):
     plt.plot([], [], color='tab:gray', label= r'Second moments $b_t^2[x_i^2]$')
 
     # equipartition
-    plt.plot(steps1, info1['equi_diag'][:n1], '.', color = 'tab:blue', alpha= 0.4)
+    plt.plot(steps1, info1['equi_diag'], '.', color = 'tab:blue', alpha= 0.4)
     plt.plot([], [], '.', color= 'tab:gray', alpha= 0.4, label = r'Equipartition $B_t^2$')
     #plt.plot(steps1, info1['equi_full'], '.', color = 'tab:green', alpha= 0.4, label = 'full rank equipartition')
     #plt.plot(steps2, info2['equi_diag'], '.', color = 'tab:blue', alpha= 0.3)
@@ -117,12 +112,12 @@ def plot_trace(info, model, settings_info, dir):
     
     
     # relative fluctuations
-    plt.plot(steps1, info1['r_avg'][:n1], '--', color = 'tab:blue')
-    plt.plot(steps1, info1['r_max'][:n1], '--', color = 'tab:red')
+    plt.plot(steps1, info1['r_avg'], '--', color = 'tab:blue')
+    plt.plot(steps1, info1['r_max'], '--', color = 'tab:red')
     plt.plot([], [], '--', color = 'tab:gray',label = r'Fluctuations $\delta_t^2[x_i^2]$')
 
-    plt.plot(steps1, info1['R_avg'][:n1], ':', color = 'tab:blue')
-    plt.plot(steps1, info1['R_max'][:n1], ':', color = 'tab:red')
+    plt.plot(steps1, info1['R_avg'], ':', color = 'tab:blue')
+    plt.plot(steps1, info1['R_max'], ':', color = 'tab:red')
     plt.plot(steps2, info2['R_avg'], ':', color = 'tab:blue')
     plt.plot(steps2, info2['R_max'], ':', color = 'tab:red')
     plt.plot([], [], ':', color = 'tab:gray',label = 'split R')
@@ -160,9 +155,9 @@ def plot_trace(info, model, settings_info, dir):
     
     plt.subplot(3, 2, 2)
     #plt.title('Hyperparameters')
-    plt.plot(steps1, info1['EEVPD'][:n1], '.', color='tab:orange')
+    plt.plot(steps1, info1['EEVPD'], '.', color='tab:orange')
     plt.plot([], [], '-', color= 'tab:orange', label= 'observed')
-    plt.plot(steps1, info1['EEVPD_wanted'][:n1], '-', color='black', alpha = 0.5, label = 'targeted')
+    plt.plot(steps1, info1['EEVPD_wanted'], '-', color='black', alpha = 0.5, label = 'targeted')
 
     plt.legend(loc=4, fontsize=10)
     plt.ylabel("EEVPD")
@@ -180,7 +175,7 @@ def plot_trace(info, model, settings_info, dir):
     ax.tick_params(axis='y')
         
     plt.subplot(3, 2, 4)
-    plt.plot(steps1, info1['step_size'][:n1], '.', color='tab:orange')
+    plt.plot(steps1, info1['step_size'], '.', color='tab:orange')
     plt.plot(steps2, info2['step_size'], '.', color='tab:orange')
     plt.ylabel(r"step size")
     #plt.yscale('log')
@@ -189,7 +184,7 @@ def plot_trace(info, model, settings_info, dir):
     ### L tuning ###
     plt.subplot(3, 2, 6)
     # L0 = jnp.sqrt(jnp.sum(model.E_x2))
-    plt.plot(steps1, info1['L'][:n1], '.', color='tab:green')
+    plt.plot(steps1, info1['L'], '.', color='tab:green')
     plt.plot(steps2, info2['L'], '.', color='tab:green')
     #plt.plot([0, ntotal], L0 * jnp.ones(2), '-', color='black')
     end_stage1()
@@ -216,7 +211,9 @@ def parallel_microcanonical(num_steps1, num_steps2, num_chains, mesh, early_stop
                             bias_type= 3,
                             steps_per_sample=15,
                             acc_prob= None,
-                            integrator_coefficients = None
+                            integrator_coefficients = None,
+                            all_chains_info= None,
+                            rng_key= jax.random.key(0)
                             ):
 
     def s(model):
@@ -231,7 +228,6 @@ def parallel_microcanonical(num_steps1, num_steps2, num_chains, mesh, early_stop
         observables_for_bias = lambda position:jnp.square(model.default_event_space_bijector(jax.flatten_util.ravel_pytree(position)[0]))
 
         info, grads_per_step, _acc_prob, final_state = laps(
-    
             logdensity_fn=logdensity_fn, 
             sample_init= model.sample_init,
             ndims=model.ndims, 
@@ -239,12 +235,12 @@ def parallel_microcanonical(num_steps1, num_steps2, num_chains, mesh, early_stop
             num_steps2=num_steps2, 
             num_chains=num_chains, 
             mesh=mesh, 
-            rng_key=jax.random.key(0), 
+            rng_key= rng_key, 
             early_stop=early_stop,
             diagonal_preconditioning=diagonal_preconditioning, 
             integrator_coefficients= integrator_coefficients, 
             steps_per_sample=steps_per_sample,
-            ensemble_observables= lambda x: x,
+            all_chains_info= all_chains_info,
             observables_for_bias=observables_for_bias,
             contract = contract,
             r_end=0.01,

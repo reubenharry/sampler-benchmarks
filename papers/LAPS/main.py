@@ -6,9 +6,9 @@ jax.config.update("jax_enable_x64", True)
 #print(xla_bridge.get_backend().platform)
 #print(jax.extend.backend.get_backend)
 
+#batch_size= 128
 #os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
-num_cores = jax.local_device_count()
-print(num_cores)
+
 import numpy as np
 import os, sys
 sys.path.append('../blackjax/')
@@ -26,7 +26,7 @@ from sampler_evaluation.models.brownian import brownian_motion
 from sampler_evaluation.models.item_response import item_response
 from sampler_evaluation.models.german_credit import german_credit
 
-from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.laps import parallel_microcanonical, get_trace
+from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.laps import parallel_microcanonical, get_trace, plot_trace
 #from sampler_comparison.samplers.parallel.hamiltonianmontecarlo.meads import meads_with_adam
 from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.laps import get_n
 from sampler_comparison.samplers.general import initialize_model
@@ -68,8 +68,8 @@ def _main(folder,
                                                             )(model=model)
 
      #folder = 'papers/LAPS/img/trace/'
-     #n = plot_trace(info, model, settings_info, folder)
-     n = get_n(info, settings_info)
+     n = plot_trace(info, model, settings_info, folder)
+     #n = get_n(info, settings_info)
      
      results[model.name] = n
      #print(results)
@@ -83,17 +83,18 @@ def _main(folder,
 
 
 
-def _main2(n1):
+def _main2():
 
-     model, _n1, _n2, n_meads = m
-     total = _n1 + _n2
+     model, _, _, _ = m
 
      _, info, settings_info = parallel_microcanonical(
           num_chains= batch_size, mesh= mesh, superchain_size= 1,
-          num_steps1= n1, num_steps2= total - n1)(model=model)
+          num_steps1= 500, num_steps2= 100, early_stop = True)(model=model)
 
-     dir = 'papers/LAPS/img/trace/stop/GermanCredit_stop_at' + str(n1) + '.npy'
-     get_trace(info, settings_info, dir)
+     dir = 'papers/LAPS/img/trace/fixed_stepsize/GermanCredit_stepsize=1.npy'
+     #get_trace(info, settings_info, dir)
+     #np.save(dir, info['phase_1'])
+
      del model
      del info
      del settings_info
@@ -101,15 +102,13 @@ def _main2(n1):
      
 grid = lambda param_grid, fixed_params= None, verbose= True, extra_word= '': do_grid(_main, param_grid, fixed_params=fixed_params, verbose= verbose, extra_word= m[0].name + extra_word)
 
-     
 
 #grid = lambda param_name, param_vals, fixed_params= None, verbose= True, extra_word= '': do_single(_main, param_name, param_vals, which, fixed_params=fixed_params, verbose= verbose, extra_word= m[0].name + extra_word)
 
-#_main('papers/LAPS/img/trace/')
+_main('papers/LAPS/img/trace/')
 
-
-_main2([10, 100, 200, 300, 400, 500][itask])
-
+#_main2()
+#shifter --image=reubenharry/cosmo:1.0 python3 -m papers.LAPS.main 2 0
 
 
 # if itask == 0:
