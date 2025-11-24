@@ -17,8 +17,9 @@ from sampler_comparison.util import (
     calls_per_integrator_step,
     map_integrator_type_to_integrator,
 )
-from blackjax.adaptation.adjusted_abla import alba_adjusted
+from blackjax.adaptation.adjusted_alba import adjusted_alba
 from blackjax.mcmc.adjusted_mclmc_dynamic import make_random_trajectory_length_fn
+
 
 def adjusted_mclmc_no_tuning(
     initial_state,

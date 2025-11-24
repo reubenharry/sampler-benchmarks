@@ -1,4 +1,4 @@
-FROM ghcr.io/nvidia/jax:jax
+FROM nvcr.io/nvidia/jax:25.04-py3
 
 RUN \
     pip install matplotlib && \
@@ -16,4 +16,3 @@ RUN \
     pip install tf-nightly && \
     pip install tfp_nightly[jax] && \
     pip install tf_keras
-

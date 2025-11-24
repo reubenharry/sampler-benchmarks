@@ -27,7 +27,7 @@ from sampler_evaluation.models.item_response import item_response
 from sampler_evaluation.models.german_credit import german_credit
 
 from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.laps import parallel_microcanonical, get_trace, plot_trace
-#from sampler_comparison.samplers.parallel.hamiltonianmontecarlo.meads import meads_with_adam
+from sampler_comparison.samplers.parallel.hamiltonianmontecarlo.meads import meads_with_adam
 from sampler_comparison.samplers.parallel.microcanonicalmontecarlo.laps import get_n
 from sampler_comparison.samplers.general import initialize_model
 from papers.LAPS.grid import do_grid, mylogspace
@@ -67,6 +67,10 @@ def _main(folder,
                                                             C= C, alpha= alpha, bias_type= bias_type, steps_per_sample= steps_per_sample, acc_prob= acc_prob, integrator_coefficients = integrator_coefficients,
                                                             )(model=model)
 
+     res = meads_with_adam(n_meads, batch_size)(model= model)
+     print(res)
+     
+     return
      #folder = 'papers/LAPS/img/trace/'
      n = plot_trace(info, model, settings_info, folder)
      #n = get_n(info, settings_info)
@@ -89,11 +93,10 @@ def _main2():
 
      _, info, settings_info = parallel_microcanonical(
           num_chains= batch_size, mesh= mesh, superchain_size= 1,
-          num_steps1= 500, num_steps2= 100, early_stop = True)(model=model)
+          num_steps1= 500, num_steps2= 100, early_stop = False)(model=model)
 
-     dir = 'papers/LAPS/img/trace/fixed_stepsize/GermanCredit_stepsize=1.npy'
-     #get_trace(info, settings_info, dir)
-     #np.save(dir, info['phase_1'])
+     dir = 'papers/LAPS/img/trace/fixed_stepsize/GermanCredit_stepsize=0.75.npy'
+     get_trace(info, settings_info, dir)
 
      del model
      del info
@@ -102,12 +105,10 @@ def _main2():
      
 grid = lambda param_grid, fixed_params= None, verbose= True, extra_word= '': do_grid(_main, param_grid, fixed_params=fixed_params, verbose= verbose, extra_word= m[0].name + extra_word)
 
-
 #grid = lambda param_name, param_vals, fixed_params= None, verbose= True, extra_word= '': do_single(_main, param_name, param_vals, which, fixed_params=fixed_params, verbose= verbose, extra_word= m[0].name + extra_word)
 
 _main('papers/LAPS/img/trace/')
 
-#_main2()
 #shifter --image=reubenharry/cosmo:1.0 python3 -m papers.LAPS.main 2 0
 
 

@@ -13,7 +13,7 @@ from sampler_comparison.util import (
     calls_per_integrator_step,
     map_integrator_type_to_integrator,
 )
-from blackjax.adaptation.adjusted_abla import alba_adjusted
+from blackjax.adaptation.adjusted_alba import adjusted_alba
 
 
 def adjusted_hmc_no_tuning(
@@ -144,7 +144,7 @@ def adjusted_hmc(
 
         num_alba_steps = num_tuning_steps // 3
 
-        warmup = alba_adjusted(
+        warmup = adjusted_alba(
             unadjusted_algorithm=blackjax.langevin,
             logdensity_fn=logdensity_fn,
             target_eevpd=3e-4,
@@ -251,7 +251,7 @@ def grid_search_adjusted_hmc(
         logdensity_fn = make_log_density_fn(model)
         num_dimensions = initial_position[0].shape[0]
         num_alba_steps = num_tuning_steps // 3
-        warmup = alba_adjusted(
+        warmup = adjusted_alba(
             unadjusted_algorithm=blackjax.langevin,
             logdensity_fn=logdensity_fn,
             target_eevpd=desired_energy_var,
