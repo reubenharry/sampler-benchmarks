@@ -359,7 +359,7 @@ if __name__ == "__main__":
   numsteps = 10000000
   equilibration = 0
   num_chains = 10000
-  num_unadjusted_steps = 1
+  num_unadjusted_steps = 10
   burn_in = 0 # inner loop burn in
 
   P = 16
@@ -369,7 +369,7 @@ if __name__ == "__main__":
 
   hbar = 1.0
   i=1
-  U = lambda x : 0.5*m*(omega**2)*(x**2)
+  U = lambda x : 0.5*m*(omega**2)*(x**2)+0.25*(x**4)
 
   
   kbt = 1.0  
@@ -387,7 +387,8 @@ if __name__ == "__main__":
   tic = time.time()
   # for time in [2.0, 3.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]:
   # for time in [1.0, 4.0]:
-  for time in [1.0, 4.0, 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5]:
+  for time in [12.0]:
+  # [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0]:
     if time < 4.0:
       P = 8
     elif time < 8.0:
@@ -405,7 +406,7 @@ if __name__ == "__main__":
     print(samples_np.shape)
     # save samples  
     dir = '/pscratch/sd/r/reubenh/storage'
-    np.save(f'{dir}/samples_np_flat_{time}_{j_r}.npy', samples_np)
+    np.save(f'{dir}/samples_np_flat_quartic_{time}_{j_r}.npy', samples_np)
     # plt.plot(std_errs)
     # plt.savefig(f'std_errs_{time}_{j_r}.png')
     # plt.clf()

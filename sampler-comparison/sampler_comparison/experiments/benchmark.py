@@ -61,7 +61,7 @@ def clear_jax_cache():
     gc.collect()
     print("  ✓ Forced garbage collection")
 
-def run(models, key, mh_options=[True, False], canonical_options=[True, False], langevin_options=[True, False], tuning_options=['alba', 'grid_search'], integrator_type_options=['velocity_verlet','mclachlan'], diagonal_preconditioning_options=[True, False], redo=False, compute_missing=True, redo_bad_results=None):
+def run(models, key, mh_options=[True, False], canonical_options=[True, False], langevin_options=[True, False], tuning_options=['alba', 'grid_search'], integrator_type_options=['velocity_verlet','mclachlan'], diagonal_preconditioning_options=[True, False], redo=False, compute_missing=True, redo_bad_results=None, pseudofermion=False):
 
     full_results = pd.DataFrame()
     total_combinations = len(list(itertools.product(mh_options, canonical_options, langevin_options, tuning_options, integrator_type_options, diagonal_preconditioning_options, models)))
@@ -104,7 +104,8 @@ def run(models, key, mh_options=[True, False], canonical_options=[True, False], 
             batch_size=model_batch_size, 
             relative_path='./', 
             compute_missing=compute_missing,
-            redo_bad_results=redo_bad_results
+            redo_bad_results=redo_bad_results,
+            pseudofermion=pseudofermion
         )
         full_results = pd.concat([full_results, results], ignore_index=True)
         time_end = time.time()
@@ -176,6 +177,7 @@ if __name__ == "__main__":
                     redo=True,
                     compute_missing=True,
                     redo_bad_results=True,
+                    pseudofermion=True,
                 )
     # run(
     #             key=jax.random.PRNGKey(4),

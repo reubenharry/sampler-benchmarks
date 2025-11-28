@@ -26,6 +26,7 @@ import itertools
 import jax.numpy as jnp
 # from sampler_comparison.samplers.grid_search.grid_search import grid_search_adjusted_mclmc, grid_search_unadjusted_lmc, grid_search_hmc, grid_search_unadjusted_hmc
 from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import grid_search_unadjusted_mclmc
+from sampler_comparison.samplers.gibbs.pseudofermion import unadjusted_mclmc_pseudofermion
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(128)
 num_cores = jax.local_device_count()
@@ -123,7 +124,7 @@ def run_benchmarks(
             df.to_csv(os.path.join(save_dir, f"{sampler}_{model}.csv"))
 
 
-def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, langevin : bool, tuning : str, integrator_type : str, diagonal_preconditioning : bool, redo : bool, relative_path : str = '.', compute_missing : bool = False, redo_bad_results : bool = None, statistic = 'square', key=jax.random.PRNGKey(16)):
+def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, langevin : bool, tuning : str, integrator_type : str, diagonal_preconditioning : bool, redo : bool, relative_path : str = '.', compute_missing : bool = False, redo_bad_results : bool = None, statistic = 'square', key=jax.random.PRNGKey(16), pseudofermion : bool = False):
 
     integrator_name = integrator_type.replace('_', ' ')
 
@@ -133,7 +134,12 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
 
     target_acc_rate = 0.9 if integrator_type == 'mclachlan' else 0.9
 
-    sampler_dict = {
+    if pseudofermion:
+        sampler_dict = {
+        (False, False, True, 'alba'): (f'unadjusted_microcanonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}_pseudofermion', partial(unadjusted_mclmc_pseudofermion,num_tuning_steps=30, desired_energy_var=5e-4, diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
+        }
+    else:
+        sampler_dict = {
 
         # adjusted/unadjusted  canonical/microcanonical  langevin/nolangevin  alba/nuts
         (True, True, True, 'alba'): (f'adjusted_canonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_hmc,num_tuning_steps=adjusted_tuning_steps, integrator_type=integrator_type, L_proposal_factor=1.25,target_acc_rate=target_acc_rate, alba_factor=0.23, random_trajectory_length=False, diagonal_preconditioning=diagonal_preconditioning)),

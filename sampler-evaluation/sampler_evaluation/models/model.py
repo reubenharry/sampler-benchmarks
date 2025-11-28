@@ -6,6 +6,8 @@ SampleTransformation = namedtuple("SampleTransformation", ["ground_truth_mean", 
 
 Model = namedtuple("Model", ["ndims", "log_density_fn", "default_event_space_bijector", "sample_transformations", "exact_sample", "name", "sample_init" ])
 
+PseudofermionModel = namedtuple("PseudofermionModel", ["ndims", "log_density_fn", "default_event_space_bijector", "sample_transformations", "exact_sample", "name", "sample_init", "Mpsi"])
+
 
 def make_model(logdensity_fn, ndims, name, default_event_space_bijector, sample_transformations={}, exact_sample=None, sample_init=None):
     return Model(
@@ -18,6 +20,17 @@ def make_model(logdensity_fn, ndims, name, default_event_space_bijector, sample_
         sample_init=sample_init
     )
 
+def make_pseudofermion_model(logdensity_fn, ndims, name, default_event_space_bijector, sample_transformations={}, exact_sample=None, sample_init=None, Mpsi=None):
+    return PseudofermionModel(
+        ndims = ndims,
+        log_density_fn=logdensity_fn,
+        default_event_space_bijector=default_event_space_bijector,
+        name=name,
+        sample_transformations=sample_transformations,
+        exact_sample=exact_sample,
+        sample_init=sample_init,
+        Mpsi=Mpsi
+    )
 # def make_model(logdensity_fn, ndims, name, default_event_space_bijector, x_ground_truth_mean, x_ground_truth_std, x2_ground_truth_mean, x2_ground_truth_std, exact_sample=None, sample_init=None):
 #     return Model(
 #         ndims = ndims,

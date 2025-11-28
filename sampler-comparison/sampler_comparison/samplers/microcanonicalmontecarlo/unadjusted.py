@@ -124,8 +124,9 @@ def unadjusted_mclmc(
         tune_key, run_key = jax.random.split(key, 2)
         
         warmup = unadjusted_alba(
-            algorithm=blackjax.mclmc, 
-            logdensity_fn=logdensity_fn, integrator=map_integrator_type_to_integrator["mclmc"][integrator_type], 
+            mcmc_kernel=blackjax.mclmc.build_kernel(map_integrator_type_to_integrator["mclmc"][integrator_type]),
+            init=blackjax.mclmc.init,
+            logdensity_fn=logdensity_fn, 
             target_eevpd=desired_energy_var, 
             v=1., 
             num_alba_steps=num_tuning_steps // 3 if num_alba_steps is None else num_alba_steps,
@@ -215,9 +216,9 @@ def grid_search_unadjusted_mclmc(
         logdensity_fn = make_log_density_fn(model)
         num_alba_steps = num_tuning_steps // 3
         warmup = unadjusted_alba(
-            algorithm=blackjax.mclmc, 
+            mcmc_kernel=blackjax.mclmc.build_kernel(map_integrator_type_to_integrator["mclmc"][integrator_type]),
+            init=blackjax.mclmc.init,
             logdensity_fn=logdensity_fn, 
-            integrator=map_integrator_type_to_integrator["mclmc"][integrator_type], 
             target_eevpd=desired_energy_var, 
             v=1., 
             num_alba_steps=num_alba_steps,

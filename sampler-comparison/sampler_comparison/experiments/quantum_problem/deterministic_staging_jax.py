@@ -474,7 +474,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
     delta_V_1 = (new_pot - old_pot)
     flat_ss = new_ss[:, burn_in:, :].reshape(num_chains*(num_unadjusted_steps-burn_in), new_ss.shape[2])
     expectation_of_A = jax.vmap(A)(flat_ss).mean()
-    jax.debug.print("expectation_of_A empirical vs analytic {x}", x=(expectation_of_A - new_norm/old_norm))
+    # jax.debug.print("expectation_of_A empirical vs analytic {x}", x=(expectation_of_A - new_norm/old_norm))
     exp_pot = jnp.exp(-beta * (delta_V_1 )) * (expectation_of_A)
     rng, sub = jax.random.split(rng)
     randval = jax.random.uniform(sub)
@@ -535,11 +535,11 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
 
 if __name__ == "__main__":
   # Parameters
-  numsteps = 1000000
+  numsteps = 100000
   equilibration = 0
   num_chains = 10000
-  num_unadjusted_steps = 1
-  burn_in = 0 # inner loop burn in
+  num_unadjusted_steps = 2
+  burn_in = 1 # inner loop burn in
 
   P = 8
   j_r = 1
@@ -548,7 +548,7 @@ if __name__ == "__main__":
 
   hbar = 1.0
   i=1
-  U = lambda x : 0.5*m*(omega**2)*(x**2)
+  U = lambda x : 0.5*m*(omega**2)*(x**2) + 0.25*(x**4)
 
   
   kbt = 1.0  
@@ -565,7 +565,7 @@ if __name__ == "__main__":
 
   tic = time.time()
 #   for time in [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]:
-  for time in [1.0]:
+  for time in [12.0]:
     if time < 4.0:
       P = 8
     elif time < 8.0:
@@ -580,16 +580,17 @@ if __name__ == "__main__":
     samples_np, std_errs, acc_probs = do_mc_open_chain(rng, numsteps, equilibration, r_chain, P, j_r, m, num_unadjusted_steps, num_chains, t=time)
     print(samples_np.shape)
     # save samples  
-    np.save(f'samples_np_{time}_{j_r}.npy', samples_np)
-    plt.plot(std_errs)
-    plt.savefig(f'std_errs_{time}_{j_r}.png')
-    plt.clf()
+    dir = '/pscratch/sd/r/reubenh/storage'
+    np.save(f'{dir}/samples_np_quartic_{time}_{j_r}.npy', samples_np)
+    # plt.plot(std_errs)
+    # plt.savefig(f'std_errs_{time}_{j_r}.png')
+    # plt.clf()
     # get running avg of acc_probs
     running_avg_acc_probs = np.cumsum(acc_probs) / np.arange(1, len(acc_probs) + 1)
     plt.plot(running_avg_acc_probs)
     # plt.savefig(f'running_avg_acc_probs_{time}.png')
     plt.savefig(f'acc_probs_{time}_{j_r}.png')
-    # plt.clf()
+    plt.clf()
 
 
   # observable = lambda x : x[0] * x[-1]

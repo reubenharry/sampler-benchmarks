@@ -11,7 +11,7 @@ sys.path.append("../../src/inference-gym/spinoffs/inference_gym")
 import jax
 
 import jax.numpy as jnp
-from sampler_evaluation.models.model import make_model
+from sampler_evaluation.models.model import make_model, make_pseudofermion_model
 import pickle
 import os
 from sampler_evaluation.models.model import SampleTransformation, make_model
@@ -23,7 +23,7 @@ import jax.scipy as jsp
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
-def Schwinger(Lt, Lx, beta= 1., m = -.188, load_from_file=False):
+def Schwinger(Lt, Lx, beta= 2., m = -.188, load_from_file=False):
     """Args:
             lattice size = (Lt, Lx)
             beta: inverse temperature
@@ -181,10 +181,10 @@ def Schwinger(Lt, Lx, beta= 1., m = -.188, load_from_file=False):
 
     def action_pf(gauge_field,pf):
 
-        return gauge_logdensity(gauge_field) + ferm_pf_action(gauge_field,pf)
+        return jnp.real(gauge_logdensity(gauge_field) + ferm_pf_action(gauge_field,pf))
 
-    return make_model(
-        logdensity_fn=action,
+    return make_pseudofermion_model(
+        logdensity_fn=action_pf,
         ndims=ndims,
         default_event_space_bijector=lambda x:x,
         sample_transformations = {
@@ -193,14 +193,15 @@ def Schwinger(Lt, Lx, beta= 1., m = -.188, load_from_file=False):
             ground_truth_mean=e_x_top_charge,
             ground_truth_standard_deviation=e_std_top_charge,
         ),
-        'ppb_sign':SampleTransformation(
-            fn=ppb_sign,
-            ground_truth_mean=e_x2_ppbs,
-            ground_truth_standard_deviation=jnp.nan,
-        ),
+        # 'ppb_sign':SampleTransformation(
+        #     fn=ppb_sign,
+        #     ground_truth_mean=e_x2_ppbs,
+        #     ground_truth_standard_deviation=jnp.nan,
+        # ),
             
         },
         exact_sample=None,
+        Mpsi=Mpsi,
         sample_init=sample_init,
         name=f'Schwinger_Lt{Lt}_Lx{Lx}_beta{beta}_m{m}',
     )
@@ -209,16 +210,19 @@ def Schwinger(Lt, Lx, beta= 1., m = -.188, load_from_file=False):
 if __name__ == "__main__":
     model = Schwinger(Lt=16, Lx=16, beta=6,load_from_file=False)
 
-    from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unadjusted_mclmc
+    pf = jnp.zeros(2*16*16, dtype=jnp.complex128)
+    jax.debug.print("action: {x}", x=model.log_density_fn(jnp.ones(model.ndims), pf))
 
-    sampler = partial(unadjusted_mclmc,num_tuning_steps=100, desired_energy_var=5e-4, diagonal_preconditioning=True, integrator_type='mclachlan')
+    # from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import unadjusted_mclmc
 
-    # run unadjusted_mclmc
-    samples = sampler()(model=model,
-        num_steps=100,
-        initial_position=jnp.ones(model.ndims),
-        key=jax.random.PRNGKey(0),
-    )
-    # print(samples.shape)
+    # sampler = partial(unadjusted_mclmc,num_tuning_steps=100, desired_energy_var=5e-4, diagonal_preconditioning=True, integrator_type='mclachlan')
+
+    # # run unadjusted_mclmc
+    # samples = sampler()(model=model,
+    #     num_steps=100,
+    #     initial_position=jnp.ones(model.ndims),
+    #     key=jax.random.PRNGKey(0),
+    # )
+    # # print(samples.shape)
     
-    # print(model.sample_transformations)
+    # # print(model.sample_transformations)
