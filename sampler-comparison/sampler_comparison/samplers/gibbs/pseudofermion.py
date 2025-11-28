@@ -99,7 +99,7 @@ def unadjusted_mclmc_no_tuning_pseudofermion(
                 desired_energy_var_max_ratio=jnp.inf,
                 desired_energy_var=5e-4,
             ),
-            kernel_2=lambda key, x: model.Mpsi( sample_noise_complex(shape=model.ndims, rng_key=key), x),
+            kernel_2=lambda key, x: model.Mpsi( sample_noise_complex(shape=model.ndims, rng_key=key), x.position),
             init_1=blackjax.mclmc.init,
             # init_2=lambda x: x,
             inverse_mass_matrix=inverse_mass_matrix,
@@ -182,7 +182,7 @@ def unadjusted_mclmc_pseudofermion(
         warmup = unadjusted_alba(
             mcmc_kernel=blackjax.pseudofermion.build_kernel(
                 kernel_1=blackjax.mclmc.build_kernel(map_integrator_type_to_integrator["mclmc"][integrator_type]),
-                kernel_2=lambda key, x: model.Mpsi( sample_noise_complex(shape=model.ndims, rng_key=key), x),
+                kernel_2=lambda key, x: model.Mpsi( sample_noise_complex(shape=model.ndims, rng_key=key), x.position),
                 # logdensity_fn=logdensity_fn,
             ),
             init=partial(blackjax.pseudofermion.init, pseudofermion=jnp.zeros(initial_position.shape[0], dtype=jnp.complex128), init_1=blackjax.mclmc.init, init_2=lambda x: x),

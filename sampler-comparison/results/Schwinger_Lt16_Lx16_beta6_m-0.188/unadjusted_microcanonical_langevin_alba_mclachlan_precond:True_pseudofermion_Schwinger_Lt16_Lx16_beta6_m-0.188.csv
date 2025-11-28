@@ -1,0 +1,3 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
+0,unadjusted_microcanonical_langevin_alba_mclachlan_precond:True_pseudofermion,Schwinger_Lt16_Lx16_beta6_m-0.188,inf,,,True,top_charge,60.0,2.855625945285305e-11,2.4326242734791686e-11,1,success
+1,unadjusted_microcanonical_langevin_alba_mclachlan_precond:True_pseudofermion,Schwinger_Lt16_Lx16_beta6_m-0.188,inf,,,False,top_charge,60.0,2.855625945285305e-11,2.4326242734791686e-11,1,success
