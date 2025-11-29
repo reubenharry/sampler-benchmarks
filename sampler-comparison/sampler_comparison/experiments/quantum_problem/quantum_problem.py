@@ -119,15 +119,15 @@ def make_histograms(filename, samples, weights, K, Minv, i):
 
     num_bins = 100
     samples = np.array(samples)
-    weights = np.array(weights)
-    hist, edges = np.histogram(samples, bins=num_bins)
-    normalization_constant = np.sum((edges[1:] - edges[:-1])*hist)
-    plt.hist(samples, bins=num_bins, density=False, weights=weights/normalization_constant)
+    # weights = np.array(weights)
+    # hist, edges = np.histogram(samples, bins=num_bins)
+    # normalization_constant = np.sum((edges[1:] - edges[:-1])*hist)
+    # plt.hist(samples, bins=num_bins, density=False, weights=weights/normalization_constant)
     l = np.linspace(jnp.min(samples), jnp.max(samples), num_bins)
-    solution = analytic(lam=l, i = i, K=K, Minv=Minv)
-    plt.plot(l, solution)
-    plt.savefig(filename)
-    plt.clf()
+    # solution = analytic(lam=l, i = i, K=K, Minv=Minv)
+    # plt.plot(l, solution)
+    # plt.savefig(filename)
+    # plt.clf()
 
     gaussian = analytic_gaussian(l, K=K, Minv=Minv)
     plt.plot(l, gaussian)
@@ -392,7 +392,7 @@ if __name__ == "__main__":
     r_length = 33
     P = r_length - 1
 
-    t=1
+    t=3.
     i=1
 
 
@@ -464,7 +464,7 @@ if __name__ == "__main__":
     num_chains = 10000
 
     samples, L, step_size, inverse_mass_matrix = sample_s_chi(
-        t=1,
+        t=t,
         i=1,
         beta=beta,
         hbar=hbar,
@@ -488,7 +488,7 @@ if __name__ == "__main__":
     
     tic = time.time()
     samples, weights, raw_samples, K, Minv = sample_s_chi(
-        t=1,
+        t=t,
         i=1,
         beta=beta,
         hbar=hbar,
@@ -506,7 +506,8 @@ if __name__ == "__main__":
     print(time.time() - tic, "time")
     if filename:   
         print("making histograms")
-        make_histograms(filename, samples=samples, weights=weights, K=K, Minv=Minv, i=i)
+        print("\n\n\nsamples shape\n\n\n", samples.shape, K.shape, Minv.shape)
+        make_histograms(filename, samples=samples, weights=None, K=K, Minv=Minv, i=i)
         # save samples
 
     print(samples.shape, "samples shape")

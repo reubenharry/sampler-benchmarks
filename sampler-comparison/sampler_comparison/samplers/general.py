@@ -144,6 +144,8 @@ def sampler_grads_to_low_error(
         keys,
         initial_position,
     )
+    # jax.debug.print("metadata {x}", x=metadata)
+    # jax.debug.print("\n\nsamples {x}\n\n", x=samples['identity']['avg'].shape)
 
     individual_chain_statistics = False
     if individual_chain_statistics:
@@ -229,6 +231,11 @@ def sampler_grads_to_low_error(
 
     # jax.debug.print("squared_errors blah {x}", x=squared_errors['square']['avg'][0][-1])
     # jax.debug.print("squared_errors {x}", x=squared_errors['square']['max'][0][-1])
+
+    # jax.debug.print("squared_errors {x}", x=squared_errors)
+    # jax.debug.print("squared_errors {x}", x=squared_errors['top_charge']['avg'])
+    # jax.debug.print("squared_errors \n{x}\n", x=(model.sample_transformations.keys(), max))
+    # raise Exception("stop")
 
 
     return (

@@ -1,0 +1,7 @@
+,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
+0,adjusted_canonical_nolangevin_mala_velocity verlet_precond:True,vector_german_credit_numeric_sparse_logistic_regression,inf,,,True,identity,,0.2472249292041847,0.2472249292041847,4,success
+1,adjusted_canonical_nolangevin_mala_velocity verlet_precond:True,vector_german_credit_numeric_sparse_logistic_regression,601398.0,153943.075098005,,False,identity,,0.2472249292041847,0.2472249292041847,4,success
+2,adjusted_canonical_nolangevin_mala_velocity verlet_precond:True,vector_german_credit_numeric_sparse_logistic_regression,inf,,,True,square,,0.2472249292041847,0.2472249292041847,4,success
+3,adjusted_canonical_nolangevin_mala_velocity verlet_precond:True,vector_german_credit_numeric_sparse_logistic_regression,182270.0,18962.885136539746,,False,square,,0.2472249292041847,0.2472249292041847,4,success
+4,adjusted_canonical_nolangevin_mala_velocity verlet_precond:True,vector_german_credit_numeric_sparse_logistic_regression,inf,,,True,quartic,,0.2472249292041847,0.2472249292041847,4,success
+5,adjusted_canonical_nolangevin_mala_velocity verlet_precond:True,vector_german_credit_numeric_sparse_logistic_regression,inf,,,False,quartic,,0.2472249292041847,0.2472249292041847,4,success

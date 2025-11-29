@@ -45,6 +45,9 @@ from sampler_evaluation.models.phi4 import phi4
 from sampler_evaluation.models.data.estimate_expectations_phi4 import unreduce_lam
 from sampler_evaluation.models.u1 import U1
 from sampler_evaluation.models.bimodal import bimodal_gaussian
+from sampler_evaluation.models.neals_funnel_mams_paper import neals_funnel_mams_paper
+from sampler_evaluation.models.schwinger import Schwinger
+
 def clear_jax_cache():
     """Clear JAX compilation cache to prevent memory accumulation"""
     try:
@@ -58,7 +61,7 @@ def clear_jax_cache():
     gc.collect()
     print("  ✓ Forced garbage collection")
 
-def run(models, key, mh_options=[True, False], canonical_options=[True, False], langevin_options=[True, False], tuning_options=['alba', 'grid_search'], integrator_type_options=['velocity_verlet','mclachlan'], diagonal_preconditioning_options=[True, False], redo=False, compute_missing=True, redo_bad_results=None):
+def run(models, key, mh_options=[True, False], canonical_options=[True, False], langevin_options=[True, False], tuning_options=['alba', 'grid_search'], integrator_type_options=['velocity_verlet','mclachlan'], diagonal_preconditioning_options=[True, False], redo=False, compute_missing=True, redo_bad_results=None, pseudofermion=False):
 
     full_results = pd.DataFrame()
     total_combinations = len(list(itertools.product(mh_options, canonical_options, langevin_options, tuning_options, integrator_type_options, diagonal_preconditioning_options, models)))
@@ -101,7 +104,8 @@ def run(models, key, mh_options=[True, False], canonical_options=[True, False], 
             batch_size=model_batch_size, 
             relative_path='./', 
             compute_missing=compute_missing,
-            redo_bad_results=redo_bad_results
+            redo_bad_results=redo_bad_results,
+            pseudofermion=pseudofermion
         )
         full_results = pd.concat([full_results, results], ignore_index=True)
         time_end = time.time()
@@ -123,8 +127,10 @@ if __name__ == "__main__":
     # models = [phi4(side, unreduce_lam(reduced_lam=4.0, side=side)) for side in [1024]]
 
     models = [
-        brownian_motion(),
+        Schwinger(Lt=16, Lx=16, beta=6,load_from_file=False)
         # Rosenbrock(18),
+        # brownian_motion(),
+        # neals_funnel_mams_paper,
         # phi4(256, unreduce_lam(reduced_lam=4.0, side=256)),
         # phi4(1024, unreduce_lam(reduced_lam=4.0, side=1024)),
         # german_credit(),
@@ -163,14 +169,15 @@ if __name__ == "__main__":
                     key=jax.random.PRNGKey(4),
                     models=[model],
                     tuning_options=['alba'],
-                    mh_options = [True],
+                    mh_options = [False],
                     canonical_options = [False],
-                    langevin_options = [False],
-                    integrator_type_options = ['velocity_verlet'],
+                    langevin_options = [True],
+                    integrator_type_options = ['mclachlan'],
                     diagonal_preconditioning_options = [True],
                     redo=True,
                     compute_missing=True,
-                    redo_bad_results=True
+                    redo_bad_results=True,
+                    pseudofermion=True,
                 )
     # run(
     #             key=jax.random.PRNGKey(4),

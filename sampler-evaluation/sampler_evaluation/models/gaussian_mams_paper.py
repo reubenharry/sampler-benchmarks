@@ -160,7 +160,7 @@ class IllConditionedGaussian(model.Model):
             default_event_space_bijector=tfb.Identity(),
             event_shape=tf.TensorShape([ndims]),
             dtype=np.float32,
-            name=name+f"_{self.ndims}_{self.condition_number}",
+            name=name+f"_{self.ndims}_{condition_number}",
             pretty_name=pretty_name,
             sample_transformations=sample_transformations,
         )

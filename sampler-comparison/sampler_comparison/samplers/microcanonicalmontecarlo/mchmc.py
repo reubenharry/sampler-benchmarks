@@ -119,8 +119,9 @@ def unadjusted_mchmc(
 
         num_alba_steps = num_tuning_steps // 3
         warmup = unadjusted_alba(
-            algorithm=blackjax.mchmc, 
-            logdensity_fn=logdensity_fn, integrator=map_integrator_type_to_integrator["mclmc"][integrator_type], 
+            mcmc_kernel=blackjax.mchmc.build_kernel(map_integrator_type_to_integrator["mchmc"][integrator_type]),
+            init=blackjax.mchmc.init,
+            logdensity_fn=logdensity_fn, 
             target_eevpd=desired_energy_var, 
             v=1., 
             num_alba_steps=num_alba_steps,
@@ -208,9 +209,9 @@ def grid_search_unadjusted_mchmc(
         logdensity_fn = make_log_density_fn(model)
         num_alba_steps = num_tuning_steps // 3
         warmup = unadjusted_alba(
-            algorithm=blackjax.mchmc, 
+            mcmc_kernel=blackjax.mchmc.build_kernel(map_integrator_type_to_integrator["mchmc"][integrator_type]),
+            init=blackjax.mchmc.init,
             logdensity_fn=logdensity_fn, 
-            integrator=map_integrator_type_to_integrator["mclmc"][integrator_type], 
             target_eevpd=desired_energy_var, 
             v=1., 
             num_alba_steps=num_alba_steps,

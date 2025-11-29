@@ -51,14 +51,14 @@ def german_credit():
 
 
 
-    gc.sample_transformations["covariance"] = (
-        model.Model.SampleTransformation(
-            fn=lambda params: jnp.outer(gc.sample_transformations["identity"](params) - e_x, gc.sample_transformations["identity"](params) - e_x),
-            pretty_name="Covariance",
-            ground_truth_mean=cov,
-            ground_truth_standard_deviation=jnp.nan,
-        )
-    )
+    # gc.sample_transformations["covariance"] = (
+    #     model.Model.SampleTransformation(
+    #         fn=lambda params: jnp.outer(gc.sample_transformations["identity"](params) - e_x, gc.sample_transformations["identity"](params) - e_x),
+    #         pretty_name="Covariance",
+    #         ground_truth_mean=cov,
+    #         ground_truth_standard_deviation=jnp.nan,
+    #     )
+    # )
 
     gc.ndims = 51
 
