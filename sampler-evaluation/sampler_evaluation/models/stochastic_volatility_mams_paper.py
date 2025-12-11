@@ -10,17 +10,22 @@ from sampler_evaluation.models.model import SampleTransformation, make_model
 import os
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
+# vector version (used for MEADS)
 
 def nlogp_StudentT(x, df, scale):
     y = x / scale
-    z = (
-        jnp.log(scale)
-        + 0.5 * jnp.log(df)
-        + 0.5 * jnp.log(jnp.pi)
-        + jax.scipy.special.gammaln(0.5 * df)
-        - jax.scipy.special.gammaln(0.5 * (df + 1.0))
-    )
-    return 0.5 * (df + 1.0) * jnp.log1p(y**2.0 / df) + z
+    _df = df[..., None]
+    z = jnp.log(scale) + 0.5 * jnp.log(_df * jnp.pi) + jax.scipy.special.gammaln(0.5 * _df) - jax.scipy.special.gammaln(0.5 * (_df + 1.0))
+    return 0.5 * (_df + 1.0) * jnp.log1p(y**2.0 / _df) + z
+
+
+# scalar version (used for LAPS)
+
+# def nlogp_StudentT(x, df, scale):
+#     y = x / scale
+#     z = jnp.log(scale) + 0.5 * jnp.log(df * jnp.pi) + jax.scipy.special.gammaln(0.5 * df) - jax.scipy.special.gammaln(0.5 * (df + 1.0))
+#     return 0.5 * (df + 1.0) * jnp.log1p(y**2.0 / df) + z
+
 
 name = 'Stochastic_Volatility_MAMS_Paper'
 
@@ -34,12 +39,12 @@ SP500_returns = jnp.load(f'{module_dir}/data/' + 'SP500.npy')
 def logdensity_fn(x):
         """x=  [s1, s2, ... s2427, log sigma / typical_sigma, log nu / typical_nu]"""
 
-        sigma = jnp.exp(x[-2]) * typical_sigma #we used this transformation to make x unconstrained
-        nu = jnp.exp(x[-1]) * typical_nu
+        sigma = jnp.exp(x[..., -2]) * typical_sigma #we used this transformation to make x unconstrained
+        nu = jnp.exp(x[..., -1]) * typical_nu
 
-        l1= (jnp.exp(x[-2]) - x[-2]) + (jnp.exp(x[-1]) - x[-1])
-        l2 = (ndims - 2) * jnp.log(sigma) + 0.5 * (jnp.square(x[0]) + jnp.sum(jnp.square(x[1:-2] - x[:-3]))) / jnp.square(sigma)
-        l3 = jnp.sum(nlogp_StudentT(SP500_returns, nu, jnp.exp(x[:-2])))
+        l1= (jnp.exp(x[..., -2]) - x[..., -2]) + (jnp.exp(x[..., -1]) - x[..., -1])
+        l2 = (ndims - 2) * jnp.log(sigma) + 0.5 * (jnp.square(x[..., 0]) + jnp.sum(jnp.square(x[..., 1:-2] - x[..., :-3]), axis= -1)) / jnp.square(sigma)
+        l3 = jnp.sum(nlogp_StudentT(SP500_returns, nu, jnp.exp(x[..., :-2])), axis= -1)
 
         return -(l1 + l2 + l3)
 

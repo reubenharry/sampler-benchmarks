@@ -7,8 +7,8 @@ import jax
 from sampler_evaluation.models.model import SampleTransformation, make_model
 
 def logdensity_fn_banana(x):
-        mu2 = 0.03 * (x[0] ** 2 - 100)
-        return -0.5 * (jnp.square(x[0] / 10.0) + jnp.square(x[1] - mu2))
+        mu2 = 0.03 * (jnp.square(x[..., 0]) - 100)
+        return -0.5 * (jnp.square(x[..., 0] / 10.0) + jnp.square(x[..., 1] - mu2))
 
 def exact_sample(key):
         z = jax.random.normal(key, shape=(2,))

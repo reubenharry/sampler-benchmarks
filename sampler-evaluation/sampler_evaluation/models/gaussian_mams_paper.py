@@ -83,7 +83,7 @@ class IllConditionedGaussian(model.Model):
                 self.cov = jnp.diag(eigs)
 
             self._unnormalized_log_prob = lambda x: -0.5 * jnp.sum(
-                jnp.square(x) * self.inv_cov
+                jnp.square(x) * self.inv_cov, axis = -1
             )
 
 
@@ -101,7 +101,7 @@ class IllConditionedGaussian(model.Model):
             self.inv_cov = R @ inv_D @ R.T
             self.cov = R @ D @ R.T
             self.e_x2 = jnp.diagonal(R @ D @ R.T)
-            self._unnormalized_log_prob = lambda x: -0.5 * x.T @ self.inv_cov @ x
+            self._unnormalized_log_prob = lambda x: -0.5 * jnp.einsum('...i,ij,...j->...', x, self.inv_cov, x) # quadratic form, x^T inv_cov x
 
         self.e_x = jnp.zeros(ndims)
         self.var_x2 = 2 * jnp.square(self.e_x2)

@@ -41,7 +41,7 @@ print('Number of devices: ', len(jax.devices()))
 imodel, itask = int(sys.argv[1]), int(sys.argv[2])
 
 m = [(banana_mams_paper, 100, 50, 500),
-     (IllConditionedGaussian(ndims=100, eigenvalues='gamma', numpy_seed= rng_inference_gym_icg), 500, 500, 2000),
+     (IllConditionedGaussian(ndims=100, eigenvalues='gamma', numpy_seed= rng_inference_gym_icg), 500, 500, 6000),
      (german_credit(), 500, 400, 2000),      
      #(brownian_motion(), 500, 500, 2000),
      (item_response(), 500, 500, 2000),
@@ -61,16 +61,16 @@ def _main(folder,
 
 
      model, n1, n2, n_meads = m
-     _, info, settings_info = parallel_microcanonical(num_steps1= n1, 
-                                                            num_steps2= n2, 
-                                                            num_chains= batch_size, mesh= mesh, superchain_size= 1,
-                                                            C= C, alpha= alpha, bias_type= bias_type, steps_per_sample= steps_per_sample, acc_prob= acc_prob, integrator_coefficients = integrator_coefficients,
-                                                            )(model=model)
+     # _, info, settings_info = parallel_microcanonical(num_steps1= n1, 
+     #                                                        num_steps2= n2, 
+     #                                                        num_chains= batch_size, mesh= mesh, superchain_size= 1,
+     #                                                        C= C, alpha= alpha, bias_type= bias_type, steps_per_sample= steps_per_sample, acc_prob= acc_prob, integrator_coefficients = integrator_coefficients,
+     #                                                        )(model=model)
 
-     res = meads_with_adam(n_meads, batch_size)(model= model)
-     print(res)
+     meads_with_adam(n_meads, batch_size, folder)(model= model)     
      
      return
+     
      #folder = 'papers/LAPS/img/trace/'
      n = plot_trace(info, model, settings_info, folder)
      #n = get_n(info, settings_info)
@@ -105,11 +105,12 @@ def _main2():
      
 grid = lambda param_grid, fixed_params= None, verbose= True, extra_word= '': do_grid(_main, param_grid, fixed_params=fixed_params, verbose= verbose, extra_word= m[0].name + extra_word)
 
+
 #grid = lambda param_name, param_vals, fixed_params= None, verbose= True, extra_word= '': do_single(_main, param_name, param_vals, which, fixed_params=fixed_params, verbose= verbose, extra_word= m[0].name + extra_word)
 
-_main('papers/LAPS/img/trace/')
+_main('papers/LAPS/img/trace/meads_adam1/')
 
-#shifter --image=reubenharry/cosmo:1.0 python3 -m papers.LAPS.main 2 0
+#shifter --image=jrobnik/mcmc:1.0 python3 -m papers.LAPS.main 2 0
 
 
 # if itask == 0:

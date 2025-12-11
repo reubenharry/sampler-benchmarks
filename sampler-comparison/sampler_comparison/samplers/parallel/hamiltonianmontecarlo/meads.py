@@ -21,7 +21,9 @@ from jax import lax, vmap, random, jit, value_and_grad
 
 from sampler_comparison.samplers.general import make_log_density_fn
 
-
+import matplotlib.pyplot as plt
+import numpy as np
+from sampler_evaluation.evaluation.ess import samples_to_low_error
 
 
 def estimate_largest_eigenvalue_of_covariance(x, remove_mean=True):
@@ -68,9 +70,11 @@ def estimate_largest_eigenvalue_of_covariance(x, remove_mean=True):
 
 
 def meads_update(phmc_state, key, fold_to_skip, iteration, target_log_prob_fn,
+                 summary_fn,
                  diagonal_preconditioning=True,
                  step_size_multiplier=0.5,
-                 damping_slowdown=1.):
+                 damping_slowdown=1.,
+                 ):
   """Apply one step of a self-controlled generalized HMC update.
 
   Args:
@@ -107,6 +111,7 @@ def meads_update(phmc_state, key, fold_to_skip, iteration, target_log_prob_fn,
   unperm = jnp.eye(num_chains)[perm].argmax(0)
   def refold(x, perm):
     return x.reshape((num_chains,) + x.shape[2:])[perm].reshape(x.shape)
+
   phmc_state = jax.tree.map(functools.partial(refold, perm=perm), phmc_state)
 
   if diagonal_preconditioning:
@@ -156,54 +161,60 @@ def meads_update(phmc_state, key, fold_to_skip, iteration, target_log_prob_fn,
       noise_fraction=select_folds(noise_fraction)[:, jnp.newaxis, jnp.newaxis],
       mh_drift=select_folds(mh_drift)[:, jnp.newaxis],
       seed=momentum_key)
-  phmc_state = jax.tree_multimap(rejoin_folds, active_fold_state, phmc_state)
+  phmc_state = jax.tree.map(rejoin_folds, active_fold_state, phmc_state)
 
   # Revert the ordering of the walkers.
   phmc_state = jax.tree.map(functools.partial(refold, perm=unperm), phmc_state)
+  x = phmc_state.state
 
-  traced = {
-      'z_chain': phmc_state.state,
-      'is_accepted': phmc_extra.is_accepted,
-      'damping': damping,
-      'step_size': step_size,
-      'level': phmc_state.pmh_state.level,
-  }
+  traced = summary_fn(x.reshape(x.shape[0] * x.shape[1], x.shape[2]))
+  
+  # {
+  #     'z_chain': phmc_state.state,
+  #     'is_accepted': phmc_extra.is_accepted,
+  #     'damping': damping,
+  #     'step_size': step_size,
+  #     'level': phmc_state.pmh_state.level,
+  # }
 
   return ((phmc_state, new_key, (fold_to_skip + 1) % num_folds, iteration+1),
           traced)
 
 
 def adam_initialize(x, target_log_prob_fn, num_steps=100, learning_rate=0.05):
-  """Use Adam optimizer to get a reasonable initialization for HMC algorithms.
+    """Use Adam optimizer to get a reasonable initialization for HMC algorithms.
 
-  Args:
-    x: Where to initialize Adam.
-    target_log_prob_fn: Unnormalized target log-density.
-    num_steps: How many steps of Adam to run.
-    learning_rate: What learning rate to pass to Adam.
+    Args:
+      x: Where to initialize Adam.
+      target_log_prob_fn: Unnormalized target log-density.
+      num_steps: How many steps of Adam to run.
+      learning_rate: What learning rate to pass to Adam.
 
-  Returns:
-    Optimized version of x.
-  """
-  optimizer = optax.adam(learning_rate)
-  @jit
-  def update_step(x, adam_state):
-    def g_fn(x):
-      return jax.tree.map(lambda x: -x, value_and_grad(target_log_prob_fn)(x))
-    tlp, g = g_fn(x)
-    updates, adam_state = optimizer.update(g, adam_state)
-    return optax.apply_updates(x, updates), adam_state, tlp
+    Returns:
+      Optimized version of x.
+    """
+    optimizer = optax.adam(learning_rate)
+    
+    @jit
+    def update_step(x, adam_state):
+        def g_fn(x):
+            return jax.tree.map(lambda x: -x, value_and_grad(target_log_prob_fn)(x))
+        tlp, g = g_fn(x)
+        updates, adam_state = optimizer.update(g, adam_state)
+        return optax.apply_updates(x, updates), adam_state, tlp
 
-  adam_state = optimizer.init(x)
-  for i in range(num_steps):
-    x, adam_state, tlp = update_step(x, adam_state)
-    print('Adam iteration/NLL: %d\t%f' % (i, tlp))
-  return x
-     
+    adam_state = optimizer.init(x)
+  
+    for i in range(num_steps):
+        x, adam_state, tlp = update_step(x, adam_state)
+      
+    return x
+        
 
-@functools.partial(jit, static_argnums=(1, 2, 3, 4, 5))
+@functools.partial(jit, static_argnums=(1, 2, 3, 4, 5, 6))
 def run_meads(initial_pos,
               target_log_prob_fn,
+              summary_fn,
               num_steps,
               num_chains,
               num_folds= 4,
@@ -233,25 +244,31 @@ def run_meads(initial_pos,
   initial_m = random.normal(m_seed, initial_pos.shape)
   initial_u = 2*random.uniform(slice_seed, state_shape[:-1]) - 1
   initial_state = fun_mc.prefab.persistent_hamiltonian_monte_carlo_init(
-      initial_pos, target_log_prob_fn, initial_m, initial_u)
+      initial_pos, target_log_prob_fn, initial_m)
 
   curried_update = functools.partial(
       meads_update,
-      target_log_prob_fn=target_log_prob_fn,
+      target_log_prob_fn= target_log_prob_fn,
+      summary_fn = summary_fn,
       diagonal_preconditioning=True,
       step_size_multiplier=0.5,
-      damping_slowdown=1.)
+      damping_slowdown=1.
+      )
   
   # Nested call to fun_mc.trace implements thinning.
-  return fun_mc.trace((initial_state, mcmc_seed, 0, 0),
+  final_state, trace = fun_mc.trace((initial_state, mcmc_seed, 0, 0),
                       lambda *state: fun_mc.trace(
                           state, curried_update, thinning, trace_mask=False),
-                      num_steps//thinning)[1]
+                      num_steps//thinning)
+  return trace
      
+
+
 
 def meads_with_adam(
               num_steps,
               num_chains,
+              folder,
               num_folds= 4,
               thinning= 1):
     """Initialize MEADS with a run of ADAM optimizer (100 steps)."""
@@ -261,24 +278,70 @@ def meads_with_adam(
 
         logdensity_fn = make_log_density_fn(model)
 
+        # one sample from the prior + ADAM
+        position = model.sample_init(jax.random.key(42))#jax.vmap(jax.vmap(model.sample_init))(jax.random.key())
+        initial_state = adam_initialize(position, logdensity_fn)
 
-        initial_state = adam_initialize(jnp.zeros(model.ndims),
-                                    lambda x: logdensity_fn(x)[0])
+        # each chain is its own sample from the prior + ADAM
         
-        result = run_meads(initial_state,
-                      logdensity_fn,
+        # zeros + ADAM
+        # position = jnp.zeros(model.ndims)
+        # initial_state = adam_initialize(position, logdensity_fn)
+
+
+        def func(x):
+           return logdensity_fn(x), ()
+        
+        def summary_fn(position):
+            #F = model.sample_transformations['square'].fn
+            F = lambda x: jnp.square(model.default_event_space_bijector(x))
+
+            e_x = jnp.average(jax.vmap(F)(position), axis = 0)
+            bsq = jnp.square(e_x - model.sample_transformations["square"].ground_truth_mean) / (model.sample_transformations["square"].ground_truth_standard_deviation**2)
+            return {'max': jnp.max(bsq), 'avg': jnp.average(bsq)}
+        
+
+        trace = run_meads(initial_state,
+                      func, summary_fn,
                       num_steps, num_chains, num_folds, thinning)
 
-        return result
-        # def contract(e_x):
+        dir = folder + model.name + '.png'
 
-        #     bsq = jnp.square(e_x - model.sample_transformations["square"].ground_truth_mean) / (model.sample_transformations["square"].ground_truth_standard_deviation**2)
-        #     return jnp.array([jnp.max(bsq), jnp.average(bsq)])
+        plot_trace(trace, dir)
         
         # #model.sample_transformations["square"].fn(position)
         # observables_for_bias = lambda position:jnp.square(model.default_event_space_bijector(jax.flatten_util.ravel_pytree(position)[0]))
 
-    
     return s
      
+
+
+
+
+def plot_trace(trace, dir):
+            
+
+    plt.figure(figsize= (15, 5))
+
+    grads = np.arange(len(trace['max'])) + 100
+
+    st = samples_to_low_error(trace['max'], 0.01)
+    if np.isfinite(st):
+        n = grads[st]
+    else:
+        n = np.inf
+
+    plt.title(f'Grads to low bias: {n}.')    
+    plt.plot(grads, trace['max'], color = 'tab:red', label='max')
+    plt.plot(grads, trace['avg'], color = 'tab:blue', label= 'avg')
+
+    plt.axhline(1e-2, color = 'black')
+    plt.legend(fontsize= 12)
+    plt.ylabel(r'$b^2_{\mathrm{max}}$')
+    plt.xlabel('# gradient evaluations')
+    
+    plt.yscale('log')
+    
+    plt.savefig(dir)
+    plt.close()
 
