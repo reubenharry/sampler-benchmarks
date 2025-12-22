@@ -5,7 +5,7 @@ import jax.scipy.stats as stats
 jax.config.update("jax_enable_x64", True)
 
 import blackjax.mcmc.random_walk
-from blackjax.adaptation.ensemble_mclmc import laps
+from blackjax.adaptation.laps import laps
 from sampler_comparison.samplers.general import make_log_density_fn
 from sampler_evaluation.evaluation.ess import samples_to_low_error
 
@@ -187,7 +187,6 @@ def parallel_microcanonical(num_steps1, num_steps2, num_chains, mesh, early_stop
             diagonal_preconditioning=diagonal_preconditioning, 
             integrator_coefficients= None, 
             steps_per_sample=15,
-            ensemble_observables= lambda x: x,
             observables_for_bias=observables_for_bias,
             contract = contract,
             r_end=0.01,
