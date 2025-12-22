@@ -165,20 +165,43 @@ if __name__ == "__main__":
     #         )
 
     for model in models:
-        run(
-                    key=jax.random.PRNGKey(4),
-                    models=[model],
-                    tuning_options=['alba'],
-                    mh_options = [False],
-                    canonical_options = [False],
-                    langevin_options = [True],
-                    integrator_type_options = ['mclachlan'],
-                    diagonal_preconditioning_options = [True],
-                    redo=True,
-                    compute_missing=True,
-                    redo_bad_results=True,
-                    pseudofermion=True,
-                )
+        # for mh, canonical, langevin, integrator_type in [
+        #     (True, True, True, 'velocity_verlet'),
+        #     (True, False, True, 'velocity_verlet'),
+        #     (False, True, True, 'velocity_verlet'),
+        #     (False, False, True, 'mclachlan'),
+        #     (True, True, False, 'velocity_verlet'),
+        #     (True, False, False, 'mclachlan'),
+        # ]:
+        #     run(
+        #         key=jax.random.PRNGKey(4),
+        #         models=[model],
+        #         tuning_options=['alba'],
+        #         mh_options = [mh],
+        #         canonical_options = [canonical],
+        #         langevin_options = [langevin],
+        #         integrator_type_options = [integrator_type],
+        #         diagonal_preconditioning_options = [True],
+        #         redo=True,
+        #         compute_missing=True,
+        #         redo_bad_results=True,
+        #         pseudofermion=False,
+        #     )
+            run(
+                key=jax.random.PRNGKey(4),
+                models=[model],
+                tuning_options=['alba'],
+                mh_options = [True],
+                canonical_options = [True],
+                langevin_options = [False],
+                integrator_type_options = ['velocity_verlet'],
+                diagonal_preconditioning_options = [True],
+                redo=True,
+                compute_missing=True,
+                redo_bad_results=True,
+                pseudofermion=True,
+            )
+            
     # run(
     #             key=jax.random.PRNGKey(4),
     #             models=[models[1]],

@@ -150,16 +150,18 @@ def adjusted_mclmc(
 
         integrator = map_integrator_type_to_integrator["mclmc"][integrator_type]
 
-        warmup = 'nuts'
+        warmup = 'alba'
 
         if warmup=='alba':
             warmup = adjusted_alba(
-                unadjusted_algorithm=blackjax.mclmc,
+                unadjusted_mcmc_kernel=blackjax.mclmc.build_kernel(map_integrator_type_to_integrator["mclmc"][integrator_type]),
+                unadjusted_init=blackjax.mclmc.init,
                 logdensity_fn=logdensity_fn,
                 target_eevpd=5e-4,
                 num_alba_steps=num_unadjusted_tuning_steps // 3 if num_alba_steps is None else num_alba_steps,
                 v=1.,
-                adjusted_algorithm=blackjax.adjusted_mclmc_dynamic,
+                adjusted_mcmc_kernel=blackjax.adjusted_mclmc_dynamic.build_kernel(integrator=map_integrator_type_to_integrator["mclmc"][integrator_type], L_proposal_factor=L_proposal_factor),
+                adjusted_init=blackjax.adjusted_mclmc_dynamic.init,
                 target_acceptance_rate=target_acc_rate,
                 integrator=integrator,
                 preconditioning=diagonal_preconditioning,
@@ -172,41 +174,43 @@ def adjusted_mclmc(
             num_tuning_integrator_steps =  jnp.nan # adaptation_info.num_integration_steps.sum()
 
         # jax.debug.print("adaptation_info: {x}", x=num_tuning_integrator_steps)
-        elif warmup=='nuts':
-            warmup = blackjax.window_adaptation(
-                    blackjax.nuts, logdensity_fn, 
-                    target_acceptance_rate = 0.8, 
-                    integrator=map_integrator_type_to_integrator["hmc"]['velocity_verlet'], 
-                )
+        # elif warmup=='nuts':
+        #     warmup = blackjax.window_adaptation(
+        #             blackjax.nuts, logdensity_fn, 
+        #             target_acceptance_rate = 0.8, 
+        #             integrator=map_integrator_type_to_integrator["hmc"]['velocity_verlet'], 
+        #         )
         
-            (blackjax_state_after_tuning, unadjusted_params), inf = warmup.run(tune_key_unadjusted, initial_position, 5000)
-            # total_tuning_integrator_steps += inf.info.num_integration_steps.sum()
+        #     (blackjax_state_after_tuning, unadjusted_params), inf = warmup.run(tune_key_unadjusted, initial_position, 5000)
+        #     # total_tuning_integrator_steps += inf.info.num_integration_steps.sum()
 
-            dim = initial_position.shape[0]
-            new_step_size = jnp.clip(unadjusted_params["step_size"], max=jnp.sqrt(dim)-0.01)
-            alba_params = MCLMCAdaptationState(
-                L=jnp.sqrt(dim),
-                step_size=new_step_size,
-                inverse_mass_matrix=unadjusted_params['inverse_mass_matrix'],
-            )
+        #     dim = initial_position.shape[0]
+        #     new_step_size = jnp.clip(unadjusted_params["step_size"], max=jnp.sqrt(dim)-0.01)
+        #     alba_params = MCLMCAdaptationState(
+        #         L=jnp.sqrt(dim),
+        #         step_size=new_step_size,
+        #         inverse_mass_matrix=unadjusted_params['inverse_mass_matrix'],
+        #     )
 
 
-            alba_state = blackjax.mcmc.adjusted_mclmc_dynamic.init(
-                position=blackjax_state_after_tuning.position,
-                logdensity_fn=logdensity_fn,
-                random_generator_arg=re_init_key,
-            )
+        #     alba_state = blackjax.mcmc.adjusted_mclmc_dynamic.init(
+        #         position=blackjax_state_after_tuning.position,
+        #         logdensity_fn=logdensity_fn,
+        #         random_generator_arg=re_init_key,
+        #     )
 
-            num_tuning_integrator_steps = jnp.nan
+        #     num_tuning_integrator_steps = jnp.nan
+
+
             
-
+        # jax.debug.print("alba_params: {x}", x=alba_params)
     
         expectations, metadata = adjusted_mclmc_no_tuning(
             initial_state=alba_state,
             integrator_type=integrator_type,
-            step_size=1.0,
-            L=11.0,
-            inverse_mass_matrix=alba_params.inverse_mass_matrix,
+            step_size=alba_params['step_size'],
+            L=alba_params['L'],
+            inverse_mass_matrix=alba_params['inverse_mass_matrix'],
             L_proposal_factor=L_proposal_factor,
             random_trajectory_length=random_trajectory_length,
             return_samples=return_samples,
@@ -289,12 +293,14 @@ def grid_search_adjusted_mclmc(
         logdensity_fn = make_log_density_fn(model)
         num_alba_steps = num_tuning_steps // 3
         warmup = adjusted_alba(
-            unadjusted_algorithm=blackjax.mclmc,
+            unadjusted_mcmc_kernel=blackjax.mclmc.build_kernel(map_integrator_type_to_integrator["mclmc"][integrator_type]),
+            unadjusted_init=blackjax.mclmc.init,
             logdensity_fn=logdensity_fn,
             target_eevpd=desired_energy_var,
             num_alba_steps=num_alba_steps,
             v=1.,
-            adjusted_algorithm=blackjax.adjusted_mclmc_dynamic,
+            adjusted_mcmc_kernel=blackjax.adjusted_mclmc_dynamic.build_kernel(integrator=map_integrator_type_to_integrator["mclmc"][integrator_type], L_proposal_factor=L_proposal_factor),
+            adjusted_init=blackjax.adjusted_mclmc_dynamic.init,
             target_acceptance_rate=target_acc_rate,
             integrator=map_integrator_type_to_integrator["mclmc"][integrator_type],
             preconditioning=diagonal_preconditioning,

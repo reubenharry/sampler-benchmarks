@@ -118,12 +118,15 @@ def unadjusted_hmc(
         tune_key, run_key = jax.random.split(key, 2)
         num_dimensions = initial_position.shape[0]
 
+
         num_alba_steps = num_tuning_steps // 3
         warmup = unadjusted_alba(
-            algorithm=blackjax.uhmc, 
-            logdensity_fn=logdensity_fn, integrator=map_integrator_type_to_integrator["hmc"][integrator_type], 
+            mcmc_kernel=blackjax.uhmc.build_kernel(map_integrator_type_to_integrator["hmc"][integrator_type]),
+            init=blackjax.uhmc.init,
+            logdensity_fn=logdensity_fn, 
             target_eevpd=desired_energy_var, 
-            v=jnp.sqrt(num_dimensions), num_alba_steps=num_alba_steps,
+            v=jnp.sqrt(num_dimensions), 
+            num_alba_steps=num_alba_steps,
             preconditioning=diagonal_preconditioning,
             alba_factor=alba_factor,
             )
@@ -212,12 +215,11 @@ def grid_search_unadjusted_hmc(
         num_dimensions = initial_position[0].shape[0]
         num_alba_steps = num_tuning_steps // 3
         warmup = unadjusted_alba(
-            algorithm=blackjax.uhmc, 
+            mcmc_kernel=blackjax.uhmc.build_kernel(map_integrator_type_to_integrator["hmc"][integrator_type]),
+            init=blackjax.uhmc.init,
             logdensity_fn=logdensity_fn, 
-            integrator=map_integrator_type_to_integrator["hmc"][integrator_type], 
             target_eevpd=desired_energy_var, 
-            v=jnp.sqrt(num_dimensions), 
-            num_alba_steps=num_alba_steps,
+            v=jnp.sqrt(num_dimensions), num_alba_steps=num_alba_steps,
             preconditioning=diagonal_preconditioning,
             alba_factor=alba_factor,
         )

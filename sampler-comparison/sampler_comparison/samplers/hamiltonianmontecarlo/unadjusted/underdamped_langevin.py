@@ -122,9 +122,10 @@ def unadjusted_lmc(
 
         num_alba_steps = num_tuning_steps // 3
         warmup = unadjusted_alba(
-            algorithm=blackjax.langevin, 
+            mcmc_kernel=blackjax.langevin.build_kernel(map_integrator_type_to_integrator["hmc"][integrator_type]),
+            init=blackjax.langevin.init,
             logdensity_fn=logdensity_fn, 
-            integrator=map_integrator_type_to_integrator["hmc"][integrator_type], 
+            # integrator=map_integrator_type_to_integrator["hmc"][integrator_type], 
             target_eevpd=desired_energy_var, 
             v=jnp.sqrt(num_dimensions), num_alba_steps=num_alba_steps,
             preconditioning=diagonal_preconditioning,

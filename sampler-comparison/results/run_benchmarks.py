@@ -27,6 +27,7 @@ import jax.numpy as jnp
 # from sampler_comparison.samplers.grid_search.grid_search import grid_search_adjusted_mclmc, grid_search_unadjusted_lmc, grid_search_hmc, grid_search_unadjusted_hmc
 from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import grid_search_unadjusted_mclmc
 from sampler_comparison.samplers.gibbs.pseudofermion import unadjusted_mclmc_pseudofermion
+from sampler_comparison.samplers.gibbs.pseudofermion_hmc import adjusted_hmc_pseudofermion
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(128)
 num_cores = jax.local_device_count()
@@ -137,6 +138,7 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
     if pseudofermion:
         sampler_dict = {
         (False, False, True, 'alba'): (f'unadjusted_microcanonical_langevin_alba_{integrator_name}_precond:{diagonal_preconditioning}_pseudofermion', partial(unadjusted_mclmc_pseudofermion,num_tuning_steps=30, desired_energy_var=5e-4, diagonal_preconditioning=diagonal_preconditioning, integrator_type=integrator_type)),
+        (True, True, False, 'alba'): (f'adjusted_canonical_nolangevin_alba_{integrator_name}_precond:{diagonal_preconditioning}', partial(adjusted_hmc_pseudofermion,num_tuning_steps=adjusted_tuning_steps, integrator_type=integrator_type, L_proposal_factor=jnp.inf,target_acc_rate=target_acc_rate,diagonal_preconditioning=diagonal_preconditioning)),
         }
     else:
         sampler_dict = {
@@ -210,11 +212,13 @@ def lookup_results(model, batch_size, num_steps, mh : bool, canonical : bool, la
     # load results
     # sampler_name, sampler = sampler_dict[(mh, canonical, langevin, tuning)]
     
-    try:
-        sampler_name, sampler = sampler_dict[(mh, canonical, langevin, tuning)]
-    except KeyError:
-        print(f"Sampler not found for {model.name} with mh={mh}, canonical={canonical}, langevin={langevin}, tuning={tuning}")
-        return pd.DataFrame()
+    # try:
+    sampler_name, sampler = sampler_dict[(mh, canonical, langevin, tuning)]
+    # except KeyError as e:
+    #     print(f"Sampler not found for {model.name} with mh={mh}, canonical={canonical}, langevin={langevin}, tuning={tuning}")
+    #     print((mh, canonical, langevin, tuning))
+    #     print(e)
+    #     return pd.DataFrame()
 
     if redo:
         # remove the file

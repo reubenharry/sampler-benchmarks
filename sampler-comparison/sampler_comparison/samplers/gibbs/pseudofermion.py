@@ -196,7 +196,10 @@ def unadjusted_mclmc_pseudofermion(
         
         # jax.debug.print("running warmup")
         (blackjax_state_after_tuning, blackjax_mclmc_sampler_params), adaptation_info = warmup.run(tune_key, initial_position, num_tuning_steps)
+
+
         # jax.debug.print("warmup finished with {x}", x=blackjax_mclmc_sampler_params['step_size'])
+        # jax.debug.print("state: {x}", x=blackjax_state_after_tuning)
 
 
         num_tuning_integrator_steps = num_tuning_steps

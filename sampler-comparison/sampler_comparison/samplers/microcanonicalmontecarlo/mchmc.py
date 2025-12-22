@@ -119,7 +119,7 @@ def unadjusted_mchmc(
 
         num_alba_steps = num_tuning_steps // 3
         warmup = unadjusted_alba(
-            mcmc_kernel=blackjax.mchmc.build_kernel(map_integrator_type_to_integrator["mchmc"][integrator_type]),
+            mcmc_kernel=blackjax.mchmc.build_kernel(map_integrator_type_to_integrator["mclmc"][integrator_type]),
             init=blackjax.mchmc.init,
             logdensity_fn=logdensity_fn, 
             target_eevpd=desired_energy_var, 

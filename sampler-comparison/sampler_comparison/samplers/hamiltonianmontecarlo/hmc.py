@@ -144,13 +144,18 @@ def adjusted_hmc(
 
         num_alba_steps = num_tuning_steps // 3
 
+        # jax.debug.print("num_dimensions  \n\n{x}", x=num_dimensions)
+
+
         warmup = adjusted_alba(
-            unadjusted_algorithm=blackjax.langevin,
+            unadjusted_mcmc_kernel=blackjax.langevin.build_kernel(map_integrator_type_to_integrator["hmc"][integrator_type]),
+            unadjusted_init=blackjax.langevin.init,
             logdensity_fn=logdensity_fn,
             target_eevpd=3e-4,
             num_alba_steps=num_alba_steps,
             v=jnp.sqrt(num_dimensions),
-            adjusted_algorithm=blackjax.dynamic_malt,
+            adjusted_mcmc_kernel=blackjax.dynamic_malt.build_kernel(integrator=integrator, L_proposal_factor=L_proposal_factor),
+            adjusted_init=blackjax.dynamic_malt.init,
             target_acceptance_rate=target_acc_rate,
             integrator=integrator,
             preconditioning=diagonal_preconditioning,
