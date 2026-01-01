@@ -127,11 +127,17 @@ if __name__ == "__main__":
     # models = [phi4(side, unreduce_lam(reduced_lam=4.0, side=side)) for side in [1024]]
 
     models = [
-        Schwinger(Lt=16, Lx=16, beta=6,load_from_file=False)
+        # Schwinger(Lt=16, Lx=16, beta=6,load_from_file=False)
         # Rosenbrock(18),
         # brownian_motion(),
         # neals_funnel_mams_paper,
-        # phi4(256, unreduce_lam(reduced_lam=4.0, side=256)),
+        phi4(16, unreduce_lam(reduced_lam=0.0, side=16)),
+        phi4(32, unreduce_lam(reduced_lam=0.0, side=32)),
+        phi4(64, unreduce_lam(reduced_lam=0.0, side=64)),
+        # phi4(128, unreduce_lam(reduced_lam=0.0, side=128)),
+        # phi4(256, unreduce_lam(reduced_lam=0.0, side=256)),
+        # phi4(512, unreduce_lam(reduced_lam=0.0, side=512)),
+        # phi4(1024, unreduce_lam(reduced_lam=0.0, side=1024)),
         # phi4(1024, unreduce_lam(reduced_lam=4.0, side=1024)),
         # german_credit(),
         # banana(),
@@ -199,7 +205,21 @@ if __name__ == "__main__":
                 redo=True,
                 compute_missing=True,
                 redo_bad_results=True,
-                pseudofermion=True,
+                pseudofermion=False,
+            )
+            run(
+                key=jax.random.PRNGKey(4),
+                models=[model],
+                tuning_options=['alba'],
+                mh_options = [False],
+                canonical_options = [False],
+                langevin_options = [True],
+                integrator_type_options = ['mclachlan'],
+                diagonal_preconditioning_options = [True],
+                redo=True,
+                compute_missing=True,
+                redo_bad_results=True,
+                pseudofermion=False,
             )
             
     # run(
