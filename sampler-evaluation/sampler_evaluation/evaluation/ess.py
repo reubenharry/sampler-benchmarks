@@ -31,7 +31,7 @@ def samples_to_low_error(err_t, low_error=0.01):
 
     err_t = np.array(err_t)
 
-    # jax.debug.print("final error is {x}", x=err_t[-1])
+    jax.debug.print("final error is {x}", x=err_t[-1])
 
     cutoff_reached = err_t[-1] < low_error
     # if not cutoff_reached:

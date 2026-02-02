@@ -85,7 +85,7 @@ def estimate_ground_truth(model, num_samples, annealing=False):
         )
 
         if annealing:
-            sampler = annealed(nuts, beta_schedule=[10.0, 5.0, 2.0], intermediate_num_steps=100000, return_only_final=True,kwargs={
+            sampler = annealed(nuts, beta_schedule=[10.0, 5.0, 2.0], intermediate_num_steps=10000, return_only_final=True,kwargs={
                 'integrator_type':"velocity_verlet",
                 'diagonal_preconditioning':True,
                 # 'return_samples':True,
@@ -163,7 +163,7 @@ def estimate_ground_truth(model, num_samples, annealing=False):
         #     ),
         # }
 
-    # print(results)
+    print(results)
 
     ## pickle to data
     with open(

@@ -21,7 +21,7 @@ def unreduce_lam(reduced_lam, side):
 
 if __name__ == "__main__":
 
-        reduced_lam = 4.0
-        for side in [512]:
+        reduced_lam = 0.0
+        for side in [128, 256]:
                 model = phi4(L=side, lam=unreduce_lam(reduced_lam=reduced_lam, side=side), load_from_file=False)
-                estimate_ground_truth(model, num_samples=25000, annealing=False)
+                estimate_ground_truth(model, num_samples=20000, annealing=True)
