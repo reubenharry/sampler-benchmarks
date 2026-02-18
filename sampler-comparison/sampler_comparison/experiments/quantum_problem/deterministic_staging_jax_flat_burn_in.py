@@ -445,13 +445,13 @@ if __name__ == "__main__":
   
   time_initial = time_module.time()
   # Parameters
-  numsteps = 1000000
+  numsteps = 10000000
   equilibration = 0
   num_chains = 1000
-  num_unadjusted_steps = 1
-  burn_in = 0 # inner loop burn in
+  num_unadjusted_steps = 2
+  burn_in = 1 # inner loop burn in
 
-  j_r = 1
+  j_r = 8
   m = 1.0
   omega = 1.0
 
@@ -473,9 +473,9 @@ if __name__ == "__main__":
   rng, sub = jax.random.split(rng)
   # load r_chain 
 
-  for time in [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]:
+  # for time in [2.0, 3.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]:
   # for time in [1.0, 4.0]:
-  # for time in [8.0]:
+  for time in [8.0]:
   # for time in [1.0]:
     if time < 4.0:
       P = 8

@@ -1,3 +1,7 @@
+import jax.interpreters.xla as xla
+import jax.core
+if not hasattr(xla, "pytype_aval_mappings"):
+    xla.pytype_aval_mappings = jax.core.pytype_aval_mappings
 
 # from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
 import os
@@ -134,7 +138,7 @@ if __name__ == "__main__":
         # phi4(16, unreduce_lam(reduced_lam=0.0, side=16)),
         # phi4(32, unreduce_lam(reduced_lam=0.0, side=32)),
         # phi4(64, unreduce_lam(reduced_lam=4.0, side=64)),
-        phi4(128, unreduce_lam(reduced_lam=4.0, side=128)),
+        # phi4(128, unreduce_lam(reduced_lam=4.0, side=128)),
         # phi4(256, unreduce_lam(reduced_lam=0.0, side=256)),
         # phi4(512, unreduce_lam(reduced_lam=0.0, side=512)),
         # phi4(1024, unreduce_lam(reduced_lam=0.0, side=1024)),
@@ -143,7 +147,7 @@ if __name__ == "__main__":
         # banana(),
         # bimodal_gaussian(),
         # stochastic_volatility_mams_paper,
-        # IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log'),
+        IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log'),
         # IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
         # IllConditionedGaussian(ndims=100, condition_number=1000, eigenvalues='log', do_covariance=False),
         # item_response(),
@@ -225,11 +229,11 @@ if __name__ == "__main__":
                 key=jax.random.PRNGKey(4),
                 models=[model],
                 tuning_options=['alba'],
-                mh_options = [False],
+                mh_options = [True],
                 canonical_options = [True],
-                langevin_options = [True],
+                langevin_options = [False],
                 integrator_type_options = ['velocity_verlet'],
-                diagonal_preconditioning_options = [True, False],
+                diagonal_preconditioning_options = [False],
                 redo=True,
                 compute_missing=True,
                 redo_bad_results=True,

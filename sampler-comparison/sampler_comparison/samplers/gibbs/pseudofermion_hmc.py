@@ -2,12 +2,12 @@ from functools import partial
 import jax
 import sys
 import os
-print(os.listdir("../../blackjax"))
+# print(os.listdir("../../blackjax"))
 sys.path.append("../../blackjax")
 sys.path.append("../sampler-comparison")
 sys.path.append("../sampler-evaluation")
 sys.path.append("../../src/inference-gym/spinoffs/inference_gym")
-print(os.listdir("../../src/inference-gym/spinoffs/inference_gym"))
+# print(os.listdir("../../src/inference-gym/spinoffs/inference_gym"))
 # from blackjax.util import run_inference_algorithm
 # import blackjax
 # from sampler_comparison.samplers.hamiltonianmontecarlo.nuts_tuning import da_adaptation
@@ -190,7 +190,7 @@ def adjusted_hmc_pseudofermion(
             unadjusted_init=partial(blackjax.pseudofermion.init, pseudofermion=jnp.zeros(initial_position.shape[0], dtype=jnp.complex128), init_1=blackjax.mclmc.init, init_2=lambda x: x),
             adjusted_mcmc_kernel=blackjax.pseudofermion.build_kernel(
                 kernel_1=blackjax.dynamic_malt.build_kernel(integrator=map_integrator_type_to_integrator["hmc"][integrator_type], L_proposal_factor=L_proposal_factor),
-            kernel_2=lambda key, x: model.Mpsi( sample_noise_complex(shape=model.ndims, rng_key=key), x.position),
+                kernel_2=lambda key, x: model.Mpsi( sample_noise_complex(shape=model.ndims, rng_key=key), x.position),
             ),
             adjusted_init=partial(blackjax.pseudofermion.init, pseudofermion=jnp.zeros(initial_position.shape[0], dtype=jnp.complex128), init_1=blackjax.dynamic_malt.init, init_2=lambda x: x),
             logdensity_fn=logdensity_fn, 

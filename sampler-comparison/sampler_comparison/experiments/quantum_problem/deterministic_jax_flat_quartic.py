@@ -346,7 +346,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
   tic = time_module.time()
   keys = jax.random.split(rng, mc_steps)
   (chain_r_out, ss_out, old_pot_out, final_sweep_state), all_samples = lax.scan(flat_step_fn, init_carry, keys)
-  print(time_module.time() - tic, "time of flat loop")
+  print(time_module.time() - tic, chain_r_out[0], "time of flat loop")
  
   
   
@@ -356,10 +356,10 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
 
 if __name__ == "__main__":
   # Parameters
-  numsteps = 10000000
+  numsteps = 1000000
   equilibration = 0
-  num_chains = 10000
-  num_unadjusted_steps = 10
+  num_chains = 1000
+  num_unadjusted_steps = 1
   burn_in = 0 # inner loop burn in
 
   P = 16
@@ -369,7 +369,8 @@ if __name__ == "__main__":
 
   hbar = 1.0
   i=1
-  U = lambda x : 0.5*m*(omega**2)*(x**2)+0.25*(x**4)
+  U = lambda x : 0.5*m*(omega**2)*(x**2) # 0.25*(x**4)
+  # 0.5*m*(omega**2)*(x**2)+0.25*(x**4)
 
   
   kbt = 1.0  
@@ -387,7 +388,7 @@ if __name__ == "__main__":
   tic = time.time()
   # for time in [2.0, 3.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]:
   # for time in [1.0, 4.0]:
-  for time in [12.0]:
+  for time in [1.0]:
   # [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0]:
     if time < 4.0:
       P = 8
@@ -406,7 +407,9 @@ if __name__ == "__main__":
     print(samples_np.shape)
     # save samples  
     dir = '/pscratch/sd/r/reubenh/storage'
-    np.save(f'{dir}/samples_np_flat_quartic_{time}_{j_r}.npy', samples_np)
+    # np.save(f'{dir}/samples_np_flat_quartic_{time}_{j_r}.npy', samples_np)
+    print(f'saving samples to {dir}/samples_np_flat_{time}_{j_r}.npy')
+    np.save(f'{dir}/samples_np_flat_{time}_{j_r}.npy', samples_np)
     # plt.plot(std_errs)
     # plt.savefig(f'std_errs_{time}_{j_r}.png')
     # plt.clf()

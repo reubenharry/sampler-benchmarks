@@ -51,8 +51,8 @@ from sampler_evaluation.models.schwinger import Schwinger
 model_info = {
     IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log').name: {
         'pretty_name' : 'Ill-Conditioned Gaussian in 2D, with condition number 1',
-        'batch_size' : 1,
-        'num_steps' : {True : 5000, False : 5000},
+        'batch_size' : 2,
+        'num_steps' : {True : 50000, False : 50000},
         'preferred_statistic' : 'square',
         'max_over_parameters' : False,
         'grid_search_steps' : {True : 400, False : 400}},
