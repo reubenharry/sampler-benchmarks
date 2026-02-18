@@ -393,64 +393,6 @@ if __name__ == "__main__":
   num_unadjusted_steps = 1
   burn_in = 0 # inner loop burn in
 
-  j_r = 8
-  m = 1.0
-  omega = 1.0
-
-  hbar = 1.0
-  i=1
-  U = lambda x : 0.25*(x**4)
-  # 0.5*m*(omega**2)*(x**2)
-
-  
-  kbt = 1.0  
-  beta = 1 / kbt
-
-  # time = 1.0
-  im = 0 + 1j
-  
-
-  # Initial chain from uniform(0,1)
-  rng = jax.random.PRNGKey(0)
-  rng, sub = jax.random.split(rng)
-  # load r_chain 
-
-  # for time in [2.0, 3.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]:
-  # for time in [1.0, 4.0]:
-  for time in [8.0]:
-  # for time in [1.0]:
-    if time < 4.0:
-      P = 8
-    elif time < 8.0:
-      P = 16
-    else:
-      P = 32
-
-
-  # for time in [3.0]:
-    r_chain = jax.random.uniform(sub, shape=(P + 1,))
-    # r_chains = np.load(f'/global/homes/r/reubenh/sampler-benchmarks/sampler-comparison/samples_np_{time}.npy')
-    # r_chain= jnp.array(r_chains[-1, :])
-    # print(r_chain.shape, "r_chain shape")
-    samples_np, ss_out, var_errors = do_mc_open_chain(rng, numsteps, equilibration, r_chain, P, j_r, m, num_unadjusted_steps, num_chains, t=time)
-    print(samples_np.shape, ss_out.shape)
-    # save samples  
-    dir = '/pscratch/sd/r/reubenh/storage'
-    np.save(f'{dir}/samples_np_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{j_r}.npy', samples_np)
-    np.save(f'{dir}/ss_out_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{j_r}.npy', ss_out)
-    np.save(f'{dir}/var_errors_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{j_r}.npy', var_errors)
-  time_final = time_module.time()
-  print(time_final - time_initial, "time of total")
-  
-  
-  time_initial = time_module.time()
-  # Parameters
-  numsteps = 1000000
-  equilibration = 0
-  num_chains = 1000
-  num_unadjusted_steps = 1
-  burn_in = 0 # inner loop burn in
-
   j_r = 1
   m = 1.0
   omega = 1.0
@@ -473,7 +415,7 @@ if __name__ == "__main__":
   rng, sub = jax.random.split(rng)
   # load r_chain 
 
-  for time in [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]:
+  for time in [9.0]:
   # for time in [1.0, 4.0]:
   # for time in [8.0]:
   # for time in [1.0]:
@@ -500,51 +442,34 @@ if __name__ == "__main__":
   time_final = time_module.time()
   print(time_final - time_initial, "time of total")
   
-    # plt.plot(std_errs)
-    # plt.savefig(f'std_errs_{time}_{j_r}.png')
-    # plt.clf()
-    # get running avg of acc_probs
-    # running_avg_acc_probs = np.cumsum(acc_probs) / np.arange(1, len(acc_probs) + 1)
-    # plt.plot(running_avg_acc_probs)
-    # # plt.savefig(f'running_avg_acc_probs_{time}.png')
-    # plt.savefig(f'acc_probs_{time}_{j_r}.png')
-    # # plt.clf()
+  
+  num_unadjusted_steps = 2
+  burn_in = 1 # inner loop burn in
+  for time in [9.0]:
+  # for time in [1.0, 4.0]:
+  # for time in [8.0]:
+  # for time in [1.0]:
+    if time < 4.0:
+      P = 8
+    elif time < 8.0:
+      P = 16
+    else:
+      P = 32
 
 
-  # observable = lambda x : x[0] * x[-1]
-  # observables = jax.vmap(observable)(samples_np)
-  # plt.hist(observables, bins=50)
-  # plt.savefig('the_density.png')
-  # plt.clf()
-
-  # histvals, hist_bin_edges = np.histogram(samples_np, bins=50)
-  # # make histogram
-  # plt.plot(hist_bin_edges[:-1], histvals, label='Monte Carlo Samples')
-  # plt.legend(loc='upper right')
-  # plt.xlabel(r'$u_{P+1}$')
-  # plt.ylabel(r'$N(u_{P+1})$')
-  # plt.title('Estimator for harmonic oscillator density matrix (JAX)')
-  # plt.savefig('the_density.png')
-  # plt.clf()
-
-
-  # print(time.time() - tic, "time")
-  # # Normalize histogram
-  # sum1 = 0.0
-  # for s in range(len(dist_hist)):
-  #   sum1 += dist_hist[s] * (dist_bin_edges[1] - dist_bin_edges[0])
-  # dist_hist = dist_hist / sum1
-
-  # # Plot
-  # ideal_x = np.arange(-7, 7, 0.05)
-  # ideal_prediction_x = np.asarray(get_harmonic_density(jnp.array(ideal_x), 1 / kbt, m, w))
-  # # plt.plot(ideal_x, ideal_prediction_x, linestyle='-', label='Exact', color='blue')
-  # plt.plot(bin_centers(dist_bin_edges), dist_hist, 'o', label=r'$N(u_{P+1})$', color='red')
-  # plt.legend(loc='upper right')
-  # plt.xlabel(r'$u_{P+1}$')
-  # plt.ylabel(r'$N(u_{P+1})$')
-  # plt.title('Estimator for harmonic oscillator density matrix (JAX)')
-  # plt.savefig('the_density.png')
-  # plt.clf()
-
-
+  # for time in [3.0]:
+    r_chain = jax.random.uniform(sub, shape=(P + 1,))
+    # r_chains = np.load(f'/global/homes/r/reubenh/sampler-benchmarks/sampler-comparison/samples_np_{time}.npy')
+    # r_chain= jnp.array(r_chains[-1, :])
+    # print(r_chain.shape, "r_chain shape")
+    samples_np, ss_out, var_errors = do_mc_open_chain(rng, numsteps, equilibration, r_chain, P, j_r, m, num_unadjusted_steps, num_chains, t=time)
+    print(samples_np.shape, ss_out.shape)
+    # save samples  
+    dir = '/pscratch/sd/r/reubenh/storage'
+    np.save(f'{dir}/samples_np_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{j_r}.npy', samples_np)
+    np.save(f'{dir}/ss_out_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{j_r}.npy', ss_out)
+    np.save(f'{dir}/var_errors_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{j_r}.npy', var_errors)
+  time_final = time_module.time()
+  print(time_final - time_initial, "time of total")
+  
+  
