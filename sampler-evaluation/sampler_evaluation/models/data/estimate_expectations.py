@@ -29,7 +29,7 @@ from sampler_comparison.samplers.hamiltonianmontecarlo.nuts import nuts
 import sampler_evaluation
 from sampler_evaluation.models.stochastic_volatility_mams_paper import stochastic_volatility_mams_paper
 from sampler_comparison.samplers.annealing.annealing import annealed
-from sampler_evaluation.models.stochastic_volatility_artificial_20000 import stochastic_volatility_artificial_20000
+# from sampler_evaluation.models.stochastic_volatility_artificial_20000 import stochastic_volatility_artificial_20000
 
 
 def relative_fluctuations(expectation, square_expectation):

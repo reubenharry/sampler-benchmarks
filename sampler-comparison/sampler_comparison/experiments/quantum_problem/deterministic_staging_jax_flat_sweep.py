@@ -387,7 +387,7 @@ if __name__ == "__main__":
 
   time_initial = time_module.time()
   # Parameters
-  numsteps = 10000000
+  numsteps = 1000000
   equilibration = 0
   num_chains = 1000
   num_unadjusted_steps = 1
@@ -415,7 +415,7 @@ if __name__ == "__main__":
   rng, sub = jax.random.split(rng)
   # load r_chain 
 
-  for time in [9.0]:
+  for time in [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]:
   # for time in [1.0, 4.0]:
   # for time in [8.0]:
   # for time in [1.0]:
@@ -441,5 +441,3 @@ if __name__ == "__main__":
     np.save(f'{dir}/var_errors_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{numsteps}_{j_r}.npy', var_errors)
   time_final = time_module.time()
   print(time_final - time_initial, "time of total")
-  
- 

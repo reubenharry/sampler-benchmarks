@@ -387,13 +387,13 @@ if __name__ == "__main__":
 
   time_initial = time_module.time()
   # Parameters
-  numsteps = 10000000
+  numsteps = 1000000
   equilibration = 0
   num_chains = 1000
-  num_unadjusted_steps = 1
-  burn_in = 0 # inner loop burn in
+  num_unadjusted_steps = 15
+  burn_in = 10 # inner loop burn in
 
-  j_r = 1
+  j_r = 8
   m = 1.0
   omega = 1.0
 
@@ -441,5 +441,3 @@ if __name__ == "__main__":
     np.save(f'{dir}/var_errors_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{numsteps}_{j_r}.npy', var_errors)
   time_final = time_module.time()
   print(time_final - time_initial, "time of total")
-  
- 
