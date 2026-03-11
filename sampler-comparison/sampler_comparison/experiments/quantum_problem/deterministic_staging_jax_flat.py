@@ -184,7 +184,7 @@ def endpoint_sampling(rng, chain_pos, beadval, real_mass, tau_c, inv_kt, big_p):
 
 
 def make_flat_step(pbeads_r, jval_r, real_mass, beta, beads_sigma_sqrds, 
-                   lft_wall_choices, numchoices, alt_jval_r, t, tau_c, accept_move_fn, L, step_size, inverse_mass_matrix):
+    lft_wall_choices, numchoices, alt_jval_r, t, tau_c, accept_move_fn, L, step_size, inverse_mass_matrix):
   
   
   def r_step(rng, chain_r, state_in_sweep):
@@ -300,12 +300,18 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
     M, Minv, K, alpha, gamma, r, tau_c = make_M_Minv_K(P, t, U, r, beta, hbar,m)
     raw_samples = ss.reshape(num_chains*(num_unadjusted_steps - burn_in), ss.shape[2])
     chi_samples, weights = (jaxmap(lambda s : (xi(s,r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma), s[i]))(raw_samples))
+
+    counts, bin_edges = jnp.histogram(chi_samples, bins=100)
+    normalized_counts = counts / jnp.sum(counts)
+    fourier_transform = jnp.fft.fft(normalized_counts)
+    
+    # fourier transform the histogram
     variance = jnp.mean(chi_samples**2)
     Utilde = variance / (2 *beta)
     true_var = K @ Minv @ K
     var_error = jnp.abs(true_var - variance) / true_var
     # jax.debug.print("var error {x}", x=var_error)
-    return Utilde, var_error
+    return Utilde, var_error, fourier_transform
 
   beads_sigma_sqrds = get_sigma_vals(beta, omega_p, real_mass, jval_r, jnp.zeros(jval_r))
 
@@ -329,7 +335,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
         num_chains=num_chains # this should be at large as possible while still fitting in memory.
         )
   
-  Utilde, _ = get_Utilde(initial_ss[:, burn_in:, :], chain_r, beta)
+  Utilde, _, fourier_transform = get_Utilde(initial_ss[:, burn_in:, :], chain_r, beta)
   old_pot_init = pot_energy(chain_r, Utilde)
 
   
@@ -342,7 +348,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
       return out
     
     rng, sub = jax.random.split(rng)
-    Utilde, var_error = get_Utilde(new_ss[:, burn_in:, :], chain_new, beta)
+    Utilde, var_error, fourier_transform = get_Utilde(new_ss[:, burn_in:, :], chain_new, beta)
     new_pot = pot_energy_fn(chain_new, Utilde)
     delta_V_1 = (new_pot - old_pot)
     flat_ss = new_ss[:, burn_in:, :].reshape(num_chains*(num_unadjusted_steps-burn_in), new_ss.shape[2])
@@ -387,9 +393,9 @@ if __name__ == "__main__":
 
   time_initial = time_module.time()
   # Parameters
-  numsteps = 10000000
+  numsteps = 100
   equilibration = 0
-  num_chains = 1000
+  num_chains = 100
   num_unadjusted_steps = 1
   burn_in = 0 # inner loop burn in
 
