@@ -1,0 +1,11 @@
+C	alpha	bias_type	steps_per_sample	acc_prob	integrator_coefficients	vector_german_credit_numeric_sparse_logistic_regression
+0.1	1.9	3	5			329
+0.1	1.9	3	6			323
+0.1	1.9	3	7			309
+0.1	1.9	3	9			293
+0.1	1.9	3	11			305
+0.1	1.9	3	13			317
+0.1	1.9	3	16			303
+0.1	1.9	3	20			319
+0.1	1.9	3	24			335
+0.1	1.9	3	29			355

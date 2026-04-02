@@ -1,0 +1,11 @@
+C	alpha	bias_type	steps_per_sample	acc_prob	integrator_coefficients	Stochastic_Volatility_MAMS_Paper
+0.1	1.9	3	5			2000
+0.1	1.9	3	6			1880
+0.1	1.9	3	7			1710
+0.1	1.9	3	9			1745
+0.1	1.9	3	11			1515
+0.1	1.9	3	13			1580
+0.1	1.9	3	16			1600
+0.1	1.9	3	20			1400
+0.1	1.9	3	24			1520
+0.1	1.9	3	29			1525

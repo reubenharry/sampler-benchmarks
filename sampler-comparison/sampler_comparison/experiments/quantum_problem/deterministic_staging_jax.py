@@ -4,8 +4,7 @@ import jax.numpy as jnp
 from jax import lax
 import numpy as np
 import matplotlib.pyplot as plt
-import time
-import time
+import time as time_module
 import matplotlib.pyplot as plt
 # from sampling_algorithms import da_adaptation
 import sys
@@ -283,7 +282,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
         Tuple of (updated_carry, sample_value)
       """
       rng, chain_r, ss, old_pot, old_norm = carry
-      jax.debug.print("step_idx {x}", x=step_idx)
+      # jax.debug.print("step_idx {x}", x=step_idx)
 
       # Segment updates over all left walls
       def seg_body(i, inner_carry):
@@ -364,14 +363,14 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
 
     
     true_norm = first_factor * second_factor * third_factor 
+    jax.debug.print("true var vs estimated var {x}", x=jnp.abs(true_var-variance))
     return Utilde, true_norm
     
     
     # jax.debug.print("true vs estimated {x}", x=(true_var, out))
-    # jax.debug.print("true var vs estimated var {x}", x=(true_var, variance))
     # jax.debug.print("true norm vs estimated norm {x}", x=(jnp.log(true_norm), jnp.log(area)))
 
-    return ((true_var / 2) - jnp.log(true_norm)) / beta, true_norm
+    # return ((true_var / 2) - jnp.log(true_norm)) / beta, true_norm
 
   
 
@@ -534,8 +533,11 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
 
 
 if __name__ == "__main__":
+  # report mean and var
+  # save final chi samples: do everything for harmonic and quartic
+  toc = time_module.time()
   # Parameters
-  numsteps = 100000
+  numsteps = 1000
   equilibration = 0
   num_chains = 10000
   num_unadjusted_steps = 2
@@ -548,7 +550,8 @@ if __name__ == "__main__":
 
   hbar = 1.0
   i=1
-  U = lambda x : 0.5*m*(omega**2)*(x**2) + 0.25*(x**4)
+  U = lambda x : 0.5*m*(omega**2)*(x**2)  
+  # 0.25*(x**4)
 
   
   kbt = 1.0  
@@ -563,9 +566,9 @@ if __name__ == "__main__":
   rng, sub = jax.random.split(rng)
   # load r_chain 
 
-  tic = time.time()
+  tic = time_module.time()
 #   for time in [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]:
-  for time in [12.0]:
+  for time in [1.0]:
     if time < 4.0:
       P = 8
     elif time < 8.0:
@@ -579,18 +582,21 @@ if __name__ == "__main__":
     # print(r_chain.shape, "r_chain shape")
     samples_np, std_errs, acc_probs = do_mc_open_chain(rng, numsteps, equilibration, r_chain, P, j_r, m, num_unadjusted_steps, num_chains, t=time)
     print(samples_np.shape)
+    tic = time_module.time()
+    print(time_module.time() - tic, "time of results")
     # save samples  
     dir = '/pscratch/sd/r/reubenh/storage'
-    np.save(f'{dir}/samples_np_quartic_{time}_{j_r}.npy', samples_np)
+    np.save(f'{dir}/samples_np_{time}_{j_r}.npy', samples_np)
+
     # plt.plot(std_errs)
     # plt.savefig(f'std_errs_{time}_{j_r}.png')
     # plt.clf()
     # get running avg of acc_probs
-    running_avg_acc_probs = np.cumsum(acc_probs) / np.arange(1, len(acc_probs) + 1)
-    plt.plot(running_avg_acc_probs)
-    # plt.savefig(f'running_avg_acc_probs_{time}.png')
-    plt.savefig(f'acc_probs_{time}_{j_r}.png')
-    plt.clf()
+    # running_avg_acc_probs = np.cumsum(acc_probs) / np.arange(1, len(acc_probs) + 1)
+    # plt.plot(running_avg_acc_probs)
+    # # plt.savefig(f'running_avg_acc_probs_{time}.png')
+    # plt.savefig(f'acc_probs_{time}_{j_r}.png')
+    # plt.clf()
 
 
   # observable = lambda x : x[0] * x[-1]

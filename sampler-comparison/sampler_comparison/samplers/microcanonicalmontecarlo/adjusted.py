@@ -122,6 +122,7 @@ def adjusted_mclmc(
     incremental_value_transform=None,
     alba_factor=0.3,
     num_alba_steps=None,
+    target_eevpd=5e-4,
 ):
     """
     Args:
@@ -157,7 +158,7 @@ def adjusted_mclmc(
                 unadjusted_mcmc_kernel=blackjax.mclmc.build_kernel(map_integrator_type_to_integrator["mclmc"][integrator_type]),
                 unadjusted_init=blackjax.mclmc.init,
                 logdensity_fn=logdensity_fn,
-                target_eevpd=5e-4,
+                target_eevpd=target_eevpd,
                 num_alba_steps=num_unadjusted_tuning_steps // 3 if num_alba_steps is None else num_alba_steps,
                 v=1.,
                 adjusted_mcmc_kernel=blackjax.adjusted_mclmc_dynamic.build_kernel(integrator=map_integrator_type_to_integrator["mclmc"][integrator_type], L_proposal_factor=L_proposal_factor),

@@ -60,7 +60,7 @@ def with_only_statistics(model, alg, incremental_value_transform=None):
             expectations)
         
         
-    print([model.sample_transformations[trans].ground_truth_mean for trans in model.sample_transformations]
+    print([model.sample_transformations[trans].ground_truth_mean for trans in model.sample_transformations], "GROUND TRUTH MEANS"
         )       
 
     memory_efficient_sampling_alg, transform = store_only_expectation_values(

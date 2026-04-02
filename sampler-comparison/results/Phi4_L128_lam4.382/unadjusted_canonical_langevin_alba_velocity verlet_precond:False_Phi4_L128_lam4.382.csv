@@ -1,7 +1,7 @@
 ,Sampler,Model,num_grads_to_low_error,grads_to_low_error_std,ess_corr,max,statistic,num_tuning_grads,L,step_size,batch_size,tuning_outcome
-0,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,Phi4_L128_lam4.382,inf,,,True,identity,20000.0,0.29709523768209634,0.03268552564461984,2,success
-1,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,Phi4_L128_lam4.382,9420.0,4044.4759266312863,,False,identity,20000.0,0.29709523768209634,0.03268552564461984,2,success
-2,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,Phi4_L128_lam4.382,inf,,,True,square,20000.0,0.29709523768209634,0.03268552564461984,2,success
-3,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,Phi4_L128_lam4.382,10201.0,4680.83972520957,,False,square,20000.0,0.29709523768209634,0.03268552564461984,2,success
-4,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,Phi4_L128_lam4.382,inf,,,True,quartic,20000.0,0.29709523768209634,0.03268552564461984,2,success
-5,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,Phi4_L128_lam4.382,inf,,,False,quartic,20000.0,0.29709523768209634,0.03268552564461984,2,success
+0,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,Phi4_L128_lam4.382,inf,,,True,identity,20000.0,0.490803147958202,0.04051886148303102,8,success
+1,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,Phi4_L128_lam4.382,3745.0,2008.995650667268,,False,identity,20000.0,0.490803147958202,0.04051886148303102,8,success
+2,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,Phi4_L128_lam4.382,inf,,,True,square,20000.0,0.490803147958202,0.04051886148303102,8,success
+3,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,Phi4_L128_lam4.382,3742.0,2253.486263548105,,False,square,20000.0,0.490803147958202,0.04051886148303102,8,success
+4,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,Phi4_L128_lam4.382,inf,,,True,quartic,20000.0,0.490803147958202,0.04051886148303102,8,success
+5,unadjusted_canonical_langevin_alba_velocity verlet_precond:False,Phi4_L128_lam4.382,inf,,,False,quartic,20000.0,0.490803147958202,0.04051886148303102,8,success

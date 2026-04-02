@@ -1,0 +1,11 @@
+C	alpha	bias_type	steps_per_sample	acc_prob	integrator_coefficients	vector_synthetic_item_response_theory
+0.001	1.9	3	15			391.0
+0.002	1.9	3	15			385.0
+0.006	1.9	3	15			222.0
+0.014	1.9	3	15			204.0
+0.035	1.9	3	15			202.0
+0.085	1.9	3	15			382.0
+0.208	1.9	3	15			182.0
+0.506	1.9	3	15			inf
+1.232	1.9	3	15			inf
+3.0	1.9	3	15			inf

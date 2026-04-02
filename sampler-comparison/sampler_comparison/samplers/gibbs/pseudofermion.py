@@ -2,12 +2,12 @@ from functools import partial
 import jax
 import sys
 import os
-print(os.listdir("../../blackjax"))
+# print(os.listdir("../../blackjax"))
 sys.path.append("../../blackjax")
 sys.path.append("../sampler-comparison")
 sys.path.append("../sampler-evaluation")
 sys.path.append("../../src/inference-gym/spinoffs/inference_gym")
-print(os.listdir("../../src/inference-gym/spinoffs/inference_gym"))
+# print(os.listdir("../../src/inference-gym/spinoffs/inference_gym"))
 # from blackjax.util import run_inference_algorithm
 # import blackjax
 # from sampler_comparison.samplers.hamiltonianmontecarlo.nuts_tuning import da_adaptation

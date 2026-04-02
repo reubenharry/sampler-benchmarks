@@ -1,12 +1,21 @@
+# import os
+# # os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"       # defrags GPU memory
+# # os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"      # don't grab all VRAM up front
+# import sys
+# import jax
+# jax.config.update("jax_enable_x64", True)
+
+# batch_size = 128
+# os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=" + str(batch_size)
+# num_cores = jax.local_device_count()
+
 from functools import partial
 import jax
 import jax.numpy as jnp
 from jax import lax
 import numpy as np
 import matplotlib.pyplot as plt
-import time
-import time
-import matplotlib.pyplot as plt
+import time as time_module
 # from sampling_algorithms import da_adaptation
 import sys
 sys.path.append("/global/u1/r/reubenh/blackjax")
@@ -20,9 +29,8 @@ from sampler_comparison.samplers.microcanonicalmontecarlo.unadjusted import (
     unadjusted_mclmc_no_tuning,
 )
 import blackjax
-import time as time_module
 
-
+jaxmap = jax.vmap
 
 def xi(s, r, U, t, P, hbar, gamma):
     term1 = gamma * ((r[2:-1] - r[1:-2]).dot(s[1:] - s[:-1])  + (r[1] - r[0])*s[0] - (r[-1] - r[-2])*s[-1] )
@@ -64,7 +72,7 @@ def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKe
 
     if initial_ss_and_params is not None:
 
-            raw_samples, metadata = jax.vmap(lambda key, pos: 
+            raw_samples, metadata = jaxmap(lambda key, pos: 
                 unadjusted_mclmc_no_tuning(
                     return_samples=True, 
                     # return_only_final=True, 
@@ -84,11 +92,11 @@ def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKe
                 key=key))(jax.random.split(init_key, num_chains), initial_ss_and_params['ss'])
 
             # raw_samples = raw_samples.reshape(num_chains*num_unadjusted_steps, P-1)
-            samples, weights = (jax.vmap(lambda x : (xi(x,r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma), x[i]))(raw_samples.reshape(num_chains*num_unadjusted_steps, P-1)))
+            samples, weights = (jaxmap(lambda x : (xi(x,r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma), x[i]))(raw_samples.reshape(num_chains*num_unadjusted_steps, P-1)))
             return samples, weights, raw_samples
 
     else:
-        raw_samples, metadata = jax.vmap(lambda key: unadjusted_mclmc(
+        raw_samples, metadata = jaxmap(lambda key: unadjusted_mclmc(
             return_samples=True, 
             return_only_final=False,
             num_tuning_steps=5000,
@@ -176,7 +184,7 @@ def endpoint_sampling(rng, chain_pos, beadval, real_mass, tau_c, inv_kt, big_p):
 
 
 def make_flat_step(pbeads_r, jval_r, real_mass, beta, beads_sigma_sqrds, 
-                   lft_wall_choices, numchoices, alt_jval_r, t, tau_c, accept_move_fn, L, step_size, inverse_mass_matrix):
+    lft_wall_choices, numchoices, alt_jval_r, t, tau_c, accept_move_fn, L, step_size, inverse_mass_matrix):
   
   
   def r_step(rng, chain_r, state_in_sweep):
@@ -256,15 +264,31 @@ def make_flat_step(pbeads_r, jval_r, real_mass, beta, beads_sigma_sqrds,
     (proposed_chain_r), new_state_in_sweep = r_step(r_key, chain_r, state_in_sweep)
 
     proposed_ss = ss_step(ss, proposed_chain_r, ss_key)
-    _, chain_r_new, new_ss, new_pot, acc_prob_new = accept_move_fn(
+    _, chain_r_new, new_ss, new_pot, acc_prob_new, var_error = accept_move_fn(
       rng=accept_key, chain_new=proposed_chain_r, chain_current=chain_r, new_ss=proposed_ss, old_ss=ss, old_pot=old_pot)
     # accept or reject
 
-    return (chain_r_new, new_ss, new_pot, new_state_in_sweep), chain_r_new
+    return (chain_r_new, new_ss, new_pot, new_state_in_sweep), (chain_r_new, var_error)
     
 
   return flat_step
 
+
+def make_M_Minv_K(P, t, U, r, beta, hbar,m):
+    tau_c = t - ((beta * hbar * im) / 2)
+
+    alpha = (m*P*beta)/(4*(jnp.abs(tau_c)**2))
+    gamma = (m*P*t)/(hbar * (jnp.abs(tau_c)**2)) 
+
+    M = (jnp.diag(2*alpha  + (beta / (4*P))*jax.vmap(jax.grad(jax.grad(U)))(r[1:-1])) ) - alpha * jnp.diag(jnp.ones(P-2),k=1) - alpha * jnp.diag(jnp.ones(P-2),k=-1)
+
+    Minv = jnp.linalg.inv(M)
+
+    K = gamma * (2*r[1:-1] - r[:-2] - r[2:]) - (t * jax.vmap(jax.grad(U))(r[1:-1]))/(P*hbar)
+
+    print(K.shape, "k shape")
+
+    return M, Minv, K, alpha, gamma, r, tau_c
 
 def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, real_mass, num_unadjusted_steps, num_chains, t):
   tau_c = t - ((beta * hbar * im) / 2)
@@ -272,12 +296,22 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
 
   def get_Utilde(ss,r, beta):
 
-    gamma = (m*P*t)/(hbar * (jnp.abs(tau_c)**2)) 
+    # gamma = (m*P*t)/(hbar * (jnp.abs(tau_c)**2)) 
+    M, Minv, K, alpha, gamma, r, tau_c = make_M_Minv_K(P, t, U, r, beta, hbar,m)
     raw_samples = ss.reshape(num_chains*(num_unadjusted_steps - burn_in), ss.shape[2])
-    chi_samples, weights = (jax.vmap(lambda s : (xi(s,r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma), s[i]))(raw_samples))
+    chi_samples, weights = (jaxmap(lambda s : (xi(s,r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma), s[i]))(raw_samples))
+
+    counts, bin_edges = jnp.histogram(chi_samples, bins=100)
+    normalized_counts = counts / jnp.sum(counts)
+    fourier_transform = jnp.fft.fft(normalized_counts)
+    
+    # fourier transform the histogram
     variance = jnp.mean(chi_samples**2)
     Utilde = variance / (2 *beta)
-    return Utilde
+    true_var = K @ Minv @ K
+    var_error = jnp.abs(true_var - variance) / true_var
+    # jax.debug.print("var error {x}", x=var_error)
+    return Utilde, var_error, fourier_transform
 
   beads_sigma_sqrds = get_sigma_vals(beta, omega_p, real_mass, jval_r, jnp.zeros(jval_r))
 
@@ -301,7 +335,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
         num_chains=num_chains # this should be at large as possible while still fitting in memory.
         )
   
-  Utilde = get_Utilde(initial_ss[:, burn_in:, :], chain_r, beta)
+  Utilde, _, fourier_transform = get_Utilde(initial_ss[:, burn_in:, :], chain_r, beta)
   old_pot_init = pot_energy(chain_r, Utilde)
 
   
@@ -314,11 +348,11 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
       return out
     
     rng, sub = jax.random.split(rng)
-    Utilde = get_Utilde(new_ss[:, burn_in:, :], chain_new, beta)
+    Utilde, var_error, fourier_transform = get_Utilde(new_ss[:, burn_in:, :], chain_new, beta)
     new_pot = pot_energy_fn(chain_new, Utilde)
     delta_V_1 = (new_pot - old_pot)
     flat_ss = new_ss[:, burn_in:, :].reshape(num_chains*(num_unadjusted_steps-burn_in), new_ss.shape[2])
-    expectation_of_log_A = jax.vmap(log_A)(flat_ss).mean()
+    expectation_of_log_A = jaxmap(log_A)(flat_ss).mean()
     exp_pot = jnp.exp(-beta * (delta_V_1 + expectation_of_log_A ))
     rng, sub = jax.random.split(rng)
     randval = jax.random.uniform(sub)
@@ -326,7 +360,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
     updated_r = jnp.where(accept, chain_new, chain_current)
     updated_pot = jnp.where(accept, new_pot, old_pot)
     updated_ss = jnp.where(accept, new_ss, old_ss)
-    return rng, updated_r, updated_ss, updated_pot, jnp.minimum(1.0, exp_pot)
+    return rng, updated_r, updated_ss, updated_pot, jnp.minimum(1.0, exp_pot), var_error
 
   # Precompute integer choices
   numchoices = int(np.floor((pbeads_r - 1) / (jval_r + 1))) + 1
@@ -344,32 +378,35 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
   # Initialize with sweep state (phase=0, wall_index=0)
   init_carry = (chain_r, initial_ss, old_pot_init, (0, 0))
   tic = time_module.time()
+  print(tic, "time of init", step_size)
   keys = jax.random.split(rng, mc_steps)
-  (chain_r_out, ss_out, old_pot_out, final_sweep_state), all_samples = lax.scan(flat_step_fn, init_carry, keys)
-  print(time_module.time() - tic, "time of flat loop")
+  (chain_r_out, ss_out, old_pot_out, final_sweep_state), (all_samples, var_errors) = lax.scan(flat_step_fn, init_carry, keys)
+  print(time_module.time() - tic, chain_r_out[0], "time of flat loop")
  
   
   
 
   samples_np = np.asarray(all_samples[mc_equilibrate:])
-  return samples_np
+  return samples_np, ss_out, var_errors
 
 if __name__ == "__main__":
+
+  time_initial = time_module.time()
   # Parameters
-  numsteps = 10000000
+  numsteps = 100
   equilibration = 0
-  num_chains = 10000
+  num_chains = 100
   num_unadjusted_steps = 1
   burn_in = 0 # inner loop burn in
 
-  P = 16
   j_r = 1
   m = 1.0
   omega = 1.0
 
   hbar = 1.0
   i=1
-  U = lambda x : 0.5*m*(omega**2)*(x**2)
+  U = lambda x : 0.25*(x**4)
+  # 0.5*m*(omega**2)*(x**2)
 
   
   kbt = 1.0  
@@ -384,10 +421,10 @@ if __name__ == "__main__":
   rng, sub = jax.random.split(rng)
   # load r_chain 
 
-  tic = time.time()
-  # for time in [2.0, 3.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]:
+  for time in [9.0]:
   # for time in [1.0, 4.0]:
-  for time in [1.0, 4.0, 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5]:
+  # for time in [8.0]:
+  # for time in [1.0]:
     if time < 4.0:
       P = 8
     elif time < 8.0:
@@ -401,56 +438,14 @@ if __name__ == "__main__":
     # r_chains = np.load(f'/global/homes/r/reubenh/sampler-benchmarks/sampler-comparison/samples_np_{time}.npy')
     # r_chain= jnp.array(r_chains[-1, :])
     # print(r_chain.shape, "r_chain shape")
-    samples_np = do_mc_open_chain(rng, numsteps, equilibration, r_chain, P, j_r, m, num_unadjusted_steps, num_chains, t=time)
-    print(samples_np.shape)
+    samples_np, ss_out, var_errors = do_mc_open_chain(rng, numsteps, equilibration, r_chain, P, j_r, m, num_unadjusted_steps, num_chains, t=time)
+    print(samples_np.shape, ss_out.shape)
     # save samples  
     dir = '/pscratch/sd/r/reubenh/storage'
-    np.save(f'{dir}/samples_np_flat_{time}_{j_r}.npy', samples_np)
-    # plt.plot(std_errs)
-    # plt.savefig(f'std_errs_{time}_{j_r}.png')
-    # plt.clf()
-    # get running avg of acc_probs
-    # running_avg_acc_probs = np.cumsum(acc_probs) / np.arange(1, len(acc_probs) + 1)
-    # plt.plot(running_avg_acc_probs)
-    # # plt.savefig(f'running_avg_acc_probs_{time}.png')
-    # plt.savefig(f'acc_probs_{time}_{j_r}.png')
-    # # plt.clf()
-
-
-  # observable = lambda x : x[0] * x[-1]
-  # observables = jax.vmap(observable)(samples_np)
-  # plt.hist(observables, bins=50)
-  # plt.savefig('the_density.png')
-  # plt.clf()
-
-  # histvals, hist_bin_edges = np.histogram(samples_np, bins=50)
-  # # make histogram
-  # plt.plot(hist_bin_edges[:-1], histvals, label='Monte Carlo Samples')
-  # plt.legend(loc='upper right')
-  # plt.xlabel(r'$u_{P+1}$')
-  # plt.ylabel(r'$N(u_{P+1})$')
-  # plt.title('Estimator for harmonic oscillator density matrix (JAX)')
-  # plt.savefig('the_density.png')
-  # plt.clf()
-
-
-  # print(time.time() - tic, "time")
-  # # Normalize histogram
-  # sum1 = 0.0
-  # for s in range(len(dist_hist)):
-  #   sum1 += dist_hist[s] * (dist_bin_edges[1] - dist_bin_edges[0])
-  # dist_hist = dist_hist / sum1
-
-  # # Plot
-  # ideal_x = np.arange(-7, 7, 0.05)
-  # ideal_prediction_x = np.asarray(get_harmonic_density(jnp.array(ideal_x), 1 / kbt, m, w))
-  # # plt.plot(ideal_x, ideal_prediction_x, linestyle='-', label='Exact', color='blue')
-  # plt.plot(bin_centers(dist_bin_edges), dist_hist, 'o', label=r'$N(u_{P+1})$', color='red')
-  # plt.legend(loc='upper right')
-  # plt.xlabel(r'$u_{P+1}$')
-  # plt.ylabel(r'$N(u_{P+1})$')
-  # plt.title('Estimator for harmonic oscillator density matrix (JAX)')
-  # plt.savefig('the_density.png')
-  # plt.clf()
-
-
+    np.save(f'{dir}/samples_np_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{numsteps}_{j_r}.npy', samples_np)
+    np.save(f'{dir}/ss_out_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{numsteps}_{j_r}.npy', ss_out)
+    np.save(f'{dir}/var_errors_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{numsteps}_{j_r}.npy', var_errors)
+  time_final = time_module.time()
+  print(time_final - time_initial, "time of total")
+  
+ 

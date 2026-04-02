@@ -51,8 +51,8 @@ from sampler_evaluation.models.schwinger import Schwinger
 model_info = {
     IllConditionedGaussian(ndims=2, condition_number=1, eigenvalues='log').name: {
         'pretty_name' : 'Ill-Conditioned Gaussian in 2D, with condition number 1',
-        'batch_size' : 1,
-        'num_steps' : {True : 5000, False : 5000},
+        'batch_size' : 2,
+        'num_steps' : {True : 50000, False : 50000},
         'preferred_statistic' : 'square',
         'max_over_parameters' : False,
         'grid_search_steps' : {True : 400, False : 400}},
@@ -154,6 +154,42 @@ model_info = {
         'preferred_statistic' : 'square',
         'max_over_parameters' : False,
         'grid_search_steps' : {True : 40000, False : 40000}},
+    
+    phi4(16, unreduce_lam(reduced_lam=0.0, side=16)).name: {
+        'pretty_name' : 'Phi4',
+        'batch_size' : 64,
+        'num_steps' : {True : 500, False : 5000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : False,
+        'grid_search_steps' : {True : 40000, False : 40000}},
+    phi4(32, unreduce_lam(reduced_lam=0.0, side=32)).name: {
+        'pretty_name' : 'Phi4',
+        'batch_size' : 64,
+        'num_steps' : {True : 500, False : 10000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : False,
+        'grid_search_steps' : {True : 40000, False : 40000}},
+    phi4(64, unreduce_lam(reduced_lam=0.0, side=64)).name: {
+        'pretty_name' : 'Phi4',
+        'batch_size' : 64,
+        'num_steps' : {True : 500, False : 10000},
+        'preferred_statistic' : 'square',
+        'max_over_parameters' : False,
+        'grid_search_steps' : {True : 40000, False : 40000}},
+    # phi4(128, unreduce_lam(reduced_lam=0.0, side=64)).name: {
+    #     'pretty_name' : 'Phi4',
+    #     'batch_size' : 32,
+    #     'num_steps' : {True : 500, False : 10000},
+    #     'preferred_statistic' : 'square',
+    #     'max_over_parameters' : False,
+    #     'grid_search_steps' : {True : 40000, False : 40000}},
+    # phi4(256, unreduce_lam(reduced_lam=0.0, side=64)).name: {
+    #     'pretty_name' : 'Phi4',
+    #     'batch_size' : 16,
+    #     'num_steps' : {True : 500, False : 10000},
+    #     'preferred_statistic' : 'square',
+    #     'max_over_parameters' : False,
+    #     'grid_search_steps' : {True : 40000, False : 40000}},
     
     phi4(128, unreduce_lam(reduced_lam=4.0, side=128)).name: {
         'pretty_name' : 'Phi4',
