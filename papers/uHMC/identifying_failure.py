@@ -95,7 +95,7 @@ def run_mclmc(model, inv_cov, steps, key,
              inference_algorithm=sampling_alg,
              num_steps= num_saved_steps,
              transform=transform,
-             progress_bar= True,
+             progress_bar= False,
          )[1]
 
     eevpd = jnp.std(info.energy_change)**2 / model.ndims
@@ -114,17 +114,18 @@ if __name__ == '__main__':
         model, inv_cov = StudentT(ndims= 100, dof= dof)
     else:
         p = np.arange(2, 10)[imodel]
-        model, inv_cov = Power(ndims= 100, p = p)
+        model, inv_cov = Power(ndims= 100, p= p)
 
     key = jax.random.key(0)
     keys= jax.random.split(key, 32)
 
-    
-    bias, eevpd = jax.pmap(lambda key: run_mclmc(model, inv_cov, steps=10**7, key = key))(keys)
+    print(imodel)
+    bias, eevpd = jax.pmap(lambda key: run_mclmc(model, inv_cov, steps= 5 * 10**7, key = key))(keys)
     
     scratch = '/pscratch/sd/j/jrobnik/bias/'
 
     jnp.savez(scratch + model.name, bias= bias, eevpd= eevpd)
-
+    
+    print('done')
 
 #shifter --image=jrobnik/sampling:1.0 python3 -m papers.uHMC.identifying_failure
