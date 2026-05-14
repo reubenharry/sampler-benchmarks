@@ -13,6 +13,7 @@ from functools import partial
 import jax
 import jax.numpy as jnp
 from jax import lax
+from jax.scipy.stats import chi2
 import numpy as np
 import matplotlib.pyplot as plt
 import time as time_module
@@ -36,6 +37,31 @@ def xi(s, r, U, t, P, hbar, gamma):
     term1 = gamma * ((r[2:-1] - r[1:-2]).dot(s[1:] - s[:-1])  + (r[1] - r[0])*s[0] - (r[-1] - r[-2])*s[-1] )
     term2 = -(t/(P*hbar))*jnp.sum(jnp.array([U(r[i-1]+(s[i-2]/2)) - U(r[i-1]-(s[i-2]/2)) for i in range (2, P+1)]))
     return term1 + term2
+
+
+def jarque_bera_gaussian_pvalue(x):
+    """Jarque–Bera normality test in pure JAX (JIT/vmap/grad-safe).
+
+    Uses the same biased sample skewness and Fisher excess kurtosis as
+    :func:`scipy.stats.jarque_bera` (asymptotic :math:`\\chi^2(2)` p-value).
+    Works well for moderate ``n`` (e.g. hundreds–thousands of IID chain draws).
+
+    Returns:
+        (jb_statistic, pvalue): large statistic / small p → evidence against Gaussian.
+    """
+    x = jnp.ravel(jnp.asarray(x))
+    n = x.shape[0]
+    mu = jnp.mean(x)
+    xc = x - mu
+    m2 = jnp.mean(xc**2)
+    m3 = jnp.mean(xc**3)
+    m4 = jnp.mean(xc**4)
+    skew_b = m3 / jnp.maximum(m2, jnp.finfo(m2.dtype).tiny) ** 1.5
+    ex_kurt_b = m4 / jnp.maximum(m2, jnp.finfo(m2.dtype).tiny) ** 2 - 3.0
+    jb = (n / 6.0) * (skew_b**2 + 0.25 * (ex_kurt_b**2))
+    p = chi2.sf(jb, df=2)
+    return jb, p
+
 
 
 def sample_s_chi(U, r, t=1, i=1, beta=1, hbar=1, m =1, rng_key=jax.random.PRNGKey(0), sequential=False, sample_init=None, num_unadjusted_steps=100, num_adjusted_steps=100, num_chains=5000, initial_ss_and_params=None):
@@ -264,11 +290,18 @@ def make_flat_step(pbeads_r, jval_r, real_mass, beta, beads_sigma_sqrds,
     (proposed_chain_r), new_state_in_sweep = r_step(r_key, chain_r, state_in_sweep)
 
     proposed_ss = ss_step(ss, proposed_chain_r, ss_key)
-    _, chain_r_new, new_ss, new_pot, acc_prob_new, var_error = accept_move_fn(
+    _, chain_r_new, new_ss, new_pot, acc_prob_new, var_error, jb_stat, jb_pvalue, raw_samples_per_chain, chi_samples_per_chain = accept_move_fn(
       rng=accept_key, chain_new=proposed_chain_r, chain_current=chain_r, new_ss=proposed_ss, old_ss=ss, old_pot=old_pot)
     # accept or reject
 
-    return (chain_r_new, new_ss, new_pot, new_state_in_sweep), (chain_r_new, var_error)
+    return (chain_r_new, new_ss, new_pot, new_state_in_sweep), (
+        chain_r_new,
+        var_error,
+        jb_stat,
+        jb_pvalue,
+        raw_samples_per_chain,
+        chi_samples_per_chain,
+    )
     
 
   return flat_step
@@ -299,11 +332,19 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
     # gamma = (m*P*t)/(hbar * (jnp.abs(tau_c)**2)) 
     M, Minv, K, alpha, gamma, r, tau_c = make_M_Minv_K(P, t, U, r, beta, hbar,m)
     raw_samples = ss.reshape(num_chains*(num_unadjusted_steps - burn_in), ss.shape[2])
+    # One scalar per chain: last inner-step coordinate i (same index as in χ weights).
+    raw_samples_per_chain = ss[:, -1, i]
+    # χ values per draw; Jarque–Bera is JAX-native (see jarque_bera_gaussian_pvalue).
     chi_samples, weights = (jaxmap(lambda s : (xi(s,r=r,U=U,t=t,P=P,hbar=hbar,gamma=gamma), s[i]))(raw_samples))
+    # χ from last inner state only — shape (num_chains,) for stacking as [numsteps, num_chains].
+   
+    jb_stat, jb_pvalue = jarque_bera_gaussian_pvalue(chi_samples)
 
     counts, bin_edges = jnp.histogram(chi_samples, bins=100)
     normalized_counts = counts / jnp.sum(counts)
     fourier_transform = jnp.fft.fft(normalized_counts)
+    
+    print(fourier_transform.shape, "fourier transform shape")
     
     # fourier transform the histogram
     variance = jnp.mean(chi_samples**2)
@@ -311,7 +352,15 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
     true_var = K @ Minv @ K
     var_error = jnp.abs(true_var - variance) / true_var
     # jax.debug.print("var error {x}", x=var_error)
-    return Utilde, var_error, fourier_transform
+    return (
+        Utilde,
+        var_error,
+        fourier_transform,
+        jb_stat,
+        jb_pvalue,
+        raw_samples_per_chain,
+        chi_samples,
+    )
 
   beads_sigma_sqrds = get_sigma_vals(beta, omega_p, real_mass, jval_r, jnp.zeros(jval_r))
 
@@ -335,7 +384,7 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
         num_chains=num_chains # this should be at large as possible while still fitting in memory.
         )
   
-  Utilde, _, fourier_transform = get_Utilde(initial_ss[:, burn_in:, :], chain_r, beta)
+  Utilde, _, fourier_transform, _, _, _, _ = get_Utilde(initial_ss[:, burn_in:, :], chain_r, beta)
   old_pot_init = pot_energy(chain_r, Utilde)
 
   
@@ -348,7 +397,15 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
       return out
     
     rng, sub = jax.random.split(rng)
-    Utilde, var_error, fourier_transform = get_Utilde(new_ss[:, burn_in:, :], chain_new, beta)
+    (
+        Utilde,
+        var_error,
+        fourier_transform,
+        jb_stat,
+        jb_pvalue,
+        raw_samples_per_chain,
+        chi_samples_per_chain,
+    ) = get_Utilde(new_ss[:, burn_in:, :], chain_new, beta)
     new_pot = pot_energy_fn(chain_new, Utilde)
     delta_V_1 = (new_pot - old_pot)
     flat_ss = new_ss[:, burn_in:, :].reshape(num_chains*(num_unadjusted_steps-burn_in), new_ss.shape[2])
@@ -360,7 +417,18 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
     updated_r = jnp.where(accept, chain_new, chain_current)
     updated_pot = jnp.where(accept, new_pot, old_pot)
     updated_ss = jnp.where(accept, new_ss, old_ss)
-    return rng, updated_r, updated_ss, updated_pot, jnp.minimum(1.0, exp_pot), var_error
+    return (
+        rng,
+        updated_r,
+        updated_ss,
+        updated_pot,
+        jnp.minimum(1.0, exp_pot),
+        var_error,
+        jb_stat,
+        jb_pvalue,
+        raw_samples_per_chain,
+        chi_samples_per_chain,
+    )
 
   # Precompute integer choices
   numchoices = int(np.floor((pbeads_r - 1) / (jval_r + 1))) + 1
@@ -380,14 +448,25 @@ def do_mc_open_chain(rng, mc_steps, mc_equilibrate, chain_r, pbeads_r, jval_r, r
   tic = time_module.time()
   print(tic, "time of init", step_size)
   keys = jax.random.split(rng, mc_steps)
-  (chain_r_out, ss_out, old_pot_out, final_sweep_state), (all_samples, var_errors) = lax.scan(flat_step_fn, init_carry, keys)
+  (chain_r_out, ss_out, old_pot_out, final_sweep_state), (
+      all_samples,
+      var_errors,
+      jb_stats,
+      jb_pvalues,
+      raw_samples_chains,
+      chi_samples_chains,
+  ) = lax.scan(flat_step_fn, init_carry, keys)
   print(time_module.time() - tic, chain_r_out[0], "time of flat loop")
  
   
   
 
   samples_np = np.asarray(all_samples[mc_equilibrate:])
-  return samples_np, ss_out, var_errors
+  jb_stats_np = np.asarray(jb_stats[mc_equilibrate:])
+  jb_pvalues_np = np.asarray(jb_pvalues[mc_equilibrate:])
+  raw_samples_np = np.asarray(raw_samples_chains[mc_equilibrate:])
+  chi_samples_np = np.asarray(chi_samples_chains[mc_equilibrate:])
+  return samples_np, ss_out, var_errors, jb_stats_np, jb_pvalues_np, raw_samples_np, chi_samples_np
 
 if __name__ == "__main__":
 
@@ -395,7 +474,7 @@ if __name__ == "__main__":
   # Parameters
   numsteps = 100
   equilibration = 0
-  num_chains = 100
+  num_chains = 20000
   num_unadjusted_steps = 1
   burn_in = 0 # inner loop burn in
 
@@ -438,13 +517,20 @@ if __name__ == "__main__":
     # r_chains = np.load(f'/global/homes/r/reubenh/sampler-benchmarks/sampler-comparison/samples_np_{time}.npy')
     # r_chain= jnp.array(r_chains[-1, :])
     # print(r_chain.shape, "r_chain shape")
-    samples_np, ss_out, var_errors = do_mc_open_chain(rng, numsteps, equilibration, r_chain, P, j_r, m, num_unadjusted_steps, num_chains, t=time)
+    samples_np, ss_out, var_errors, jb_stats, jb_pvalues, raw_samples, chi_samples = do_mc_open_chain(
+        rng, numsteps, equilibration, r_chain, P, j_r, m, num_unadjusted_steps, num_chains, t=time
+    )
     print(samples_np.shape, ss_out.shape)
     # save samples  
     dir = '/pscratch/sd/r/reubenh/storage'
-    np.save(f'{dir}/samples_np_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{numsteps}_{j_r}.npy', samples_np)
-    np.save(f'{dir}/ss_out_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{numsteps}_{j_r}.npy', ss_out)
-    np.save(f'{dir}/var_errors_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{numsteps}_{j_r}.npy', var_errors)
+    np.save(f'{dir}/samples_np_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{numsteps}_{num_chains}_{j_r}.npy', samples_np)
+    np.save(f'{dir}/ss_out_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{numsteps}_{num_chains}_{j_r}.npy', ss_out)
+    np.save(f'{dir}/var_errors_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{numsteps}_{num_chains}_{j_r}.npy', var_errors)
+    np.save(f'{dir}/jb_stats_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{numsteps}_{num_chains}_{j_r}.npy', jb_stats)
+    np.save(f'{dir}/jb_pvalues_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{numsteps}_{num_chains}_{j_r}.npy', jb_pvalues)
+    np.save(f'{dir}/raw_samples_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{numsteps}_{num_chains}_{j_r}.npy', raw_samples)
+    np.save(f'{dir}/chi_samples_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{numsteps}_{num_chains}_{j_r}.npy', chi_samples)
+    print(f'saved samples to {dir}/samples_np_flat_quartic_{time}_{burn_in}_{num_unadjusted_steps}_{numsteps}_{num_chains}_{j_r}.npy')
   time_final = time_module.time()
   print(time_final - time_initial, "time of total")
   

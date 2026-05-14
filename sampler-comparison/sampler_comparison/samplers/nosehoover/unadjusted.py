@@ -1,9 +1,14 @@
+import os
 import sys
-# import os
-# print(os.listdir("../../blackjax"))
-# raise Exception("stop")
-sys.path.append("../../blackjax")
-sys.path.append("../../sampler-benchmarks/sampler-comparison")
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_SAMPLER_COMPARISON_ROOT = os.path.abspath(os.path.join(_HERE, "..", "..", ".."))
+_WORKSPACE_HOME = os.path.abspath(os.path.join(_SAMPLER_COMPARISON_ROOT, "..", ".."))
+_DEV_BLACKJAX = os.path.join(_WORKSPACE_HOME, "blackjax")
+for _p in (_DEV_BLACKJAX, _SAMPLER_COMPARISON_ROOT):
+    if os.path.isdir(_p) and _p not in sys.path:
+        sys.path.insert(0, _p)
+
 import jax
 import jax.numpy as jnp
 import blackjax
@@ -24,6 +29,7 @@ def unadjusted_nosehoover_no_tuning(
     incremental_value_transform=None,
     return_only_final=False,
     Q=None,
+    chain_length: int = 2,
 ):
     """
     Unadjusted Nose-Hoover sampler (no tuning). Uses blackjax.nosehoover.
@@ -38,6 +44,7 @@ def unadjusted_nosehoover_no_tuning(
         incremental_value_transform: Optional transform for expectation accumulation.
         return_only_final: If True, return only the final sample (and info).
         Q: Thermostat mass for Nose-Hoover; if None, blackjax uses g (ndim).
+        chain_length: Number of thermostats M in the Nose-Hoover chain (BlackJAX ``chain_length``).
     Returns:
         A tuple of the form (expectations, stats) where expectations are the
         expectations of the chain and stats are hyperparameters and metadata.
@@ -51,6 +58,7 @@ def unadjusted_nosehoover_no_tuning(
             step_size=step_size,
             inverse_mass_matrix=inverse_mass_matrix,
             Q=Q,
+            chain_length=chain_length,
         )
 
         if return_samples:
@@ -97,6 +105,7 @@ def unadjusted_nosehoover_no_tuning(
                 "num_tuning_grads": 0,
                 "num_grads_per_proposal": num_grads_per_proposal,
                 "inverse_mass_matrix": inverse_mass_matrix,
+                "chain_length": chain_length,
                 "info": info,
             },
         )
@@ -114,7 +123,7 @@ if __name__ == "__main__":
     Model = namedtuple("Model", ["ndims", "log_density_fn", "default_event_space_bijector", "sample_transformations"])
     log_density_fn = lambda z: -0.5 * jnp.sum(z**2)
     model = Model(
-        ndims=2,
+        ndims=10,
         log_density_fn=log_density_fn,
         default_event_space_bijector=lambda x: x,
         sample_transformations={},  # with_only_statistics may expect this
@@ -124,27 +133,41 @@ if __name__ == "__main__":
     initial_position = initialize_model(model, key)
     key, init_key = jax.random.split(key)
 
+    chain_length = 2
     alg = blackjax.nosehoover(
         logdensity_fn=make_log_density_fn(model),
         step_size=0.1,
         inverse_mass_matrix=1.0,
+        chain_length=chain_length,
+        Q=1,
     )
     initial_state = alg.init(initial_position, init_key)
 
     sampler = unadjusted_nosehoover_no_tuning(
         initial_state=initial_state,
         integrator_type="velocity_verlet",  # unused, for API consistency
-        step_size=0.1,
-        L=4,
+        step_size=1.0,
+        L=0.1,
         inverse_mass_matrix=1.0,
+        return_samples=True,
+        Q=1,
+        chain_length=chain_length,
     )
 
     key, run_key = jax.random.split(key)
-    num_steps = 200
-    expectations, meta = sampler(model, num_steps, initial_position, run_key)
+    num_steps = 1000
+    samples, meta = sampler(model, num_steps, initial_position, run_key)
 
-    print("Nose-Hoover sampler run OK")
-    print("  num_steps:", num_steps)
-    print("  L:", meta["L"], "step_size:", meta["step_size"])
-    print("  num_grads_per_proposal:", meta["num_grads_per_proposal"])
-    print("  expectations keys:", list(expectations.keys()) if hasattr(expectations, "keys") else "N/A")
+    print(samples.shape)
+
+    # plot samples
+    import matplotlib.pyplot as plt
+    plt.scatter(samples[:, 0], samples[:, 1])
+    # save plot
+    plt.savefig("nosehoover_samples.png")
+
+    # print("Nose-Hoover sampler run OK")
+    # print("  num_steps:", num_steps)
+    # print("  L:", meta["L"], "step_size:", meta["step_size"])
+    # print("  num_grads_per_proposal:", meta["num_grads_per_proposal"])
+    # print("  expectations keys:", list(expectations.keys()) if hasattr(expectations, "keys") else "N/A")
