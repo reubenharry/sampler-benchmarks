@@ -1,0 +1,19 @@
+{
+ "summary": "NUTS 16 chains x 10000 draws, target acceptance 0.99, ESS(x^2) min 3162, R-hat max 1.0020, reference error floor 3.2e-04",
+ "settings": {
+  "num_chains": 16,
+  "num_warmup": 2000,
+  "num_samples": 10000,
+  "target_acceptance_rate": 0.99
+ },
+ "ess_min": 3162.229103505184,
+ "rhat_max": 1.0019951014957909,
+ "divergent_fraction": 0.0,
+ "reference_error_floor": 0.0003162326217577172,
+ "source_file": "radon_halfnormal_indiana_acc0.99.npz",
+ "compared_rates": [
+  "0.8",
+  "0.95",
+  "0.99"
+ ]
+}

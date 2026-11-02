@@ -1,0 +1,17 @@
+{
+ "summary": "NUTS 8 chains x 3000 draws, target acceptance 0.95, ESS(x^2) min 5280, R-hat max 1.0004, reference error floor 1.9e-04",
+ "settings": {
+  "num_chains": 8,
+  "num_warmup": 1000,
+  "num_samples": 3000,
+  "target_acceptance_rate": 0.95
+ },
+ "ess_min": 5279.987686945679,
+ "rhat_max": 1.0003861850876457,
+ "divergent_fraction": 0.0,
+ "reference_error_floor": 0.00018939438106501934,
+ "source_file": "stochastic_volatility_acc0.95.npz",
+ "compared_rates": [
+  "0.95"
+ ]
+}

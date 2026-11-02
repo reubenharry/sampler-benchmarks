@@ -1,0 +1,19 @@
+{
+ "summary": "NUTS 16 chains x 20000 draws, target acceptance 0.99, ESS(x^2) min 19806, R-hat max 1.0007, reference error floor 5.0e-05",
+ "settings": {
+  "num_chains": 16,
+  "num_warmup": 2000,
+  "num_samples": 20000,
+  "target_acceptance_rate": 0.99
+ },
+ "ess_min": 19805.64428185753,
+ "rhat_max": 1.0007262006664124,
+ "divergent_fraction": 0.0,
+ "reference_error_floor": 5.0490657398912555e-05,
+ "source_file": "brownian_unknown_scales_acc0.99.npz",
+ "compared_rates": [
+  "0.8",
+  "0.95",
+  "0.99"
+ ]
+}
