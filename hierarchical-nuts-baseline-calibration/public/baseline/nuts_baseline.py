@@ -17,6 +17,28 @@ ACCEPTANCE_RATES = (0.8, 0.9, 0.99)  # BlackJAX default, 0.9, 0.99
 MAX_RECORDED_POINTS = 20000  # error curves are thinned to at most this many points per chain
 
 
+def chain_map(fn, num_chains):
+    """Map ``fn`` over the leading chain axis: ``vmap`` on each local device, ``pmap`` across devices.
+
+    The number of devices used is the largest divisor of ``num_chains`` not above the local device count.
+    Per-chain results do not depend on that number. Extra CPU devices are created with
+    ``XLA_FLAGS=--xla_force_host_platform_device_count=N`` before JAX is imported.
+    """
+    devices = jax.local_devices()
+    used = max(k for k in range(1, min(len(devices), num_chains) + 1) if num_chains % k == 0)
+    if used == 1:
+        return jax.jit(jax.vmap(fn))
+    mapped = jax.pmap(jax.vmap(fn), devices=devices[:used])
+    per_device = num_chains // used
+
+    def run(*args):
+        args = jax.tree.map(lambda x: x.reshape((used, per_device) + x.shape[1:]), args)
+        out = mapped(*args)
+        return jax.tree.map(lambda x: x.reshape((num_chains,) + x.shape[2:]), out)
+
+    return run
+
+
 def warmup_chain(logdensity, z0, key, num_warmup, target_acceptance_rate):
     """Window adaptation of one chain.
 
@@ -64,8 +86,8 @@ def warmup_costs(problem, key, num_chains, num_warmup, target_acceptance_rate):
     """Gradient cost of the warmup of ``num_chains`` chains (no production)."""
     init_key, warm_key = jax.random.split(key)
     z0 = jax.vmap(problem.sample_init)(jax.random.split(init_key, num_chains))
-    warm = jax.jit(jax.vmap(lambda z, k: warmup_chain(
-        problem.logdensity, z, k, num_warmup, target_acceptance_rate)))
+    warm = chain_map(lambda z, k: warmup_chain(
+        problem.logdensity, z, k, num_warmup, target_acceptance_rate), num_chains)
     return np.asarray(warm(z0, jax.random.split(warm_key, num_chains))[2])
 
 
@@ -90,14 +112,14 @@ def run_nuts(problem, key, num_chains, num_warmup, target_acceptance_rate, horiz
     observable = lambda z: jnp.square(problem.constrain(z))
     ref_mean, ref_var = jnp.asarray(problem.ref_mean), jnp.asarray(problem.ref_var)
 
-    warm = jax.jit(jax.vmap(lambda z, k: warmup_chain(
-        problem.logdensity, z, k, num_warmup, target_acceptance_rate)))
+    warm = chain_map(lambda z, k: warmup_chain(
+        problem.logdensity, z, k, num_warmup, target_acceptance_rate), num_chains)
     states, params, warmup_cost = warm(z0, jax.random.split(warm_key, num_chains))
     warmup_cost = np.asarray(warmup_cost)
 
     def chunk(states, keys, num_blocks, stride):
-        run = jax.jit(jax.vmap(lambda s, p, k: production_chain(
-            problem.logdensity, observable, ref_mean, ref_var, s, p, k, num_blocks, stride)))
+        run = chain_map(lambda s, p, k: production_chain(
+            problem.logdensity, observable, ref_mean, ref_var, s, p, k, num_blocks, stride), num_chains)
         return run(states, params, keys)
 
     # Cost per transition is unknown in advance: run one block, estimate, then size the full run.

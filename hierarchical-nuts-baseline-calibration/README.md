@@ -9,6 +9,7 @@ Run from this directory (scripts add `public/` to the path); environment pins in
 ```
 python tools/calibrate_nuts.py OUT.jsonl PROBLEM [PROBLEM ...]
 python tools/time_nuts.py PROBLEM CHAINS WARMUP HORIZON [RATE]
+python tools/check_chain_map.py   # sharding check; run with XLA_FLAGS=--xla_force_host_platform_device_count=N
 python -m pytest public/tests/test_hierarchical_and_transform.py
 ```
 
@@ -17,3 +18,8 @@ whose median warmup cost is within `--warmup-cap`-equivalent constant `WARMUP_CO
 10 chains, stage-1 horizon 1M; (2) warmup grid at the fixed rate; (3) final 100-chain run on a new seed, horizon 2M.
 One JSON line per problem is appended to `OUT.jsonl`.
 Problems: `public/models/catalog.py::available_names`.
+
+Chains are sharded over devices by `baseline/nuts_baseline.py::chain_map` (`vmap` per device, `pmap` across devices).
+Create N CPU devices before Python starts, e.g.
+`XLA_FLAGS="--xla_force_host_platform_device_count=20" taskset -c 0-19 python tools/calibrate_nuts.py ...`.
+Sharded runs are not bitwise identical to a single-device run.
